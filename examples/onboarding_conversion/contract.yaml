@@ -1,0 +1,33 @@
+version: "0.1"
+profile: minimum-v0.1
+
+claim:
+  text: "The onboarding redesign improved seven-day activation by 8%."
+  type: causal
+  population: new users
+  time_window: "2026-04-01/2026-06-30"
+  metric:
+    name: seven_day_activation_rate
+    unit: proportion
+    definition: "Users activated within seven days / eligible new users"
+  comparison:
+    baseline: pre_launch
+    comparison: post_launch
+
+evidence:
+  design: observational_before_after
+  sample_size: 18420
+  estimate:
+    value: 0.08
+    scale: relative
+    baseline_value: 0.25
+  uncertainty: null
+  provenance:
+    source: warehouse.funnel_events
+  checks:
+    metric_definition_locked: true
+    missingness_assessed: true
+    composition_stability_assessed: false
+    treatment_assignment_validated: false
+    identifying_assumptions_documented: false
+  caveats: []

@@ -1,0 +1,34 @@
+version: "0.1"
+profile: minimum-v0.1
+
+claim:
+  text: "Seven-day activation was 27% among eligible new users from April through June 2026."
+  type: descriptive
+  population: eligible new users
+  time_window: "2026-04-01/2026-06-30"
+  metric:
+    name: seven_day_activation_rate
+    unit: proportion
+    definition: "Users activated within seven days / eligible new users"
+
+evidence:
+  design: descriptive_summary
+  sample_size: 18420
+  estimate:
+    value: 0.27
+    scale: absolute
+  uncertainty:
+    method: binomial_interval
+    level: 0.95
+    lower: 0.264
+    upper: 0.276
+  provenance:
+    source: warehouse.funnel_events
+  checks:
+    metric_definition_locked: true
+    missingness_assessed: true
+    composition_stability_assessed: true
+    treatment_assignment_validated: false
+    identifying_assumptions_documented: false
+  caveats:
+    - "Descriptive result for the declared population and time window only."
