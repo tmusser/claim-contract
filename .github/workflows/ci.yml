@@ -22,6 +22,13 @@ jobs:
       - run: python -m pip install -e ".[dev]"
       - run: pytest
       - run: claim-contract validate examples/descriptive_summary/contract.yaml
+      - run: claim-contract validate examples/missing_uncertainty/contract.yaml
+      - run: |
+          set +e
+          claim-contract validate examples/missing_uncertainty/contract.yaml --warnings-as-errors
+          code=$?
+          set -e
+          test "$code" -eq 1
       - run: |
           set +e
           claim-contract validate examples/onboarding_conversion/contract.yaml
