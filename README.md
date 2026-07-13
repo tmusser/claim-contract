@@ -1,5 +1,7 @@
 # claim-contract
 
+[![CI](https://github.com/tmusser/claim-contract/actions/workflows/ci.yml/badge.svg)](https://github.com/tmusser/claim-contract/actions/workflows/ci.yml)
+
 A deterministic Python harness for checking whether **declared evidence** meets a **declared minimum contract** for an analytical claim.
 
 > [!IMPORTANT]
@@ -56,6 +58,16 @@ It produces:
 - `BLOCK`: the submitted claim exceeds or violates the declared evidence contract.
 
 These verdicts describe **contract status**, not scientific validity.
+
+## Verdict gallery
+
+| Example | Expected verdict | What it demonstrates |
+| --- | --- | --- |
+| [`descriptive_summary`](examples/descriptive_summary/contract.yaml) | `READY` | A complete descriptive declaration satisfies the implemented minimum rules. |
+| [`missing_uncertainty`](examples/missing_uncertainty/) | `REVIEW` | A comparison estimate still needs uncertainty information or an explicit scope decision. |
+| [`onboarding_conversion`](examples/onboarding_conversion/) | `BLOCK` | Observational before/after evidence does not support causal language. |
+
+The exact verdicts and rule IDs are locked by tests. See the full [example gallery](examples/README.md).
 
 ## Quickstart
 
