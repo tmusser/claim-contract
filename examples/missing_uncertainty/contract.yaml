@@ -1,0 +1,33 @@
+version: "0.1"
+profile: minimum-v0.1
+
+claim:
+  text: "Seven-day activation differed by 0.02 between cohort A and cohort B."
+  type: comparison
+  population: eligible new users
+  time_window: "2026-04-01/2026-06-30"
+  metric:
+    name: seven_day_activation_rate
+    unit: proportion
+    definition: "Users activated within seven days / eligible new users"
+  comparison:
+    baseline: cohort_a
+    comparison: cohort_b
+
+evidence:
+  design: observational_comparison
+  sample_size: 18420
+  estimate:
+    value: 0.02
+    scale: absolute
+  uncertainty: null
+  provenance:
+    source: warehouse.funnel_events
+  checks:
+    metric_definition_locked: true
+    missingness_assessed: true
+    composition_stability_assessed: true
+    treatment_assignment_validated: false
+    identifying_assumptions_documented: false
+  caveats:
+    - "Descriptive cohort comparison; not causal."
