@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+
+- Isolated `REVIEW` example for missing uncertainty.
+- Executable `READY` / `REVIEW` / `BLOCK` example gallery.
+- Parametrized tests that lock example verdicts and exact rule IDs.
+- CI coverage for all three verdict paths and `--warnings-as-errors` behavior.
+
+### Changed
+
+- Added a CI badge and compact verdict gallery to the README.
+
 ## [0.1.0] - 2026-07-12
 
 ### Added
