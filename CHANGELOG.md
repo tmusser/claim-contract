@@ -8,10 +8,17 @@
 - Executable `READY` / `REVIEW` / `BLOCK` example gallery.
 - Parametrized tests that lock example verdicts and exact rule IDs.
 - CI coverage for all three verdict paths and `--warnings-as-errors` behavior.
+- `CC205` multiplicity assessment and handling checks for comparison claims.
+- `CC206` effect-estimate requirement for qualitative magnitude claims.
+- `--json` CLI shortcut for agent and tool-calling workflows.
+- Non-promissory `ROADMAP.md` with explicit feature promotion gates and non-goals.
+- Tests for multiplicity assessment, adjustment/rationale handling, magnitude language, and the JSON alias.
 
 ### Changed
 
 - Added a CI badge and compact verdict gallery to the README.
+- Expanded limitations and agent guidance for the blind spots of multiplicity and magnitude checks.
+- Updated CI to exercise the `--json` alias.
 
 ## [0.1.0] - 2026-07-12
 
