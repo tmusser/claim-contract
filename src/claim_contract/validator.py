@@ -27,6 +27,9 @@ _RELATIVE_PATTERNS = [
     r"\bincreas(?:e|ed)\b",
     r"\bdecreas(?:e|ed)\b",
 ]
+_MAGNITUDE_PATTERNS = [
+    r"\b(?:large|substantial|material|meaningful|major|dramatic|sizeable|sizable|small|modest|negligible|trivial)\b",
+]
 
 
 def _get(data: dict[str, Any], path: str, default: Any = None) -> Any:
@@ -203,6 +206,76 @@ def validate_contract(contract: dict[str, Any]) -> Report:
                 "evidence.checks.composition_stability_assessed",
                 "Composition stability was not assessed for an observational before/after comparison.",
                 "Check whether population or segment mix changed across the comparison window.",
+            )
+        )
+
+    if comparison_required:
+        multiplicity_assessed = _get(
+            contract, "evidence.checks.multiple_comparisons_assessed"
+        )
+        multiplicity = _get(contract, "evidence.multiplicity", {})
+        comparisons = (
+            multiplicity.get("comparisons") if isinstance(multiplicity, dict) else None
+        )
+        adjustment = (
+            multiplicity.get("adjustment") if isinstance(multiplicity, dict) else None
+        )
+        rationale = (
+            multiplicity.get("rationale") if isinstance(multiplicity, dict) else None
+        )
+
+        if multiplicity_assessed is not True:
+            findings.append(
+                _finding(
+                    "CC205",
+                    Severity.REVIEW,
+                    "evidence.checks.multiple_comparisons_assessed",
+                    "Multiple-comparison risk was not declared assessed.",
+                    "Declare whether the claim was selected from multiple tests, outcomes, segments, or variants.",
+                )
+            )
+        elif comparisons is not None and (
+            isinstance(comparisons, bool)
+            or not isinstance(comparisons, (int, float))
+            or comparisons < 1
+        ):
+            findings.append(
+                _finding(
+                    "CC205",
+                    Severity.REVIEW,
+                    "evidence.multiplicity.comparisons",
+                    "The declared comparison count is not a positive number.",
+                    "Provide the number of comparisons considered or omit the field when unknown.",
+                )
+            )
+        elif (
+            comparisons is not None
+            and comparisons > 1
+            and _is_blank(adjustment)
+            and _is_blank(rationale)
+        ):
+            findings.append(
+                _finding(
+                    "CC205",
+                    Severity.REVIEW,
+                    "evidence.multiplicity",
+                    "Multiple comparisons were declared without an adjustment strategy or rationale.",
+                    "Declare an adjustment method or explain why no adjustment was used.",
+                )
+            )
+
+    magnitude_language = _matches_any(claim_text, _MAGNITUDE_PATTERNS)
+    if magnitude_language and (
+        _is_blank(_get(contract, "evidence.estimate.value"))
+        or _is_blank(_get(contract, "evidence.estimate.scale"))
+    ):
+        findings.append(
+            _finding(
+                "CC206",
+                Severity.BLOCK,
+                "evidence.estimate",
+                "Magnitude language lacks a numeric effect estimate on a declared scale.",
+                "Report the estimate value and scale, or remove qualitative magnitude language.",
             )
         )
 
