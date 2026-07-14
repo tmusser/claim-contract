@@ -36,6 +36,14 @@ The initial profile covers a small set of common failure modes. It cannot encode
 
 A `BLOCK` may be conservative. A `READY` may miss a serious flaw. A `REVIEW` is not a recommendation to publish.
 
+## Rule-specific blind spots
+
+The multiplicity rule can only evaluate what the contract declares. It cannot discover undisclosed outcomes, segment fishing, repeated model attempts, abandoned hypotheses, or other hidden researcher degrees of freedom.
+
+The magnitude-language rule uses a narrow vocabulary heuristic. It may miss domain-specific magnitude language, and it may flag words whose meaning depends on context. Supplying a numeric estimate satisfies the declared rule; it does not prove that the chosen scale is substantively appropriate.
+
+These rules improve traceability. They do not reconstruct the full analytical process.
+
 ## Determinism is not expertise
 
 Deterministic output improves reproducibility of the gate. It does not create domain knowledge or statistical judgment.
