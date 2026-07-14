@@ -48,6 +48,9 @@ The initial `minimum-v0.1` profile checks a small set of explicit claim/evidence
 - quasi-experimental claims without documented identifying assumptions;
 - observational before/after comparisons without a composition-stability check;
 - inferential claims without uncertainty information;
+- comparison claims without a declared multiplicity assessment;
+- declared multiple comparisons without an adjustment strategy or rationale;
+- qualitative magnitude claims without a numeric estimate and scale;
 - undeclared missingness or unlocked metric definitions;
 - mandatory qualified human review for every causal claim in `minimum-v0.1`.
 
@@ -137,18 +140,22 @@ evidence:
     composition_stability_assessed: false
     treatment_assignment_validated: false
     identifying_assumptions_documented: false
+    multiple_comparisons_assessed: true
   caveats: []
 ```
 
-The complete runnable example is in [`examples/onboarding_conversion/`](examples/onboarding_conversion/).
+The complete runnable example is in [`examples/onboarding_conversion/`](examples/onboarding_conversion/). See [docs/RULES.md](docs/RULES.md) for the full rule reference and declared multiplicity fields.
 
 ## CLI
 
 ```bash
 claim-contract validate path/to/contract.yaml
+claim-contract validate path/to/contract.yaml --json
 claim-contract validate path/to/contract.yaml --format json
 claim-contract validate path/to/contract.yaml --warnings-as-errors
 ```
+
+`--json` is a shortcut for `--format json` for agent and tool-calling workflows.
 
 Exit behavior:
 
@@ -200,6 +207,10 @@ analysis → claim-contract → bounded claim → chart-contract → audited vis
 ```
 
 Neither tool replaces analytical judgment.
+
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for possible directions and explicit non-goals. The roadmap is intentionally non-promissory: new rules must earn their place with a concrete failure mode, inspectable inputs, tests, and documented blind spots.
 
 ## Development
 
