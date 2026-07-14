@@ -33,6 +33,7 @@ def ready_contract() -> dict:
                 "composition_stability_assessed": True,
                 "treatment_assignment_validated": False,
                 "identifying_assumptions_documented": False,
+                "multiple_comparisons_assessed": True,
             },
             "caveats": ["Descriptive result only."],
         },
@@ -216,3 +217,64 @@ def test_unsupported_profile_errors() -> None:
         assert "Unsupported profile" in str(exc)
     else:
         raise AssertionError("Expected ValueError")
+
+
+def _comparison_contract() -> dict:
+    contract = ready_contract()
+    contract["claim"].update(
+        {
+            "text": "Activation differed between cohort A and cohort B.",
+            "type": "comparison",
+            "comparison": {"baseline": "cohort_a", "comparison": "cohort_b"},
+        }
+    )
+    contract["evidence"]["design"] = "observational_comparison"
+    contract["evidence"]["estimate"] = {"value": 0.02, "scale": "absolute"}
+    return contract
+
+
+def test_comparison_requires_multiple_comparisons_assessment() -> None:
+    contract = _comparison_contract()
+    contract["evidence"]["checks"]["multiple_comparisons_assessed"] = False
+    report = validate_contract(contract)
+    assert report.verdict is Verdict.REVIEW
+    assert "CC205" in rule_ids(report)
+
+
+def test_declared_multiple_comparisons_need_handling() -> None:
+    contract = _comparison_contract()
+    contract["evidence"]["multiplicity"] = {"comparisons": 12}
+    report = validate_contract(contract)
+    assert report.verdict is Verdict.REVIEW
+    assert "CC205" in rule_ids(report)
+
+
+def test_multiple_comparisons_can_use_explicit_rationale() -> None:
+    contract = _comparison_contract()
+    contract["evidence"]["multiplicity"] = {
+        "comparisons": 12,
+        "adjustment": None,
+        "rationale": "Exploratory analysis; no confirmatory error-rate claim is made.",
+    }
+    report = validate_contract(contract)
+    assert report.verdict is Verdict.READY
+    assert "CC205" not in rule_ids(report)
+
+
+def test_magnitude_claim_requires_effect_estimate() -> None:
+    contract = _comparison_contract()
+    contract["claim"]["text"] = "Activation showed a substantial difference between cohorts."
+    contract["evidence"]["estimate"] = {}
+    report = validate_contract(contract)
+    assert report.verdict is Verdict.BLOCK
+    assert "CC206" in rule_ids(report)
+
+
+def test_magnitude_claim_with_estimate_is_eligible() -> None:
+    contract = _comparison_contract()
+    contract["claim"]["text"] = (
+        "Activation showed a substantial 0.02 absolute difference between cohorts."
+    )
+    report = validate_contract(contract)
+    assert report.verdict is Verdict.READY
+    assert "CC206" not in rule_ids(report)
