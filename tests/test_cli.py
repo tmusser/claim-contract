@@ -29,3 +29,17 @@ def test_cli_block_exit_code(capsys) -> None:
     code = main(["validate", str(ROOT / "examples/onboarding_conversion/contract.yaml")])
     assert code == 1
     assert "Verdict: BLOCK" in capsys.readouterr().out
+
+
+def test_cli_json_alias(capsys) -> None:
+    code = main(
+        [
+            "validate",
+            str(ROOT / "examples/descriptive_summary/contract.yaml"),
+            "--json",
+        ]
+    )
+    assert code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["verdict"] == "READY"
+    assert payload["scientific_validation"] is False
