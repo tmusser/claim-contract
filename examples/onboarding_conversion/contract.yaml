@@ -30,4 +30,5 @@ evidence:
     composition_stability_assessed: false
     treatment_assignment_validated: false
     identifying_assumptions_documented: false
+    multiple_comparisons_assessed: true
   caveats: []
