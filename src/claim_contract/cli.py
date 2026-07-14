@@ -18,12 +18,21 @@ def build_parser() -> argparse.ArgumentParser:
 
     validate = subparsers.add_parser("validate", help="Validate a YAML or JSON contract.")
     validate.add_argument("contract", help="Path to the contract file.")
-    validate.add_argument(
+    output = validate.add_mutually_exclusive_group()
+    output.add_argument(
         "--format",
         choices=("text", "json"),
-        default="text",
+        dest="format",
         help="Output format.",
     )
+    output.add_argument(
+        "--json",
+        action="store_const",
+        const="json",
+        dest="format",
+        help="Shortcut for --format json.",
+    )
+    validate.set_defaults(format="text")
     validate.add_argument(
         "--warnings-as-errors",
         action="store_true",
