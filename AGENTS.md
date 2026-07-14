@@ -25,7 +25,8 @@ Never translate `READY` into:
 ## Do not invent evidence
 
 - Do not set a check to `true` unless the input or an executed verification step supports it.
-- Do not infer sample size, provenance, uncertainty, baseline values, diagnostics, or design from plausible context.
+- Do not infer sample size, provenance, uncertainty, baseline values, diagnostics, design, the number of comparisons considered, or a multiplicity adjustment from plausible context.
+- Do not treat a numeric estimate as proof that qualitative magnitude language is substantively justified.
 - Missing evidence must remain missing.
 - Do not downgrade a claim type merely to obtain `READY` without showing the user the changed wording and analytical meaning.
 
@@ -52,4 +53,4 @@ Do not strip these fields to save tokens.
 
 ## No automatic claim laundering
 
-Do not rewrite a blocked causal claim into a softer sentence and present it as approved without rerunning the contract on the revised claim.
+Do not rewrite a blocked causal or magnitude claim into a softer sentence and present it as approved without rerunning the contract on the revised claim.
