@@ -29,5 +29,6 @@ evidence:
     composition_stability_assessed: true
     treatment_assignment_validated: false
     identifying_assumptions_documented: false
+    multiple_comparisons_assessed: true
   caveats:
     - "Descriptive cohort comparison; not causal."
