@@ -17,3 +17,13 @@ claim-contract validate examples/onboarding_conversion/contract.yaml
 ```
 
 These expected verdicts are locked by `tests/test_examples.py`. They describe declared-contract status, not scientific validity.
+
+## Adversarial fixtures
+
+The [`adversarial`](adversarial/) gallery covers three different failure surfaces:
+
+- mechanically `READY` output built from unverified declarations;
+- causal language with undeclared quasi-experimental assumptions;
+- downstream agent prose that converts `READY` into false scientific approval.
+
+These fixtures are locked by `tests/test_adversarial_examples.py`. A `READY` adversarial fixture is intentionally not evidence that the underlying analysis is sound.
