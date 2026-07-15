@@ -1,0 +1,41 @@
+version: "0.1"
+profile: minimum-v0.1
+
+claim:
+  text: "The pricing policy caused churn to decrease by 4 percentage points."
+  type: causal
+  population: eligible subscription accounts
+  time_window: "2026-01-01/2026-06-30"
+  metric:
+    name: ninety_day_churn_rate
+    unit: proportion
+    definition: "Accounts churned within 90 days / eligible subscription accounts"
+  comparison:
+    baseline: untreated_regions
+    comparison: treated_regions
+
+evidence:
+  design: quasi_experiment
+  sample_size: 12640
+  estimate:
+    value: -0.04
+    scale: absolute
+    baseline_value: 0.18
+  uncertainty:
+    method: robust_confidence_interval
+    level: 0.95
+    lower: -0.065
+    upper: -0.015
+  provenance:
+    source: warehouse.subscription_panel
+  multiplicity:
+    comparisons: 1
+  checks:
+    metric_definition_locked: true
+    missingness_assessed: true
+    composition_stability_assessed: true
+    treatment_assignment_validated: false
+    identifying_assumptions_documented: false
+    multiple_comparisons_assessed: true
+  caveats:
+    - "Quasi-experimental result requires qualified analytical review."
