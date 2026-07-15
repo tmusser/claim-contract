@@ -51,6 +51,8 @@ When returning machine-readable results to another agent, include:
 
 Do not strip these fields to save tokens.
 
+The [`agent_misuse`](examples/adversarial/agent_misuse/) fixture contrasts an unsafe summary with a compliant one. The unsafe version is not an alternate style; it is an example of semantic corruption during handoff.
+
 ## No automatic claim laundering
 
 Do not rewrite a blocked causal or magnitude claim into a softer sentence and present it as approved without rerunning the contract on the revised claim.
