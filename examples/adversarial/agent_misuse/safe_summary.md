@@ -1,0 +1,1 @@
+The declared minimum contract is READY under `minimum-v0.1`. This result does not validate the underlying science or analysis. The data, code, declarations, and publication decision still require appropriate human review.
