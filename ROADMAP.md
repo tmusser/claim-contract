@@ -7,9 +7,14 @@ This roadmap records possible directions, not promises or release commitments.
 ## Near-term priorities
 
 - Stabilize `minimum-v0.1` rule semantics and output fields.
-- Add adversarial fixtures for false confidence, undeclared assumptions, and agent misuse.
+- Expand adversarial coverage only when a recurring misuse or blind spot is observed.
 - Improve machine-readable interoperability without weakening the scope notice.
 - Document rule false positives and known blind spots as they are discovered.
+
+## Completed foundations
+
+- Added executable adversarial fixtures for false confidence, undeclared assumptions, and agent misuse.
+- Locked adversarial verdicts, rule IDs, and safe/unsafe agent-summary boundaries in tests.
 
 ## Candidate directions
 
