@@ -28,7 +28,7 @@ The harness consumes declarations. It does not currently execute notebooks, insp
 
 A user or agent can incorrectly declare that a check was completed. The harness may then produce a cleaner result than the underlying work deserves.
 
-For that reason, outputs use the phrase **declared minimum contract** rather than “validated analysis.”
+For that reason, outputs use the phrase **declared minimum contract** rather than “validated analysis.” The [`false_confidence_ready`](examples/adversarial/false_confidence_ready/) fixture deliberately returns `READY` while stating that its export and declared checks were not independently verified.
 
 ## Rules are incomplete and contestable
 
@@ -42,6 +42,8 @@ The multiplicity rule can only evaluate what the contract declares. It cannot di
 
 The magnitude-language rule uses a narrow vocabulary heuristic. It may miss domain-specific magnitude language, and it may flag words whose meaning depends on context. Supplying a numeric estimate satisfies the declared rule; it does not prove that the chosen scale is substantively appropriate.
 
+The identifying-assumptions rule checks whether documentation was declared. It cannot determine whether assumptions such as parallel trends, exclusion restrictions, no interference, or stable treatment are actually credible. See [`undeclared_assumptions`](examples/adversarial/undeclared_assumptions/).
+
 These rules improve traceability. They do not reconstruct the full analytical process.
 
 ## Determinism is not expertise
@@ -49,6 +51,8 @@ These rules improve traceability. They do not reconstruct the full analytical pr
 Deterministic output improves reproducibility of the gate. It does not create domain knowledge or statistical judgment.
 
 Theatrical risk is real: schemas, rule IDs, and colored verdicts can create extra confidence. Consumers should treat formal output as a checklist with receipts, not as a scientific credential.
+
+Downstream agents can still discard the scope notice or translate `READY` into approval. The [`agent_misuse`](examples/adversarial/agent_misuse/) fixture shows an unsafe and a compliant summary of the same result.
 
 ## Intended use
 
