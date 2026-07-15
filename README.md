@@ -72,6 +72,16 @@ These verdicts describe **contract status**, not scientific validity.
 
 The exact verdicts and rule IDs are locked by tests. See the full [example gallery](examples/README.md).
 
+## Adversarial fixtures
+
+The [`examples/adversarial`](examples/adversarial/) gallery exercises the harness where formal output is easiest to overtrust:
+
+- a mechanically `READY` contract whose declarations were not independently verified;
+- a quasi-experimental causal claim with undocumented identifying assumptions;
+- an agent that converts `READY` into false scientific approval.
+
+These fixtures are intentionally not product demos. They make the boundaries executable and lock the safe interpretation in tests.
+
 ## Quickstart
 
 ```bash
