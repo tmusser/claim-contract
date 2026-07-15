@@ -1,0 +1,35 @@
+version: "0.1"
+profile: minimum-v0.1
+
+claim:
+  text: "Customer satisfaction was 92% among survey respondents in June 2026."
+  type: descriptive
+  population: customers who submitted a survey response
+  time_window: "2026-06-01/2026-06-30"
+  metric:
+    name: customer_satisfaction_rate
+    unit: proportion
+    definition: "Satisfied survey responses / submitted survey responses"
+
+evidence:
+  design: descriptive_summary
+  sample_size: 842
+  estimate:
+    value: 0.92
+    scale: absolute
+  uncertainty:
+    method: binomial_interval
+    level: 0.95
+    lower: 0.899
+    upper: 0.936
+  provenance:
+    source: agent_supplied.unverified_export
+  checks:
+    metric_definition_locked: true
+    missingness_assessed: true
+    composition_stability_assessed: true
+    treatment_assignment_validated: false
+    identifying_assumptions_documented: false
+    multiple_comparisons_assessed: true
+  caveats:
+    - "The raw export and declared checks were not independently verified."
