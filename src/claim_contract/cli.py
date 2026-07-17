@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from .formatters import format_json, format_text
+from .formatters import format_json, format_json_error, format_text
 from .io import load_contract
 from .models import Verdict
 from .validator import validate_contract
@@ -49,7 +49,13 @@ def main(argv: list[str] | None = None) -> int:
         contract = load_contract(args.contract)
         report = validate_contract(contract)
     except (FileNotFoundError, ValueError, TypeError) as exc:
-        print(f"Input error: {exc}", file=sys.stderr)
+        message = f"Input error: {exc}"
+        if args.format == "json":
+            # Machine-readable failures stay on stdout so a tool caller receives
+            # exactly one JSON document even when the process exits non-zero.
+            print(format_json_error(message))
+        else:
+            print(message, file=sys.stderr)
         return 2
 
     if args.format == "json":
