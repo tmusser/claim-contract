@@ -53,7 +53,6 @@ class Report:
     verdict: Verdict
     profile: str
     claim_text: str
-    contract_version: str | None = None
     scientific_validation: bool = False
     scope_notice: str = SCOPE_NOTICE
     not_evaluated: list[str] = field(default_factory=lambda: list(NOT_EVALUATED))
@@ -76,7 +75,6 @@ class Report:
                 "version": TOOL_VERSION,
             },
             "contract": {
-                "version": self.contract_version,
                 "profile": self.profile,
             },
             # Existing top-level fields remain for backward compatibility.
