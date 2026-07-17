@@ -32,7 +32,6 @@ Both use `schema_version: "1.0"`.
     "version": "0.1.0"
   },
   "contract": {
-    "version": null,
     "profile": "minimum-v0.1"
   },
   "verdict": "REVIEW",
@@ -100,12 +99,13 @@ Within schema major version `1`:
 
 A change that removes `scientific_validation`, `scope_notice`, or `not_evaluated`, permits `scientific_validation: true`, or changes their meaning requires a new schema major version and is treated as a semantic breaking change.
 
-The package version, report schema version, contract version, and rule profile are separate concepts:
+The package version, report schema version, and rule profile are separate concepts:
 
 - package version: implementation release;
 - report schema version: JSON envelope compatibility;
-- contract version: submitted contract document version, when available;
 - profile: implemented validation-rule semantics.
+
+The submitted contract document may carry its own `version`, but v1 report envelopes do not claim to reproduce that field until the validator explicitly preserves it.
 
 ## Exit codes
 
