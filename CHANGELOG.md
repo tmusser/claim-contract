@@ -15,6 +15,10 @@
 - Tests for multiplicity assessment, adjustment/rationale handling, magnitude language, and the JSON alias.
 - Adversarial fixtures for false confidence, undeclared identifying assumptions, and downstream agent misuse.
 - Tests that lock adversarial verdicts, rule IDs, and safe/unsafe agent-summary boundaries.
+- Versioned `claim_contract.report` and `claim_contract.error` JSON envelopes.
+- Published report and error JSON Schemas.
+- Deterministic finding-count summaries and structured JSON input errors.
+- Schema tests covering every example report and mandatory scope fields.
 
 ### Changed
 
@@ -22,6 +26,8 @@
 - Expanded limitations and agent guidance for the blind spots of multiplicity and magnitude checks.
 - Updated CI to exercise the `--json` alias.
 - Linked the adversarial gallery from the README, examples index, limitations, agent instructions, and roadmap.
+- Strengthened agent handoff requirements for machine-readable output.
+- Documented machine-readable compatibility and semantic-breaking-change rules.
 
 ## [0.1.0] - 2026-07-12
 
