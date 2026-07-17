@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/blob/main/schemas/report-v1.schema.json",
+  "title": "claim-contract report v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "type",
+    "tool",
+    "contract",
+    "verdict",
+    "profile",
+    "claim_text",
+    "scientific_validation",
+    "scope_notice",
+    "not_evaluated",
+    "summary",
+    "findings"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "type": {
+      "const": "claim_contract.report"
+    },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"const": "claim-contract"},
+        "version": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "contract": {
+      "type": "object",
+      "required": ["version", "profile"],
+      "properties": {
+        "version": {
+          "type": ["string", "null"]
+        },
+        "profile": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "verdict": {
+      "enum": ["READY", "REVIEW", "BLOCK"]
+    },
+    "profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim_text": {
+      "type": "string"
+    },
+    "scientific_validation": {
+      "const": false
+    },
+    "scope_notice": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "not scientific validation"
+    },
+    "not_evaluated": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["finding_count", "review_count", "block_count"],
+      "properties": {
+        "finding_count": {"type": "integer", "minimum": 0},
+        "review_count": {"type": "integer", "minimum": 0},
+        "block_count": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule_id", "severity", "path", "message", "action"],
+        "properties": {
+          "rule_id": {"type": "string", "pattern": "^CC[0-9]{3}$"},
+          "severity": {"enum": ["REVIEW", "BLOCK"]},
+          "path": {"type": "string"},
+          "message": {"type": "string", "minLength": 1},
+          "action": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
