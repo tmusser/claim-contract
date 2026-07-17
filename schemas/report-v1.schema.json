@@ -35,11 +35,8 @@
     },
     "contract": {
       "type": "object",
-      "required": ["version", "profile"],
+      "required": ["profile"],
       "properties": {
-        "version": {
-          "type": ["string", "null"]
-        },
         "profile": {
           "type": "string",
           "minLength": 1
