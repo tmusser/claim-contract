@@ -174,9 +174,24 @@ Exit behavior:
 - `BLOCK` exits `1`.
 - malformed input exits `2`.
 
-Machine-readable reports also set `scientific_validation: false` unconditionally.
+## Machine-readable contract
 
-Every output format includes the scope notice and the list of categories not evaluated.
+JSON reports use the versioned type `claim_contract.report`; JSON input failures use `claim_contract.error`. Both currently use `schema_version: "1.0"` and emit exactly one JSON document to stdout.
+
+Every JSON document requires:
+
+- `scientific_validation: false`;
+- the fixed `scope_notice`;
+- a non-empty `not_evaluated` list.
+
+Reports also include tool/contract metadata and deterministic finding counts. Input errors requested with `--json` retain the same scope fields instead of falling back to unstructured stderr text.
+
+Published schemas:
+
+- [`schemas/report-v1.schema.json`](schemas/report-v1.schema.json)
+- [`schemas/error-v1.schema.json`](schemas/error-v1.schema.json)
+
+See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md) for compatibility guarantees, error envelopes, and consumer guidance. The test suite validates every example report and proves that removing the scope notice or setting `scientific_validation` to `true` fails schema validation.
 
 ## Python API
 
