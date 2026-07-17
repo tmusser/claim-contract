@@ -38,18 +38,22 @@ A `REVIEW` verdict means human judgment is still required. Do not summarize it a
 
 `BLOCK` means the submitted claim violates the selected minimum contract. It does not prove the claim is false. The contract may be incomplete or conservative.
 
-## Preserve the scope notice
+## Preserve the machine-readable envelope
 
-When returning machine-readable results to another agent, include:
+When returning machine-readable results to another agent, preserve:
 
-- `verdict`
-- `profile`
-- `scientific_validation` (which is always `false`)
-- `scope_notice`
-- `not_evaluated`
-- all non-PASS findings
+- `schema_version` and `type`;
+- `tool` and `contract` metadata;
+- `verdict`, `profile`, and `claim_text` for reports;
+- `scientific_validation` (which is always `false`);
+- `scope_notice`;
+- `not_evaluated`;
+- `summary` and every non-PASS finding;
+- the structured `error` object for error envelopes.
 
-Do not strip these fields to save tokens.
+Do not strip these fields to save tokens. Do not construct a replacement “compact” object that omits the interpretation boundary.
+
+Consumers should accept additive fields within the same schema major version and ignore fields they do not recognize. See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md).
 
 The [`agent_misuse`](examples/adversarial/agent_misuse/) fixture contrasts an unsafe summary with a compliant one. The unsafe version is not an alternate style; it is an example of semantic corruption during handoff.
 
