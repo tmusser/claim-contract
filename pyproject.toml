@@ -23,7 +23,10 @@ Repository = "https://github.com/tmusser/claim-contract"
 Issues = "https://github.com/tmusser/claim-contract/issues"
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0.0"]
+dev = [
+  "jsonschema>=4.23.0",
+  "pytest>=8.0.0",
+]
 
 [project.scripts]
 claim-contract = "claim_contract.cli:main"
