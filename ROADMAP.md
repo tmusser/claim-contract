@@ -8,13 +8,15 @@ This roadmap records possible directions, not promises or release commitments.
 
 - Stabilize `minimum-v0.1` rule semantics and output fields.
 - Expand adversarial coverage only when a recurring misuse or blind spot is observed.
-- Improve machine-readable interoperability without weakening the scope notice.
 - Document rule false positives and known blind spots as they are discovered.
 
 ## Completed foundations
 
 - Added executable adversarial fixtures for false confidence, undeclared assumptions, and agent misuse.
 - Locked adversarial verdicts, rule IDs, and safe/unsafe agent-summary boundaries in tests.
+- Added versioned machine-readable report and error envelopes.
+- Published JSON Schemas that require the scope notice, `not_evaluated`, and `scientific_validation: false`.
+- Added structured JSON input errors and compatibility tests across every example contract.
 
 ## Candidate directions
 
