@@ -20,14 +20,21 @@ The profile name identifies a versioned set of implemented rules. It is not a qu
 
 ## Stable output requirements
 
-All reports must include:
+All machine-readable reports must include:
 
+- `schema_version` and document `type`;
+- tool and contract metadata;
 - the submitted claim text;
 - the selected profile;
 - the verdict;
 - `scientific_validation: false`;
 - the fixed scope notice;
-- non-PASS findings with stable rule IDs;
-- categories the harness did not evaluate.
+- categories the harness did not evaluate;
+- deterministic finding counts;
+- non-PASS findings with stable rule IDs.
 
-Removing the scope notice or `not_evaluated` list is considered a breaking change in meaning, even if the JSON schema remains technically compatible.
+Machine-readable input errors must retain the same `scientific_validation`, `scope_notice`, and `not_evaluated` fields.
+
+Removing the scope notice or `not_evaluated` list, permitting `scientific_validation: true`, or changing their meaning is a semantic breaking change even if a consumer could still parse the JSON.
+
+See [MACHINE_READABLE.md](MACHINE_READABLE.md) and the versioned schemas in [`schemas/`](../schemas/).
