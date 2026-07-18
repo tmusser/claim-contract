@@ -19,6 +19,7 @@
 - Published report and error JSON Schemas.
 - Deterministic finding-count summaries and structured JSON input errors.
 - Schema tests covering every example report and mandatory scope fields.
+- A package-build CI job that builds both distributions, checks metadata, installs the wheel in isolation, and smoke-tests the installed CLI.
 
 ### Changed
 
@@ -28,6 +29,8 @@
 - Linked the adversarial gallery from the README, examples index, limitations, agent instructions, and roadmap.
 - Strengthened agent handoff requirements for machine-readable output.
 - Documented machine-readable compatibility and semantic-breaking-change rules.
+- Hardened CI with read-only permissions, disabled checkout credentials, pip caching, concurrency cancellation, job timeouts, and a complete Python 3.10-3.13 matrix.
+- Made pytest fail closed on unknown configuration, undeclared markers, and unexpected `xfail` passes.
 
 ## [0.1.0] - 2026-07-12
 
