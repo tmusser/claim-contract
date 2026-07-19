@@ -159,13 +159,14 @@ The complete runnable example is in [`examples/onboarding_conversion/`](examples
 ## CLI
 
 ```bash
+claim-contract --version
 claim-contract validate path/to/contract.yaml
 claim-contract validate path/to/contract.yaml --json
 claim-contract validate path/to/contract.yaml --format json
 claim-contract validate path/to/contract.yaml --warnings-as-errors
 ```
 
-`--json` is a shortcut for `--format json` for agent and tool-calling workflows.
+`--json` is a shortcut for `--format json` for agent and tool-calling workflows. `--version` prints the installed package version without requiring a contract file.
 
 Exit behavior:
 
