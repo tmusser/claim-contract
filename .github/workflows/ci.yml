@@ -55,6 +55,7 @@ jobs:
 
       - name: Exercise CLI verdict and output paths
         run: |
+          claim-contract --version
           claim-contract validate examples/descriptive_summary/contract.yaml
           claim-contract validate examples/descriptive_summary/contract.yaml --json > /dev/null
           claim-contract validate examples/missing_uncertainty/contract.yaml
@@ -103,13 +104,20 @@ jobs:
           .venv-smoke/bin/python -m pip install --upgrade pip
           .venv-smoke/bin/python -m pip install dist/*.whl
           .venv-smoke/bin/python -m pip check
+          .venv-smoke/bin/claim-contract --version > version.txt
           .venv-smoke/bin/claim-contract validate examples/descriptive_summary/contract.yaml --json > report.json
 
-      - name: Verify installed CLI preserves scope fields
+      - name: Verify installed CLI metadata and scope fields
         run: |
           .venv-smoke/bin/python - <<'PY'
           import json
           from pathlib import Path
+
+          from claim_contract.metadata import TOOL_NAME, TOOL_VERSION
+
+          assert Path("version.txt").read_text(encoding="utf-8").strip() == (
+              f"{TOOL_NAME} {TOOL_VERSION}"
+          )
 
           payload = json.loads(Path("report.json").read_text(encoding="utf-8"))
           assert payload["type"] == "claim_contract.report"
