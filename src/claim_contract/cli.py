@@ -5,14 +5,20 @@ import sys
 
 from .formatters import format_json, format_json_error, format_text
 from .io import load_contract
+from .metadata import TOOL_NAME, TOOL_VERSION
 from .models import Verdict
 from .validator import validate_contract
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="claim-contract",
+        prog=TOOL_NAME,
         description="Validate a declared minimum contract for an analytical claim.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"{TOOL_NAME} {TOOL_VERSION}",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
