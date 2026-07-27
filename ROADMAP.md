@@ -28,6 +28,8 @@ These require evidence before promotion:
 - A shared handoff format from `claim-contract` to `chart-contract`.
 - Better reporting for profile/rule compatibility across versions.
 
+Candidate features stay here. Empirical claims about whether the harness or its interfaces actually improve agent behavior, catch enough violations, or reduce overclaiming belong in the machine-readable [`claims/ledger.yaml`](claims/ledger.yaml), where support and refutation conditions are frozen before the evidence intended to settle them is observed.
+
 ## Explicit non-goals
 
 The roadmap does not include:
