@@ -60,3 +60,19 @@ The [`agent_misuse`](examples/adversarial/agent_misuse/) fixture contrasts an un
 ## No automatic claim laundering
 
 Do not rewrite a blocked causal or magnitude claim into a softer sentence and present it as approved without rerunning the contract on the revised claim.
+
+## Open claim ledger
+
+The repository-level [`claims/ledger.yaml`](claims/ledger.yaml) is a separate evidence backlog for product and research claims that have not been earned yet.
+
+When adjudicating a ledger entry:
+
+- use only the recorded scope, frozen `support_if` / `refute_if` conditions, and referenced evidence;
+- do not infer missing benchmark results, labels, sample sizes, model settings, or other evidence;
+- use `SUPPORT_MET` / `REFUTE_MET` only for the recorded scoped condition, never as synonyms for “proven,” “true,” or “false”;
+- use `INCONCLUSIVE` when evaluated evidence meets neither frozen condition cleanly;
+- leave the claim `OPEN` when required evidence has not actually been evaluated;
+- record exact evidence references and judge provenance when changing status;
+- create a new claim ID if the claim or judge rule changes materially after evidence has been observed rather than moving the goalposts in place.
+
+See [docs/CLAIM_LEDGER.md](docs/CLAIM_LEDGER.md) for the full workflow.

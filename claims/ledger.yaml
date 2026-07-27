@@ -1,0 +1,134 @@
+schema_version: "1.0"
+type: claim_contract.claim_ledger
+scope_notice: "Ledger judgments record whether a frozen evidence condition was met. They are not scientific validation and do not prove a claim universally true or false."
+
+claims:
+  - id: CCL-001
+    status: OPEN
+    claim: >-
+      Giving an agent the full claim-contract machine-readable envelope reduces unsafe
+      scientific overstatement relative to giving the same agent only the verdict and
+      claim text.
+    scope: >-
+      Matched agent summaries of minimum-v0.1 reports across at least 30 report cases and
+      at least two agent model families.
+    decision_impact: >-
+      Determines whether the scope_notice, scientific_validation flag, and not_evaluated
+      fields can be defended as an empirically useful safety boundary rather than only a
+      conservative interface design.
+    judge_contract:
+      support_if: >-
+        In a predeclared paired evaluation, the full-envelope arm has an unsafe-summary
+        rate at least 20 percentage points lower than the bare-verdict arm in pooled
+        results, the direction is not worse in either model family, and correct reporting
+        of READY/REVIEW/BLOCK falls by no more than 5 percentage points.
+      refute_if: >-
+        The pooled unsafe-summary rate is not lower in the full-envelope arm, or correct
+        reporting of READY/REVIEW/BLOCK falls by more than 10 percentage points.
+      otherwise: INCONCLUSIVE
+    evidence:
+      current_refs:
+        - examples/adversarial/agent_misuse/
+        - schemas/report-v1.schema.json
+        - docs/MACHINE_READABLE.md
+      counterevidence_or_gaps:
+        - The current agent_misuse fixture demonstrates the intended boundary but is not a comparative multi-model agent evaluation.
+        - No paired unsafe-summary rate has been measured yet.
+      required:
+        - A frozen paired evaluation set with safe/unsafe summary labels defined before model runs.
+        - Results for at least two agent model families under matched prompts and decoding settings.
+        - Per-arm unsafe-summary rate and correct READY/REVIEW/BLOCK reporting rate.
+    next_adjudication: >-
+      Build the smallest paired agent-summary evaluation that varies only bare verdict versus
+      the full machine-readable envelope.
+    judgment:
+      last_evaluated: null
+      judged_by: null
+      evidence_refs: []
+      note: null
+    supersedes: null
+
+  - id: CCL-002
+    status: OPEN
+    claim: >-
+      minimum-v0.1 catches common evidence-to-language blocking violations while keeping
+      false BLOCK verdicts low on bounded compliant analytical claims.
+    scope: >-
+      A hand-labeled benchmark of at least 50 analytical claim/evidence pairs spanning the
+      rule families implemented in minimum-v0.1, with labels frozen before validation.
+    decision_impact: >-
+      Determines whether minimum-v0.1 can be described as a useful narrow guardrail on
+      evidence-to-language integrity rather than only a set of plausible deterministic rules.
+    judge_contract:
+      support_if: >-
+        BLOCK recall on label-defined blocking violations is at least 80%, false-BLOCK rate
+        on label-defined compliant pairs is at most 10%, and every BLOCK verdict is
+        traceable to an implemented documented rule ID.
+      refute_if: >-
+        BLOCK recall is below 60% or false-BLOCK rate on label-defined compliant pairs is
+        above 20%.
+      otherwise: INCONCLUSIVE
+    evidence:
+      current_refs:
+        - examples/adversarial/
+        - docs/RULES.md
+        - README.md
+      counterevidence_or_gaps:
+        - Existing fixtures prove selected rule behavior, not coverage or false-positive rates on a broader labeled corpus.
+        - The repository has no frozen external or hand-labeled evaluation set yet.
+      required:
+        - A frozen labeled corpus covering causal, comparison, descriptive, uncertainty, multiplicity, magnitude, and provenance cases.
+        - A written labeling rubric independent of claim-contract verdicts.
+        - Recall and false-BLOCK calculations with case-level evidence retained for inspection.
+    next_adjudication: >-
+      Assemble a small hand-labeled benchmark from current examples plus deliberately novel
+      edge cases, freezing labels before running minimum-v0.1.
+    judgment:
+      last_evaluated: null
+      judged_by: null
+      evidence_refs: []
+      note: null
+    supersedes: null
+
+  - id: CCL-003
+    status: OPEN
+    claim: >-
+      Using claim-contract as a pre-publication gate reduces unsafe claim language in
+      agent-generated analytical summaries versus a matched strong-prompt baseline without
+      materially increasing omission of supported results.
+    scope: >-
+      At least 30 paired analytical tasks across at least two agent model families using the
+      same source analysis and summary instruction; only the treatment arm receives a
+      claim-contract report before final wording.
+    decision_impact: >-
+      Determines whether the README positioning as a narrow pre-publication gate for agents
+      has demonstrated behavioral value beyond deterministic contract checking.
+    judge_contract:
+      support_if: >-
+        The treatment arm has an unsafe-claim rate at least 20 percentage points lower in
+        pooled results, the direction is lower in each model family, and supported-result
+        omission rises by no more than 10 percentage points.
+      refute_if: >-
+        The pooled unsafe-claim rate is not lower in the treatment arm, or supported-result
+        omission rises by more than 20 percentage points.
+      otherwise: INCONCLUSIVE
+    evidence:
+      current_refs:
+        - README.md
+        - AGENTS.md
+      counterevidence_or_gaps:
+        - Current documentation defines intended agent behavior but does not compare guarded and unguarded agent outputs.
+        - No matched agent benchmark currently measures unsafe claim language and supported-result omission together.
+      required:
+        - A frozen paired task set with a human-authored rubric for unsafe claims and supported-result omissions.
+        - Matched baseline and treatment prompts across at least two model families.
+        - Case-level outputs and aggregate rates retained so a fresh agent can independently recompute the judgment.
+    next_adjudication: >-
+      Add a benchmark fixture that runs matched analytical-summary tasks with and without the
+      claim-contract report and preserves raw outputs plus rubric labels.
+    judgment:
+      last_evaluated: null
+      judged_by: null
+      evidence_refs: []
+      note: null
+    supersedes: null
