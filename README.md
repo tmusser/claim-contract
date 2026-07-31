@@ -82,13 +82,33 @@ The [`examples/adversarial`](examples/adversarial/) gallery exercises the harnes
 
 These fixtures are intentionally not product demos. They make the boundaries executable and lock the safe interpretation in tests.
 
-## Quickstart
+## Install and try it
+
+Requires Python 3.10+.
+
+Install the CLI directly from GitHub:
 
 ```bash
-python -m pip install -e ".[dev]"
-claim-contract validate examples/onboarding_conversion/contract.yaml
-pytest
+python -m pip install "git+https://github.com/tmusser/claim-contract.git"
+claim-contract --version
 ```
+
+If you prefer an isolated CLI environment, `pipx` works too:
+
+```bash
+pipx install "git+https://github.com/tmusser/claim-contract.git"
+```
+
+To run the bundled examples, clone the repository and install the package without development dependencies:
+
+```bash
+git clone https://github.com/tmusser/claim-contract.git
+cd claim-contract
+python -m pip install .
+claim-contract validate examples/onboarding_conversion/contract.yaml
+```
+
+Contributor setup and tests are documented in [Development](#development).
 
 Representative output:
 
