@@ -28,9 +28,9 @@ Central burden:
 Foils:
 1. FOIL — the post-launch population differed materially from the pre-launch population.
    Why it competes: a composition shift could change activation even if the redesign had no causal effect.
-   Evidence for: composition stability is explicitly unassessed.
+   Evidence for: none supplied.
    Evidence against: none supplied.
-   UNKNOWN: whether relevant user characteristics or acquisition mix were stable across periods.
+   UNKNOWN: composition stability was not assessed, so whether relevant user characteristics or acquisition mix were stable across periods remains unknown.
    DISCRIMINATOR: compare pre/post composition on activation-relevant covariates or another predeclared composition diagnostic.
 
 2. FOIL — another time-varying change coincident with launch explains some or all of the observed increase.
