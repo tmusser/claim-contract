@@ -4,6 +4,9 @@
 
 ### Added
 
+- Optional `claim-foil` skill for bounded adversarial stress-testing before deterministic contract validation.
+- Worked `claim-foil` example that separates observed evidence, rival explanations, unknowns, and discriminating evidence.
+- Repository test coverage that locks the skill's non-verdict and missing-evidence safety boundaries.
 - Isolated `REVIEW` example for missing uncertainty.
 - Executable `READY` / `REVIEW` / `BLOCK` example gallery.
 - Parametrized tests that lock example verdicts and exact rule IDs.

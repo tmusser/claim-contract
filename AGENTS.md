@@ -61,6 +61,21 @@ The [`agent_misuse`](examples/adversarial/agent_misuse/) fixture contrasts an un
 
 Do not rewrite a blocked causal or magnitude claim into a softer sentence and present it as approved without rerunning the contract on the revised claim.
 
+## Claim-foil boundary
+
+The optional [`claim-foil`](skills/claim-foil/SKILL.md) skill is an upstream adversarial reasoning step, not another validator.
+
+When using it:
+
+- keep `OBSERVED`, `FOIL`, `UNKNOWN`, and `DISCRIMINATOR` visibly distinct;
+- treat every foil as a hypothesis until supplied evidence bears on it;
+- do not convert an unresolved foil into a claim that the original assertion is false;
+- do not mark a contract field complete merely because the skill named a useful discriminator;
+- do not let `claim-foil` emit or reinterpret `READY`, `REVIEW`, or `BLOCK`;
+- run the deterministic contract normally after the foil pass if a contract verdict is needed.
+
+See [`skills/claim-foil/EXAMPLE.md`](skills/claim-foil/EXAMPLE.md) for a worked example against the existing onboarding conversion fixture.
+
 ## Open claim ledger
 
 The repository-level [`claims/ledger.yaml`](claims/ledger.yaml) is a separate evidence backlog for product and research claims that have not been earned yet.
