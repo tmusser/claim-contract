@@ -242,17 +242,27 @@ A safe agent summary is:
 
 > The declared minimum contract is READY under `minimum-v0.1`. This result does not validate the underlying science or analysis.
 
+### Optional `claim-foil` skill
+
+The repository also ships [`skills/claim-foil/SKILL.md`](skills/claim-foil/SKILL.md), an upstream adversarial reasoning step for proposed analytical claims.
+
+`claim-foil` generates the 1-3 strongest materially distinct rival explanations it can justify exploring from the supplied context, keeps `OBSERVED` evidence separate from generated `FOIL` hypotheses, and requires a concrete `DISCRIMINATOR` for every retained foil. It deliberately does **not** produce a contract verdict or treat a foil as refutation.
+
+See the [worked onboarding example](skills/claim-foil/EXAMPLE.md).
+
 ## Relationship to chart-contract
+
+`claim-foil` stress-tests **alternative interpretations before validation**.
 
 `claim-contract` checks **evidence-to-language integrity**.
 
 `chart-contract` checks **claim-to-visual integrity**.
 
 ```text
-analysis → claim-contract → bounded claim → chart-contract → audited visual
+analysis → claim-foil → claim-contract → bounded claim → chart-contract → audited visual
 ```
 
-Neither tool replaces analytical judgment.
+`claim-foil` is optional. Neither skill nor contract replaces analytical judgment.
 
 ## Roadmap
 
