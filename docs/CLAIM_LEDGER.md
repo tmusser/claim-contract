@@ -63,8 +63,11 @@ Each claim has a `provenance` block:
   generation time was not retained; do not substitute a later commit timestamp.
 - `recorded_at` — the timestamp when the claim first entered a durable ledger or equivalent
   retained record.
-- `origin_refs` — durable references to the source of the claim, such as a conversation
-  artifact, issue, pull request, commit, or other retained record.
+- `record_ref` — a durable reference to that first retained record, such as the commit that
+  first added the claim to the ledger.
+- `origin_refs` — references to the actual originating conversation, issue, pull request, or
+  other source when retained. This array may be empty when the true origin was not preserved;
+  do not substitute the first durable record for an unknown origin.
 - `context_snapshot.repository_revision` — the full repository commit SHA that anchors the
   surrounding repository state used to understand the claim.
 - `context_snapshot.refs` — the specific files or artifacts that materially shaped the claim
@@ -81,10 +84,11 @@ Treat creation provenance as frozen metadata. If a historical field cannot be es
 record the gap explicitly rather than inferring it. Do not rewrite provenance merely because
 later evidence or repository changes make a different origin story more convenient.
 
-The original CCL-001 through CCL-003 entries predate schema `1.1`. Their `recorded_at` and
-repository revision are backfilled from commit `0c2cea01537cf90dcc224614f2e35d4e1b2916fb`,
-which first recorded the ledger on 2026-07-27. Their earlier conversational generation times
-were not retained, so `generated_at` remains `null`.
+The original CCL-001 through CCL-003 entries predate schema `1.1`. Their `recorded_at`,
+`record_ref`, and repository revision are backfilled from commit
+`0c2cea01537cf90dcc224614f2e35d4e1b2916fb`, which first recorded the ledger on 2026-07-27.
+Their earlier conversational generation times and source transcripts were not retained, so
+`generated_at` remains `null` and `origin_refs` remains empty.
 
 ## Adding a claim
 
@@ -92,8 +96,9 @@ were not retained, so `generated_at` remains `null`.
 2. Assign the next unused stable ID, such as `CCL-004`. Never recycle IDs.
 3. Freeze creation provenance before collecting the evidence intended to settle the claim:
    - record `generated_at` when known;
-   - record `recorded_at` when the durable entry is created;
-   - retain at least one durable `origin_ref`;
+   - record `recorded_at` and `record_ref` when the durable entry is created;
+   - retain actual `origin_refs` when available, but leave the array empty rather than
+     inventing an origin;
    - pin the repository context with a full commit SHA and the smallest relevant reference
      set.
 4. Name the scope before collecting the evidence intended to settle the claim.
