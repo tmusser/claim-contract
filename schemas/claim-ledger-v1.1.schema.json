@@ -44,7 +44,7 @@
           "provenance": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["generated_at", "recorded_at", "origin_refs", "context_snapshot"],
+            "required": ["generated_at", "recorded_at", "record_ref", "origin_refs", "context_snapshot"],
             "properties": {
               "generated_at": {
                 "type": ["string", "null"],
@@ -54,9 +54,12 @@
                 "type": "string",
                 "format": "date-time"
               },
+              "record_ref": {
+                "type": "string",
+                "minLength": 1
+              },
               "origin_refs": {
                 "type": "array",
-                "minItems": 1,
                 "uniqueItems": true,
                 "items": {
                   "type": "string",
