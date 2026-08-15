@@ -69,7 +69,8 @@ def test_live_claims_preserve_creation_provenance() -> None:
         provenance = claim["provenance"]
         assert isinstance(provenance, dict)
         assert provenance["recorded_at"]
-        assert provenance["origin_refs"]
+        assert provenance["record_ref"]
+        assert isinstance(provenance["origin_refs"], list)
 
         context = provenance["context_snapshot"]
         assert isinstance(context, dict)
