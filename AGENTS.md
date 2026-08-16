@@ -80,9 +80,13 @@ See [`skills/claim-foil/EXAMPLE.md`](skills/claim-foil/EXAMPLE.md) for a worked 
 
 The repository-level [`claims/ledger.yaml`](claims/ledger.yaml) is a separate evidence backlog for product and research claims that have not been earned yet.
 
-When adjudicating a ledger entry:
+When adding or adjudicating a ledger entry:
 
 - use only the recorded scope, frozen `support_if` / `refute_if` conditions, and referenced evidence;
+- preserve the claim's creation provenance separately from later evidence and judgment;
+- do not invent a historical `generated_at`; use `null` when the true generation time was not retained;
+- resolve repository-relative `context_snapshot.refs` at the pinned `repository_revision`, not at today's `main`;
+- do not rewrite creation provenance to match later evidence or repository state;
 - do not infer missing benchmark results, labels, sample sizes, model settings, or other evidence;
 - use `SUPPORT_MET` / `REFUTE_MET` only for the recorded scoped condition, never as synonyms for “proven,” “true,” or “false”;
 - use `INCONCLUSIVE` when evaluated evidence meets neither frozen condition cleanly;

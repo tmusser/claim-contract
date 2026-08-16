@@ -1,10 +1,26 @@
-schema_version: "1.0"
+schema_version: "1.1"
 type: claim_contract.claim_ledger
 scope_notice: "Ledger judgments record whether a frozen evidence condition was met. They are not scientific validation and do not prove a claim universally true or false."
 
 claims:
   - id: CCL-001
     status: OPEN
+    provenance:
+      generated_at: null
+      recorded_at: "2026-07-27T20:07:34Z"
+      record_ref: "https://github.com/tmusser/claim-contract/commit/0c2cea01537cf90dcc224614f2e35d4e1b2916fb"
+      origin_refs: []
+      context_snapshot:
+        repository_revision: "0c2cea01537cf90dcc224614f2e35d4e1b2916fb"
+        refs:
+          - examples/adversarial/agent_misuse/
+          - schemas/report-v1.schema.json
+          - docs/MACHINE_READABLE.md
+        note: >-
+          Backfilled from the commit that first recorded this claim. The earlier
+          conversational generation timestamp and source transcript were not retained,
+          so generated_at remains unknown and origin_refs remains empty rather than being
+          inferred from commit time or repository history.
     claim: >-
       Giving an agent the full claim-contract machine-readable envelope reduces unsafe
       scientific overstatement relative to giving the same agent only the verdict and
@@ -50,6 +66,22 @@ claims:
 
   - id: CCL-002
     status: OPEN
+    provenance:
+      generated_at: null
+      recorded_at: "2026-07-27T20:07:34Z"
+      record_ref: "https://github.com/tmusser/claim-contract/commit/0c2cea01537cf90dcc224614f2e35d4e1b2916fb"
+      origin_refs: []
+      context_snapshot:
+        repository_revision: "0c2cea01537cf90dcc224614f2e35d4e1b2916fb"
+        refs:
+          - examples/adversarial/
+          - docs/RULES.md
+          - README.md
+        note: >-
+          Backfilled from the commit that first recorded this claim. The earlier
+          conversational generation timestamp and source transcript were not retained,
+          so generated_at remains unknown and origin_refs remains empty rather than being
+          inferred from commit time or repository history.
     claim: >-
       minimum-v0.1 catches common evidence-to-language blocking violations while keeping
       false BLOCK verdicts low on bounded compliant analytical claims.
@@ -92,6 +124,21 @@ claims:
 
   - id: CCL-003
     status: OPEN
+    provenance:
+      generated_at: null
+      recorded_at: "2026-07-27T20:07:34Z"
+      record_ref: "https://github.com/tmusser/claim-contract/commit/0c2cea01537cf90dcc224614f2e35d4e1b2916fb"
+      origin_refs: []
+      context_snapshot:
+        repository_revision: "0c2cea01537cf90dcc224614f2e35d4e1b2916fb"
+        refs:
+          - README.md
+          - AGENTS.md
+        note: >-
+          Backfilled from the commit that first recorded this claim. The earlier
+          conversational generation timestamp and source transcript were not retained,
+          so generated_at remains unknown and origin_refs remains empty rather than being
+          inferred from commit time or repository history.
     claim: >-
       Using claim-contract as a pre-publication gate reduces unsafe claim language in
       agent-generated analytical summaries versus a matched strong-prompt baseline without

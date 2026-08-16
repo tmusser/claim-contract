@@ -51,45 +51,100 @@ Neither status system is scientific validation.
 Use `SUPPORT_MET` and `REFUTE_MET` rather than `PROVEN` or `FALSE`. A ledger judgment says
 what happened under the recorded scope and rule; it does not establish universal truth.
 
+## Creation provenance
+
+Ledger schema `1.1` records the context in which a claim was frozen, separately from later
+evidence and adjudication.
+
+Each claim has a `provenance` block:
+
+- `generated_at` — the timestamp when the claim and judge contract were actually generated
+  or frozen, when that timestamp is known. Use `null` for legacy claims whose true
+  generation time was not retained; do not substitute a later commit timestamp.
+- `recorded_at` — the timestamp when the claim first entered a durable ledger or equivalent
+  retained record.
+- `record_ref` — a durable reference to that first retained record, such as the commit that
+  first added the claim to the ledger.
+- `origin_refs` — references to the actual originating conversation, issue, pull request, or
+  other source when retained. This array may be empty when the true origin was not preserved;
+  do not substitute the first durable record for an unknown origin.
+- `context_snapshot.repository_revision` — the full repository commit SHA that anchors the
+  surrounding repository state used to understand the claim.
+- `context_snapshot.refs` — the specific files or artifacts that materially shaped the claim
+  or judge contract. Repository-relative paths are interpreted at the recorded revision,
+  not at whatever happens to be on `main` later.
+- `context_snapshot.note` — a short provenance note, including any known gaps or backfill
+  limitations.
+
+Creation provenance is not evidence for the claim. It exists so a later analyst or agent can
+reconstruct **what was known, what repository state existed, and when the claim entered the
+durable record** without treating today's mutable files as historical truth.
+
+Treat creation provenance as frozen metadata. If a historical field cannot be established,
+record the gap explicitly rather than inferring it. Do not rewrite provenance merely because
+later evidence or repository changes make a different origin story more convenient.
+
+The original CCL-001 through CCL-003 entries predate schema `1.1`. Their `recorded_at`,
+`record_ref`, and repository revision are backfilled from commit
+`0c2cea01537cf90dcc224614f2e35d4e1b2916fb`, which first recorded the ledger on 2026-07-27.
+Their earlier conversational generation times and source transcripts were not retained, so
+`generated_at` remains `null` and `origin_refs` remains empty.
+
 ## Adding a claim
 
 1. Write one bounded claim sentence.
 2. Assign the next unused stable ID, such as `CCL-004`. Never recycle IDs.
-3. Name the scope before collecting the evidence intended to settle the claim.
-4. Record the decision impact: what would change if support or refutation is met?
-5. Freeze the judge contract:
+3. Freeze creation provenance before collecting the evidence intended to settle the claim:
+   - record `generated_at` when known;
+   - record `recorded_at` and `record_ref` when the durable entry is created;
+   - retain actual `origin_refs` when available, but leave the array empty rather than
+     inventing an origin;
+   - pin the repository context with a full commit SHA and the smallest relevant reference
+     set.
+4. Name the scope before collecting the evidence intended to settle the claim.
+5. Record the decision impact: what would change if support or refutation is met?
+6. Freeze the judge contract:
    - `support_if`
    - `refute_if`
    - `otherwise: INCONCLUSIVE`
-6. Record current evidence separately from gaps and required future evidence.
-7. Name the smallest useful next adjudication step.
+7. Record current evidence separately from gaps and required future evidence.
+8. Name the smallest useful next adjudication step.
 
 If the claim or judge contract changes materially **after evidence has been observed**, keep
 the old entry and create a new ID linked with `supersedes`. Do not move the goalposts in
-place.
+place. The new claim gets its own creation provenance rather than inheriting the old claim's
+timestamp or context snapshot.
 
 ## Agent adjudication
 
 A fresh agent can judge an `OPEN` claim when the required evidence exists:
 
-1. Read only the ledger entry and its referenced evidence.
-2. Verify that the evidence matches the recorded scope.
-3. Do not infer missing results, labels, sample sizes, model settings, or benchmark details.
-4. Apply `support_if` and `refute_if` exactly as written.
-5. If support is met, set `SUPPORT_MET`.
-6. If refutation is met, set `REFUTE_MET`.
-7. If evidence was evaluated but neither condition is met, set `INCONCLUSIVE`.
-8. Record the exact evidence references, date, judge identity/model, and a short note.
-9. Preserve contradictory or unfavorable evidence rather than summarizing only the winning
-   side.
+1. Read the ledger entry and its referenced evidence.
+2. Use the creation provenance to reconstruct the claim's original context when historical
+   interpretation matters; resolve repository-relative context refs at the recorded revision.
+3. Verify that the evidence matches the recorded scope.
+4. Do not infer missing results, labels, sample sizes, model settings, or benchmark details.
+5. Apply `support_if` and `refute_if` exactly as written.
+6. If support is met, set `SUPPORT_MET`.
+7. If refutation is met, set `REFUTE_MET`.
+8. If evidence was evaluated but neither condition is met, set `INCONCLUSIVE`.
+9. Record the exact evidence references, date, judge identity/model, and a short note.
+10. Preserve contradictory or unfavorable evidence rather than summarizing only the winning
+    side.
 
 If the evidence is incomplete, leave the claim `OPEN` rather than guessing.
 
 ## Structural validation
 
-The ledger format is published at
-[`schemas/claim-ledger-v1.schema.json`](../schemas/claim-ledger-v1.schema.json). CI validates
-that the live ledger conforms to the schema and that claim IDs are unique.
+The live ledger uses schema `1.1`, published at
+[`schemas/claim-ledger-v1.1.schema.json`](../schemas/claim-ledger-v1.1.schema.json). CI
+validates that the live ledger conforms to that schema, that provenance timestamps are valid
+RFC 3339 date-times when present, and that claim IDs are unique.
+
+The original `1.0` schema remains published at
+[`schemas/claim-ledger-v1.schema.json`](../schemas/claim-ledger-v1.schema.json) so historical
+consumers are not silently moved onto the stricter provenance contract.
 
 Schema validation proves only that the ledger is structurally complete. It does not prove
-that the claim, evidence, thresholds, or eventual judgment are scientifically sound.
+that the claim, evidence, thresholds, provenance narrative, or eventual judgment are
+scientifically sound.

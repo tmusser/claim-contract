@@ -4,6 +4,9 @@
 
 ### Added
 
+- Claim-ledger schema `1.1` with required creation provenance: generation time when known, durable record time, origin references, and a commit-pinned context snapshot.
+- Backfilled provenance for CCL-001 through CCL-003 using the commit that first recorded the ledger while leaving unknown conversational generation timestamps explicitly `null`.
+- CI coverage that validates provenance structure, RFC 3339 timestamps, pinned repository revisions, and continued publication of the legacy `1.0` ledger schema.
 - Optional `claim-foil` skill for bounded adversarial stress-testing before deterministic contract validation.
 - Worked `claim-foil` example that separates observed evidence, rival explanations, unknowns, and discriminating evidence.
 - Repository test coverage that locks the skill's non-verdict and missing-evidence safety boundaries.
@@ -27,6 +30,7 @@
 
 ### Changed
 
+- The live claim ledger now uses schema `1.1`; the original `claim-ledger-v1.schema.json` remains published for `1.0` consumers.
 - Added a CI badge and compact verdict gallery to the README.
 - Expanded limitations and agent guidance for the blind spots of multiplicity and magnitude checks.
 - Updated CI to exercise the `--json` alias.
