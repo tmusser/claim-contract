@@ -4,6 +4,7 @@
 
 ### Added
 
+- `claim-contract ledger verify` for read-only resolution of commit-pinned claim-ledger context references against local Git history.
 - Claim-ledger schema `1.1` with required creation provenance: generation time when known, durable record time, origin references, and a commit-pinned context snapshot.
 - Backfilled provenance for CCL-001 through CCL-003 using the commit that first recorded the ledger while leaving unknown conversational generation timestamps explicitly `null`.
 - CI coverage that validates provenance structure, RFC 3339 timestamps, pinned repository revisions, and continued publication of the legacy `1.0` ledger schema.

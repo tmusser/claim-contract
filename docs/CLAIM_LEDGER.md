@@ -148,3 +148,29 @@ consumers are not silently moved onto the stricter provenance contract.
 Schema validation proves only that the ledger is structurally complete. It does not prove
 that the claim, evidence, thresholds, provenance narrative, or eventual judgment are
 scientifically sound.
+
+## Resolving pinned provenance
+
+Schema-valid provenance can still point to a revision or path that does not exist in the
+available repository history. Resolve the commit-pinned context mechanically with:
+
+```bash
+claim-contract ledger verify claims/ledger.yaml
+```
+
+The verifier is read-only. For each claim, it checks that
+`context_snapshot.repository_revision` resolves to a commit in the local Git repository and
+that every repository-relative `context_snapshot.refs` path exists at that exact revision.
+A path that exists on current `HEAD` but did not exist at the frozen revision fails.
+
+Exit codes are intentionally simple:
+
+- `0` — every pinned revision and ref resolves;
+- `1` — at least one pinned revision or ref cannot be resolved;
+- `2` — the ledger input is malformed or cannot be checked in a Git worktree.
+
+An unavailable revision means only that the commit is not present in the local checkout. A
+shallow clone may therefore need additional history before verification can succeed. The
+verifier does not fetch history, follow `record_ref` or `origin_refs` over the network, judge
+whether the referenced material actually supports the claim, or perform scientific
+validation.

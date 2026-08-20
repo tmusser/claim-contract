@@ -17,6 +17,7 @@ This roadmap records possible directions, not promises or release commitments.
 - Added versioned machine-readable report and error envelopes.
 - Published JSON Schemas that require the scope notice, `not_evaluated`, and `scientific_validation: false`.
 - Added structured JSON input errors and compatibility tests across every example contract.
+- Added read-only verification for commit-pinned claim-ledger context references.
 
 ## Candidate directions
 
@@ -24,7 +25,6 @@ These require evidence before promotion:
 
 - Versioned JSON Schema validation for contract documents.
 - Additional narrow profiles for well-defined analytical contexts.
-- Optional provenance adapters that verify declared artifacts actually exist.
 - A shared handoff format from `claim-contract` to `chart-contract`.
 - Better reporting for profile/rule compatibility across versions.
 
