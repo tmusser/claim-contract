@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -95,9 +96,10 @@ def verify_pinned_provenance(path: str | Path) -> list[ClaimProvenanceResult]:
 
         revision = snapshot.get("repository_revision")
         refs = snapshot.get("refs")
-        if not isinstance(revision, str) or not revision.strip():
+        if not isinstance(revision, str) or not re.fullmatch(r"[0-9a-fA-F]{40}", revision):
             raise ValueError(
-                f"Claim {claim_id} must declare provenance.context_snapshot.repository_revision."
+                f"Claim {claim_id} provenance.context_snapshot.repository_revision "
+                "must be a full 40-character Git SHA."
             )
         if not isinstance(refs, list) or not refs:
             raise ValueError(f"Claim {claim_id} must declare provenance.context_snapshot.refs.")
