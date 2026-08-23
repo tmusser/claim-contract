@@ -54,12 +54,14 @@ class Report:
     verdict: Verdict
     profile: str
     claim_text: str
-    contract_version: str | None = None
-    input_binding: ContractBinding | None = None
     scientific_validation: bool = False
     scope_notice: str = SCOPE_NOTICE
     not_evaluated: list[str] = field(default_factory=lambda: list(NOT_EVALUATED))
     findings: list[Finding] = field(default_factory=list)
+    # New additive fields stay after the original constructor surface so existing
+    # positional callers keep their previous meaning.
+    contract_version: str | None = None
+    input_binding: ContractBinding | None = None
 
     def matches_contract(self, contract: dict[str, Any]) -> bool:
         """Return whether this report is bound to the supplied parsed contract."""
