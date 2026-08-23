@@ -40,6 +40,23 @@
         "profile": {
           "type": "string",
           "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_binding": {
+          "type": "object",
+          "required": ["algorithm", "canonicalization", "contract_sha256"],
+          "properties": {
+            "algorithm": {"const": "sha256"},
+            "canonicalization": {"const": "parsed-contract-v1"},
+            "contract_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": true
