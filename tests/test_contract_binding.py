@@ -4,7 +4,13 @@ import json
 from copy import deepcopy
 from pathlib import Path
 
-from claim_contract import build_contract_binding, load_contract, validate_contract
+from claim_contract import (
+    Report,
+    Verdict,
+    build_contract_binding,
+    load_contract,
+    validate_contract,
+)
 from claim_contract.cli import main
 
 ROOT = Path(__file__).parents[1]
@@ -32,6 +38,24 @@ def test_binding_changes_when_contract_value_changes() -> None:
     changed["evidence"]["sample_size"] += 1
 
     assert build_contract_binding(contract) != build_contract_binding(changed)
+
+
+def test_report_preserves_original_positional_constructor_order() -> None:
+    report = Report(
+        Verdict.READY,
+        "minimum-v0.1",
+        "Observed result.",
+        False,
+        "legacy scope text",
+        ["legacy limitation"],
+        [],
+    )
+
+    assert report.scientific_validation is False
+    assert report.scope_notice == "legacy scope text"
+    assert report.not_evaluated == ["legacy limitation"]
+    assert report.contract_version is None
+    assert report.input_binding is None
 
 
 def test_report_preserves_contract_version_and_binding() -> None:
