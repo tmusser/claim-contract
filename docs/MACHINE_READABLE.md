@@ -32,7 +32,13 @@ Both use `schema_version: "1.0"`.
     "version": "0.1.0"
   },
   "contract": {
-    "profile": "minimum-v0.1"
+    "version": "0.1",
+    "profile": "minimum-v0.1",
+    "input_binding": {
+      "algorithm": "sha256",
+      "canonicalization": "parsed-contract-v1",
+      "contract_sha256": "..."
+    }
   },
   "verdict": "REVIEW",
   "profile": "minimum-v0.1",
@@ -60,6 +66,56 @@ Both use `schema_version: "1.0"`.
 ```
 
 The existing top-level `profile`, `verdict`, `claim_text`, `scientific_validation`, `scope_notice`, `not_evaluated`, and `findings` fields remain in v1 for backward compatibility.
+
+## Contract input binding
+
+Generated reports are bound to the complete parsed contract content that produced the verdict. The binding uses SHA-256 over a deterministic `parsed-contract-v1` canonicalization.
+
+The canonicalization is semantic rather than byte-for-byte:
+
+- mapping key order does not affect the hash;
+- YAML whitespace and formatting do not affect the hash after parsing;
+- changing a contract value, adding or removing a declared field, or changing nested evidence changes the hash.
+
+The submitted contract `version`, when present, is also preserved under `contract.version`. The selected profile remains under both `contract.profile` and the existing top-level `profile` field.
+
+Python callers can check an in-memory report before forwarding it:
+
+```python
+contract = load_contract("contract.yaml")
+report = validate_contract(contract)
+assert report.matches_contract(contract)
+```
+
+A saved JSON report can be checked later through the CLI:
+
+```bash
+claim-contract validate contract.yaml --json > report.json
+claim-contract report verify report.json --contract contract.yaml
+```
+
+Representative success output:
+
+```text
+Binding: MATCH
+Contract SHA-256: MATCH
+Saved SHA-256: ...
+Current SHA-256: ...
+Bound contract version: 0.1
+Bound profile: minimum-v0.1
+```
+
+Exit behavior is intentionally simple:
+
+| Condition | Exit code |
+| --- | ---: |
+| saved binding matches current contract | `0` |
+| contract content has drifted | `1` |
+| malformed, unsupported, unreadable, or unbound report/contract | `2` |
+
+Binding verification is a content-identity check only. It does not authenticate who created the report, make the report tamper-proof, validate the correctness of the analysis, or upgrade `READY` into scientific approval. A party able to rewrite both a report and its binding can construct a new internally consistent artifact; SHA-256 here is a drift detector, not a signature.
+
+The published v1 report schema keeps `contract.version` and `contract.input_binding` optional so reports created before this feature remain valid v1 documents. Newly generated reports include the binding.
 
 ## Error envelope
 
@@ -99,13 +155,12 @@ Within schema major version `1`:
 
 A change that removes `scientific_validation`, `scope_notice`, or `not_evaluated`, permits `scientific_validation: true`, or changes their meaning requires a new schema major version and is treated as a semantic breaking change.
 
-The package version, report schema version, and rule profile are separate concepts:
+The package version, report schema version, contract document version, and rule profile are separate concepts:
 
 - package version: implementation release;
 - report schema version: JSON envelope compatibility;
+- contract document version: submitted contract-format identifier, preserved when declared;
 - profile: implemented validation-rule semantics.
-
-The submitted contract document may carry its own `version`, but v1 report envelopes do not claim to reproduce that field until the validator explicitly preserves it.
 
 ## Exit codes
 
@@ -123,4 +178,4 @@ Consumers should inspect both the JSON `type`/`verdict` and the process exit cod
 
 ## Validation
 
-The test suite validates every example report against `report-v1.schema.json`, validates structured input errors against `error-v1.schema.json`, and verifies that stripping the scope notice or setting `scientific_validation` to `true` fails schema validation.
+The test suite validates every example report against `report-v1.schema.json`, validates structured input errors against `error-v1.schema.json`, verifies generated contract bindings and legacy unbound v1 compatibility, and verifies that stripping the scope notice or setting `scientific_validation` to `true` fails schema validation.
