@@ -42,8 +42,7 @@
           "minLength": 1
         },
         "version": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "input_binding": {
           "type": "object",
