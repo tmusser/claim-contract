@@ -43,7 +43,7 @@ A `REVIEW` verdict means human judgment is still required. Do not summarize it a
 When returning machine-readable results to another agent, preserve:
 
 - `schema_version` and `type`;
-- `tool` and `contract` metadata;
+- `tool` and `contract` metadata, including `contract.version` and `contract.input_binding` when present;
 - `verdict`, `profile`, and `claim_text` for reports;
 - `scientific_validation` (which is always `false`);
 - `scope_notice`;
@@ -52,6 +52,14 @@ When returning machine-readable results to another agent, preserve:
 - the structured `error` object for error envelopes.
 
 Do not strip these fields to save tokens. Do not construct a replacement “compact” object that omits the interpretation boundary.
+
+Before reusing a saved bound report beside a contract, run:
+
+```bash
+claim-contract report verify report.json --contract contract.yaml
+```
+
+A matching binding proves only that the parsed contract content matches the input that produced the saved report. It does not authenticate the report, prove the analysis is correct, or upgrade the verdict.
 
 Consumers should accept additive fields within the same schema major version and ignore fields they do not recognize. See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md).
 
