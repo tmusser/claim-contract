@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any, Iterable
 
+from .binding import build_contract_binding
 from .models import Finding, Report, Severity, Verdict
 
 _SUPPORTED_PROFILE = "minimum-v0.1"
@@ -349,9 +350,16 @@ def validate_contract(contract: dict[str, Any]) -> Report:
     else:
         verdict = Verdict.READY
 
+    contract_version_value = contract.get("version")
+    contract_version = (
+        None if contract_version_value is None else str(contract_version_value)
+    )
+
     return Report(
         verdict=verdict,
         profile=profile,
         claim_text=claim_text,
+        contract_version=contract_version,
+        input_binding=build_contract_binding(contract),
         findings=findings,
     )

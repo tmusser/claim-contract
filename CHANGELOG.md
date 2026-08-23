@@ -4,6 +4,9 @@
 
 ### Added
 
+- Deterministic SHA-256 bindings from validation reports to the exact parsed contract content that produced them.
+- `Report.matches_contract(...)` and `claim-contract report verify` for checking in-memory and saved reports against the contract being shared.
+- Preservation of submitted contract `version` metadata inside generated machine-readable reports.
 - `claim-contract ledger verify` for read-only resolution of commit-pinned claim-ledger context references against local Git history.
 - Claim-ledger schema `1.1` with required creation provenance: generation time when known, durable record time, origin references, and a commit-pinned context snapshot.
 - Backfilled provenance for CCL-001 through CCL-003 using the commit that first recorded the ledger while leaving unknown conversational generation timestamps explicitly `null`.
@@ -31,6 +34,7 @@
 
 ### Changed
 
+- Generated v1 report envelopes now carry additive contract identity metadata while the published v1 schema keeps those fields optional for legacy report compatibility.
 - The live claim ledger now uses schema `1.1`; the original `claim-ledger-v1.schema.json` remains published for `1.0` consumers.
 - Added a CI badge and compact verdict gallery to the README.
 - Expanded limitations and agent guidance for the blind spots of multiplicity and magnitude checks.

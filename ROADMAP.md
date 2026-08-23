@@ -18,6 +18,7 @@ This roadmap records possible directions, not promises or release commitments.
 - Published JSON Schemas that require the scope notice, `not_evaluated`, and `scientific_validation: false`.
 - Added structured JSON input errors and compatibility tests across every example contract.
 - Added read-only verification for commit-pinned claim-ledger context references.
+- Bound generated validation reports to deterministic identities for the exact parsed contracts that produced them, with read-only saved-report verification.
 
 ## Candidate directions
 

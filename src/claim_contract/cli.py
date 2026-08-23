@@ -1,12 +1,21 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
+from collections.abc import Mapping
+from pathlib import Path
 
+from .binding import build_contract_binding, contract_binding_from_dict
 from .formatters import format_json, format_json_error, format_text
 from .io import load_contract
 from .ledger import verify_pinned_provenance
-from .metadata import TOOL_NAME, TOOL_VERSION
+from .metadata import (
+    REPORT_SCHEMA_VERSION,
+    REPORT_TYPE,
+    TOOL_NAME,
+    TOOL_VERSION,
+)
 from .models import Verdict
 from .validator import validate_contract
 
@@ -57,6 +66,22 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ledger_verify.add_argument("ledger", help="Path to claims/ledger.yaml or equivalent.")
 
+    report = subparsers.add_parser(
+        "report",
+        help="Inspect durable validation reports.",
+    )
+    report_commands = report.add_subparsers(dest="report_command", required=True)
+    report_verify = report_commands.add_parser(
+        "verify",
+        help="Verify that a saved JSON report is bound to a contract.",
+    )
+    report_verify.add_argument("report", help="Path to a saved JSON validation report.")
+    report_verify.add_argument(
+        "--contract",
+        required=True,
+        help="Current YAML or JSON contract to compare with the saved report binding.",
+    )
+
     return parser
 
 
@@ -91,12 +116,72 @@ def _run_ledger_verify(path: str) -> int:
     return 1 if failed else 0
 
 
+def _load_report_payload(path: str) -> dict[str, object]:
+    report_path = Path(path)
+    if report_path.suffix.lower() != ".json":
+        raise ValueError("Saved report must be JSON (.json).")
+    if not report_path.exists():
+        raise FileNotFoundError(f"Report file not found: {report_path}")
+
+    try:
+        payload = json.loads(report_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError(
+            f"Report file is not valid JSON: {report_path}: {exc.msg}"
+        ) from exc
+
+    if not isinstance(payload, dict):
+        raise ValueError("Report root must be an object/mapping.")
+    return payload
+
+
+def _run_report_verify(report_path: str, contract_path: str) -> int:
+    try:
+        payload = _load_report_payload(report_path)
+        if payload.get("type") != REPORT_TYPE:
+            raise ValueError(
+                f"Expected report type {REPORT_TYPE!r}; got {payload.get('type')!r}."
+            )
+        if payload.get("schema_version") != REPORT_SCHEMA_VERSION:
+            raise ValueError(
+                "Unsupported report schema version: "
+                f"{payload.get('schema_version')!r}."
+            )
+
+        contract_metadata = payload.get("contract")
+        if not isinstance(contract_metadata, Mapping):
+            raise ValueError("Report does not contain contract metadata.")
+        serialized_binding = contract_metadata.get("input_binding")
+        if not isinstance(serialized_binding, Mapping):
+            raise ValueError("Report does not contain contract.input_binding.")
+
+        binding = contract_binding_from_dict(serialized_binding)
+        contract = load_contract(contract_path)
+        candidate = build_contract_binding(contract)
+    except (FileNotFoundError, ValueError, TypeError) as exc:
+        print(f"Input error: {exc}", file=sys.stderr)
+        return 2
+
+    matches = binding == candidate
+    print(f"Binding: {'MATCH' if matches else 'MISMATCH'}")
+    print(f"Contract SHA-256: {'MATCH' if matches else 'MISMATCH'}")
+    print(f"Saved SHA-256: {binding.contract_sha256}")
+    print(f"Current SHA-256: {candidate.contract_sha256}")
+    if "version" in contract_metadata:
+        print(f"Bound contract version: {contract_metadata['version']}")
+    if "profile" in contract_metadata:
+        print(f"Bound profile: {contract_metadata['profile']}")
+    return 0 if matches else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
     if args.command == "ledger":
         return _run_ledger_verify(args.ledger)
+    if args.command == "report":
+        return _run_report_verify(args.report, args.contract)
 
     try:
         contract = load_contract(args.contract)

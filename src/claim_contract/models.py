@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any
 
+from .binding import ContractBinding
 from .metadata import REPORT_SCHEMA_VERSION, REPORT_TYPE, TOOL_NAME, TOOL_VERSION
 
 
@@ -57,6 +58,17 @@ class Report:
     scope_notice: str = SCOPE_NOTICE
     not_evaluated: list[str] = field(default_factory=lambda: list(NOT_EVALUATED))
     findings: list[Finding] = field(default_factory=list)
+    # New additive fields stay after the original constructor surface so existing
+    # positional callers keep their previous meaning.
+    contract_version: str | None = None
+    input_binding: ContractBinding | None = None
+
+    def matches_contract(self, contract: dict[str, Any]) -> bool:
+        """Return whether this report is bound to the supplied parsed contract."""
+
+        if self.input_binding is None:
+            return False
+        return self.input_binding.matches_contract(contract)
 
     def to_dict(self) -> dict[str, Any]:
         findings = [finding.to_dict() for finding in self.findings]
@@ -67,6 +79,14 @@ class Report:
             finding.severity is Severity.BLOCK for finding in self.findings
         )
 
+        contract_metadata: dict[str, Any] = {
+            "profile": self.profile,
+        }
+        if self.contract_version is not None:
+            contract_metadata["version"] = self.contract_version
+        if self.input_binding is not None:
+            contract_metadata["input_binding"] = self.input_binding.to_dict()
+
         return {
             "schema_version": REPORT_SCHEMA_VERSION,
             "type": REPORT_TYPE,
@@ -74,9 +94,7 @@ class Report:
                 "name": TOOL_NAME,
                 "version": TOOL_VERSION,
             },
-            "contract": {
-                "profile": self.profile,
-            },
+            "contract": contract_metadata,
             # Existing top-level fields remain for backward compatibility.
             "verdict": self.verdict.value,
             "profile": self.profile,

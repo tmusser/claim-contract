@@ -106,6 +106,8 @@ jobs:
           .venv-smoke/bin/python -m pip check
           .venv-smoke/bin/claim-contract --version > version.txt
           .venv-smoke/bin/claim-contract validate examples/descriptive_summary/contract.yaml --json > report.json
+          .venv-smoke/bin/claim-contract report verify report.json \
+            --contract examples/descriptive_summary/contract.yaml > binding-check.txt
 
       - name: Verify installed CLI metadata and scope fields
         run: |
@@ -125,4 +127,15 @@ jobs:
           assert payload["scientific_validation"] is False
           assert "not scientific validation" in payload["scope_notice"].lower()
           assert payload["not_evaluated"]
+
+          contract = payload["contract"]
+          assert contract["version"] == "0.1"
+          binding = contract["input_binding"]
+          assert binding["algorithm"] == "sha256"
+          assert binding["canonicalization"] == "parsed-contract-v1"
+          assert len(binding["contract_sha256"]) == 64
+
+          binding_output = Path("binding-check.txt").read_text(encoding="utf-8")
+          assert "Binding: MATCH" in binding_output
+          assert "Contract SHA-256: MATCH" in binding_output
           PY
