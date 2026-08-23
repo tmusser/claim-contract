@@ -92,6 +92,11 @@ def _normalize(value: Any) -> Any:
     if isinstance(value, (list, tuple)):
         return [_normalize(item) for item in value]
 
+    if isinstance(value, (set, frozenset)):
+        items = [_normalize(item) for item in value]
+        items.sort(key=_sort_key)
+        return {"__set__": items}
+
     if value is None or isinstance(value, (bool, int, str)):
         return value
 
