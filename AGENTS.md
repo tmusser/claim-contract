@@ -38,6 +38,17 @@ A `REVIEW` verdict means human judgment is still required. Do not summarize it a
 
 `BLOCK` means the submitted claim violates the selected minimum contract. It does not prove the claim is false. The contract may be incomplete or conservative.
 
+## Input schema boundary
+
+The published [`minimum-v0.1` input schema](schemas/contract-minimum-v0.1.schema.json) checks canonical document structure and primitive field types. It is not a substitute for `claim-contract validate`.
+
+- Do not translate schema conformance into `READY`.
+- Do not treat a schema-valid causal or comparative contract as evidence that the claim is supported.
+- Do not skip the deterministic rule engine after a schema check when a contract verdict is needed.
+- Preserve missing rule-level evidence as missing; do not fill fields merely to satisfy a schema or obtain a cleaner verdict.
+
+See [docs/CONTRACT_SCHEMA.md](docs/CONTRACT_SCHEMA.md) for the structural-versus-rule boundary.
+
 ## Preserve the machine-readable envelope
 
 When returning machine-readable results to another agent, preserve:
