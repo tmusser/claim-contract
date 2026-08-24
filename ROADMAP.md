@@ -16,6 +16,7 @@ This roadmap records possible directions, not promises or release commitments.
 - Locked adversarial verdicts, rule IDs, and safe/unsafe agent-summary boundaries in tests.
 - Added versioned machine-readable report and error envelopes.
 - Published JSON Schemas that require the scope notice, `not_evaluated`, and `scientific_validation: false`.
+- Published a Draft 2020-12 JSON Schema for canonical `minimum-v0.1` input contracts while preserving rule-engine verdict semantics.
 - Added structured JSON input errors and compatibility tests across every example contract.
 - Added read-only verification for commit-pinned claim-ledger context references.
 - Bound generated validation reports to deterministic identities for the exact parsed contracts that produced them, with read-only saved-report verification.
@@ -24,7 +25,6 @@ This roadmap records possible directions, not promises or release commitments.
 
 These require evidence before promotion:
 
-- Versioned JSON Schema validation for contract documents.
 - Additional narrow profiles for well-defined analytical contexts.
 - A shared handoff format from `claim-contract` to `chart-contract`.
 - Better reporting for profile/rule compatibility across versions.
