@@ -88,6 +88,17 @@ def test_schema_does_not_encode_conditional_claim_support_rules() -> None:
     assert "CC301" in _rule_ids(report)
 
 
+def test_blank_conditional_comparison_value_remains_rule_engine_concern() -> None:
+    contract = load_contract(BLOCK_CONTRACT)
+    contract["claim"]["comparison"]["baseline"] = ""
+
+    jsonschema.validate(contract, _schema())
+    report = validate_contract(contract)
+
+    assert report.verdict is Verdict.BLOCK
+    assert "CC201" in _rule_ids(report)
+
+
 def test_schema_rejects_wrong_primitive_type() -> None:
     contract = load_contract(READY_CONTRACT)
     contract["evidence"]["sample_size"] = "18420"
