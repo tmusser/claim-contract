@@ -176,6 +176,8 @@ evidence:
 
 The complete runnable example is in [`examples/onboarding_conversion/`](examples/onboarding_conversion/). See [docs/RULES.md](docs/RULES.md) for the full rule reference and declared multiplicity fields.
 
+The canonical structural shape for this profile is published as [`schemas/contract-minimum-v0.1.schema.json`](schemas/contract-minimum-v0.1.schema.json). Schema validity is separate from the `READY` / `REVIEW` / `BLOCK` rule engine: `claim-contract validate` does not turn schema failures into parser errors. See [docs/CONTRACT_SCHEMA.md](docs/CONTRACT_SCHEMA.md) for the boundary and tooling guidance.
+
 ## CLI
 
 ```bash
@@ -209,10 +211,11 @@ Reports also include tool/contract metadata and deterministic finding counts. In
 
 Published schemas:
 
+- [`schemas/contract-minimum-v0.1.schema.json`](schemas/contract-minimum-v0.1.schema.json) — canonical input shape for the `minimum-v0.1` profile
 - [`schemas/report-v1.schema.json`](schemas/report-v1.schema.json)
 - [`schemas/error-v1.schema.json`](schemas/error-v1.schema.json)
 
-See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md) for compatibility guarantees, error envelopes, and consumer guidance. The test suite validates every example report and proves that removing the scope notice or setting `scientific_validation` to `true` fails schema validation.
+See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md) for output compatibility guarantees, error envelopes, and consumer guidance. See [docs/CONTRACT_SCHEMA.md](docs/CONTRACT_SCHEMA.md) for input-schema scope and compatibility. The test suite validates every shipped contract against the input schema and every example report against the output schema.
 
 ## Python API
 
