@@ -54,12 +54,10 @@
           "type": "object",
           "properties": {
             "baseline": {
-              "type": "string",
-              "minLength": 1
+              "type": "string"
             },
             "comparison": {
-              "type": "string",
-              "minLength": 1
+              "type": "string"
             }
           },
           "additionalProperties": true
@@ -86,8 +84,7 @@
               "type": "number"
             },
             "scale": {
-              "type": "string",
-              "minLength": 1
+              "type": "string"
             },
             "baseline_value": {
               "type": "number"
@@ -99,8 +96,7 @@
           "type": ["object", "null"],
           "properties": {
             "method": {
-              "type": "string",
-              "minLength": 1
+              "type": "string"
             },
             "level": {
               "type": "number"
