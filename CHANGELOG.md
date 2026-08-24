@@ -4,6 +4,8 @@
 
 ### Added
 
+- Published `schemas/contract-minimum-v0.1.schema.json` as the Draft 2020-12 structural contract for canonical `minimum-v0.1` inputs.
+- Contract-schema tests that validate every shipped contract, reject malformed structural fields, and lock the boundary between schema validity and `READY` / `REVIEW` / `BLOCK` rule semantics.
 - Deterministic SHA-256 bindings from validation reports to the exact parsed contract content that produced them.
 - `Report.matches_contract(...)` and `claim-contract report verify` for checking in-memory and saved reports against the contract being shared.
 - Preservation of submitted contract `version` metadata inside generated machine-readable reports.
@@ -34,6 +36,7 @@
 
 ### Changed
 
+- Documented input-schema validation as a separate structural tooling layer; normal `claim-contract validate` continues to emit the existing rule verdicts rather than converting schema mismatches into parser errors.
 - Generated v1 report envelopes now carry additive contract identity metadata while the published v1 schema keeps those fields optional for legacy report compatibility.
 - The live claim ledger now uses schema `1.1`; the original `claim-ledger-v1.schema.json` remains published for `1.0` consumers.
 - Added a CI badge and compact verdict gallery to the README.
