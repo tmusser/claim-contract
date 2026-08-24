@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/blob/main/schemas/contract-minimum-v0.1.schema.json",
+  "title": "claim-contract minimum-v0.1 input contract",
+  "description": "Canonical structural schema for minimum-v0.1 contract documents. Conditional evidence-to-language rules remain the responsibility of claim-contract validation.",
+  "type": "object",
+  "required": ["version", "profile", "claim", "evidence"],
+  "properties": {
+    "version": {
+      "const": "0.1"
+    },
+    "profile": {
+      "const": "minimum-v0.1"
+    },
+    "claim": {
+      "type": "object",
+      "required": ["text", "type", "population", "time_window", "metric"],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": ["descriptive", "comparison", "causal"]
+        },
+        "population": {
+          "type": "string",
+          "minLength": 1
+        },
+        "time_window": {
+          "type": "string",
+          "minLength": 1
+        },
+        "metric": {
+          "type": "object",
+          "required": ["name", "unit", "definition"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1
+            },
+            "definition": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": true
+        },
+        "comparison": {
+          "type": "object",
+          "properties": {
+            "baseline": {
+              "type": "string",
+              "minLength": 1
+            },
+            "comparison": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["design", "sample_size", "provenance", "checks"],
+      "properties": {
+        "design": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sample_size": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "estimate": {
+          "type": ["object", "null"],
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "scale": {
+              "type": "string",
+              "minLength": 1
+            },
+            "baseline_value": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": true
+        },
+        "uncertainty": {
+          "type": ["object", "null"],
+          "properties": {
+            "method": {
+              "type": "string",
+              "minLength": 1
+            },
+            "level": {
+              "type": "number"
+            },
+            "lower": {
+              "type": "number"
+            },
+            "upper": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": true
+        },
+        "provenance": {
+          "type": "object",
+          "required": ["source"],
+          "properties": {
+            "source": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": true
+        },
+        "multiplicity": {
+          "type": ["object", "null"],
+          "properties": {
+            "comparisons": {
+              "type": "number"
+            },
+            "adjustment": {
+              "type": ["string", "null"]
+            },
+            "rationale": {
+              "type": ["string", "null"]
+            }
+          },
+          "additionalProperties": true
+        },
+        "checks": {
+          "type": "object",
+          "properties": {
+            "metric_definition_locked": {
+              "type": "boolean"
+            },
+            "missingness_assessed": {
+              "type": "boolean"
+            },
+            "composition_stability_assessed": {
+              "type": "boolean"
+            },
+            "treatment_assignment_validated": {
+              "type": "boolean"
+            },
+            "identifying_assumptions_documented": {
+              "type": "boolean"
+            },
+            "multiple_comparisons_assessed": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": true
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
