@@ -1,5 +1,13 @@
 # Rule reference: minimum-v0.1
 
+The same rule IDs, severities, consumed fields, triggers, and known boundaries are available without Markdown parsing:
+
+```bash
+claim-contract profile show minimum-v0.1 --json
+```
+
+See [PROFILE_MANIFEST.md](PROFILE_MANIFEST.md) for the machine-readable contract and its limits. The executable validator and manifest share the same rule registry for IDs and severities; this table remains the compact human reference.
+
 | Rule | Severity | Trigger |
 | --- | --- | --- |
 | CC001 | BLOCK | Required claim or evidence field is missing. |
