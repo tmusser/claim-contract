@@ -4,6 +4,9 @@
 
 ### Added
 
+- `claim-contract profile show minimum-v0.1` with `--json` / `--format json` output for machine-readable profile inspection.
+- Versioned `claim_contract.profile_manifest` documents with rule IDs, severities, consumed fields, short triggers, known boundaries, and preserved interpretation limits.
+- Published `schemas/profile-manifest-v1.schema.json` plus drift tests that lock manifest IDs/severities against the executable validator and human rule table.
 - Published `schemas/contract-minimum-v0.1.schema.json` as the Draft 2020-12 structural contract for canonical `minimum-v0.1` inputs.
 - Contract-schema tests that validate every shipped contract, reject malformed structural fields, and lock the boundary between schema validity and `READY` / `REVIEW` / `BLOCK` rule semantics.
 - Deterministic SHA-256 bindings from validation reports to the exact parsed contract content that produced them.
@@ -36,6 +39,7 @@
 
 ### Changed
 
+- Rule severities now come from the same registry used to emit profile manifests, while executable trigger logic and verdict semantics remain unchanged.
 - Documented input-schema validation as a separate structural tooling layer; normal `claim-contract validate` continues to emit the existing rule verdicts rather than converting schema mismatches into parser errors.
 - Generated v1 report envelopes now carry additive contract identity metadata while the published v1 schema keeps those fields optional for legacy report compatibility.
 - The live claim ledger now uses schema `1.1`; the original `claim-ledger-v1.schema.json` remains published for `1.0` consumers.
