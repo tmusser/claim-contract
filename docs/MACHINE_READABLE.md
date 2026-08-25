@@ -1,8 +1,8 @@
 # Machine-readable interoperability
 
-`claim-contract validate ... --json` emits exactly one JSON document to stdout.
+`claim-contract validate ... --json` emits exactly one JSON validation document to stdout. `claim-contract profile show ... --json` emits exactly one JSON profile-manifest document.
 
-The output is designed for agents, CI jobs, and other tools, but machine readability must not erase the interpretation boundary. Both successful reports and input-error envelopes require:
+The output is designed for agents, CI jobs, and other tools, but machine readability must not erase the interpretation boundary. Validation reports, input-error envelopes, and profile manifests preserve:
 
 - `scientific_validation: false`;
 - the fixed `scope_notice`;
@@ -12,14 +12,15 @@ Consumers must preserve those fields when forwarding or summarizing a result.
 
 ## Output types
 
-Two versioned document types are currently defined:
+Three versioned document types are currently defined:
 
 | Type | Schema | Used for |
 | --- | --- | --- |
 | `claim_contract.report` | [`schemas/report-v1.schema.json`](../schemas/report-v1.schema.json) | A completed validation with a `READY`, `REVIEW`, or `BLOCK` verdict. |
 | `claim_contract.error` | [`schemas/error-v1.schema.json`](../schemas/error-v1.schema.json) | A contract that could not be loaded or validated as input. |
+| `claim_contract.profile_manifest` | [`schemas/profile-manifest-v1.schema.json`](../schemas/profile-manifest-v1.schema.json) | Versioned rule metadata for a validation profile. |
 
-Both use `schema_version: "1.0"`.
+All currently use `schema_version: "1.0"`, but each schema family evolves independently.
 
 ## Report envelope
 
@@ -117,6 +118,20 @@ Binding verification is a content-identity check only. It does not authenticate 
 
 The published v1 report schema keeps `contract.version` and `contract.input_binding` optional so reports created before this feature remain valid v1 documents. Newly generated reports include the binding.
 
+## Profile manifest
+
+Agents and tooling can inspect the selected profile without parsing Markdown or source code:
+
+```bash
+claim-contract profile show minimum-v0.1 --json
+```
+
+The `claim_contract.profile_manifest` document exposes each rule's ID, severity, consumed contract fields, short trigger description, and known boundary. It also preserves the profile-wide interpretation limits and points to the canonical input-contract schema.
+
+Rule IDs and severities are shared with the executable validator through one registry. Trigger text remains descriptive documentation of the executable rule logic; the manifest is not a second rule engine and does not produce a verdict.
+
+See [PROFILE_MANIFEST.md](PROFILE_MANIFEST.md) for the full contract and boundary.
+
 ## Error envelope
 
 Input errors requested with `--json` are also written as one JSON document to stdout and exit with code `2`:
@@ -149,18 +164,20 @@ Within schema major version `1`:
 
 - required interpretation fields will not be removed or weakened;
 - existing field meanings will not be silently changed;
-- new optional fields may be added;
-- consumers should ignore unknown fields;
+- new optional fields may be added where the relevant schema permits them;
 - rule IDs remain governed by the selected profile, not by the report schema version.
 
-A change that removes `scientific_validation`, `scope_notice`, or `not_evaluated`, permits `scientific_validation: true`, or changes their meaning requires a new schema major version and is treated as a semantic breaking change.
+A change that removes `scientific_validation`, `scope_notice`, or `not_evaluated`, permits `scientific_validation: true`, or changes their meaning requires an appropriate new schema major version and is treated as a semantic breaking change.
 
-The package version, report schema version, contract document version, and rule profile are separate concepts:
+The package version, report schema version, profile-manifest schema version, contract document version, and rule profile are separate concepts:
 
 - package version: implementation release;
-- report schema version: JSON envelope compatibility;
+- report schema version: validation-envelope compatibility;
+- profile-manifest schema version: rule-metadata envelope compatibility;
 - contract document version: submitted contract-format identifier, preserved when declared;
 - profile: implemented validation-rule semantics.
+
+Reports do not currently carry a profile-manifest digest. A future binding or cross-version compatibility feature should make that relationship explicit rather than silently changing report identity semantics.
 
 ## Exit codes
 
@@ -172,10 +189,12 @@ JSON output does not replace process status:
 | `REVIEW` | `0` |
 | `REVIEW --warnings-as-errors` | `1` |
 | `BLOCK` | `1` |
+| profile show success | `0` |
+| unsupported profile | `2` |
 | input error | `2` |
 
-Consumers should inspect both the JSON `type`/`verdict` and the process exit code.
+Consumers should inspect both the JSON `type`/`verdict` when applicable and the process exit code.
 
 ## Validation
 
-The test suite validates every example report against `report-v1.schema.json`, validates structured input errors against `error-v1.schema.json`, verifies generated contract bindings and legacy unbound v1 compatibility, and verifies that stripping the scope notice or setting `scientific_validation` to `true` fails schema validation.
+The test suite validates every example report against `report-v1.schema.json`, validates structured input errors against `error-v1.schema.json`, validates the profile manifest against `profile-manifest-v1.schema.json`, locks the manifest against executable and documented rule IDs/severities, verifies generated contract bindings and legacy unbound v1 compatibility, and verifies that stripping the scope notice or setting `scientific_validation` to `true` fails report-schema validation.
