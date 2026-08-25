@@ -49,6 +49,24 @@ The published [`minimum-v0.1` input schema](schemas/contract-minimum-v0.1.schema
 
 See [docs/CONTRACT_SCHEMA.md](docs/CONTRACT_SCHEMA.md) for the structural-versus-rule boundary.
 
+## Profile manifest boundary
+
+Use this command when an agent needs to inspect the active rule contract without scraping Markdown or source code:
+
+```bash
+claim-contract profile show minimum-v0.1 --json
+```
+
+The profile manifest is descriptive metadata, not a verdict and not a second validator.
+
+- `consumed_fields` means the rule reads those declared fields; it does not mean those fields are sufficient to establish analytical correctness.
+- `trigger` is a concise description of executable rule logic, not a machine-executable replacement for that logic.
+- `known_boundary` describes what the rule does not establish; do not omit or reverse that limitation when summarizing the rule.
+- Do not fill missing contract fields merely because the manifest says a rule consumes them.
+- Do not translate a rule list, rule severity, or manifest-schema match into scientific approval.
+
+See [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md).
+
 ## Preserve the machine-readable envelope
 
 When returning machine-readable results to another agent, preserve:
@@ -60,7 +78,8 @@ When returning machine-readable results to another agent, preserve:
 - `scope_notice`;
 - `not_evaluated`;
 - `summary` and every non-PASS finding;
-- the structured `error` object for error envelopes.
+- the structured `error` object for error envelopes;
+- profile metadata, `rule_count`, and complete `rules` entries when forwarding a profile manifest.
 
 Do not strip these fields to save tokens. Do not construct a replacement “compact” object that omits the interpretation boundary.
 
@@ -72,7 +91,7 @@ claim-contract report verify report.json --contract contract.yaml
 
 A matching binding proves only that the parsed contract content matches the input that produced the saved report. It does not authenticate the report, prove the analysis is correct, or upgrade the verdict.
 
-Consumers should accept additive fields within the same schema major version and ignore fields they do not recognize. See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md).
+Consumers should accept additive fields within the same schema major version where the relevant schema permits them. See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md).
 
 The [`agent_misuse`](examples/adversarial/agent_misuse/) fixture contrasts an unsafe summary with a compliant one. The unsafe version is not an alternate style; it is an example of semantic corruption during handoff.
 
