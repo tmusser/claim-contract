@@ -17,6 +17,7 @@ from .metadata import (
     TOOL_VERSION,
 )
 from .models import Verdict
+from .profiles import ProfileManifest, get_profile_manifest
 from .validator import validate_contract
 
 
@@ -55,6 +56,32 @@ def build_parser() -> argparse.ArgumentParser:
         help="Exit 1 for REVIEW as well as BLOCK.",
     )
 
+    profile = subparsers.add_parser(
+        "profile",
+        help="Inspect versioned validation-profile metadata.",
+    )
+    profile_commands = profile.add_subparsers(dest="profile_command", required=True)
+    profile_show = profile_commands.add_parser(
+        "show",
+        help="Show the machine-readable rule manifest for a profile.",
+    )
+    profile_show.add_argument("profile", help="Profile name, for example minimum-v0.1.")
+    profile_output = profile_show.add_mutually_exclusive_group()
+    profile_output.add_argument(
+        "--format",
+        choices=("text", "json"),
+        dest="format",
+        help="Output format.",
+    )
+    profile_output.add_argument(
+        "--json",
+        action="store_const",
+        const="json",
+        dest="format",
+        help="Shortcut for --format json.",
+    )
+    profile_show.set_defaults(format="text")
+
     ledger = subparsers.add_parser(
         "ledger",
         help="Inspect repository claim-ledger metadata.",
@@ -83,6 +110,40 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     return parser
+
+
+def _format_profile_text(manifest: ProfileManifest) -> str:
+    lines = [
+        f"Profile: {manifest.name}",
+        f"Rules: {len(manifest.rules)}",
+        "Scientific validation: false",
+        "",
+    ]
+    for rule in manifest.rules:
+        lines.extend(
+            [
+                f"{rule.rule_id} {rule.severity.value}",
+                f"  Trigger: {rule.trigger}",
+                f"  Consumes: {', '.join(rule.consumed_fields)}",
+                f"  Boundary: {rule.known_boundary}",
+                "",
+            ]
+        )
+    return "\n".join(lines).rstrip()
+
+
+def _run_profile_show(name: str, output_format: str) -> int:
+    try:
+        manifest = get_profile_manifest(name)
+    except ValueError as exc:
+        print(f"Input error: {exc}", file=sys.stderr)
+        return 2
+
+    if output_format == "json":
+        print(json.dumps(manifest.to_dict(), indent=2, sort_keys=True))
+    else:
+        print(_format_profile_text(manifest))
+    return 0
 
 
 def _run_ledger_verify(path: str) -> int:
@@ -178,6 +239,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
+    if args.command == "profile":
+        return _run_profile_show(args.profile, args.format)
     if args.command == "ledger":
         return _run_ledger_verify(args.ledger)
     if args.command == "report":
