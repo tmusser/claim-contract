@@ -8,3 +8,6 @@ REPORT_SCHEMA_VERSION = "1.0"
 
 ERROR_TYPE = "claim_contract.error"
 ERROR_SCHEMA_VERSION = "1.0"
+
+PROFILE_MANIFEST_TYPE = "claim_contract.profile_manifest"
+PROFILE_MANIFEST_SCHEMA_VERSION = "1.0"
