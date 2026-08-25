@@ -5,8 +5,8 @@ from typing import Any, Iterable
 
 from .binding import build_contract_binding
 from .models import Finding, Report, Severity, Verdict
+from .profiles import DEFAULT_PROFILE, ProfileManifest, get_profile_manifest
 
-_SUPPORTED_PROFILE = "minimum-v0.1"
 _CAUSAL_DESIGNS = {"randomized_experiment", "quasi_experiment"}
 _CAUSAL_PATTERNS = [
     r"\bcaus(?:e|ed|es|al)\b",
@@ -51,15 +51,15 @@ def _matches_any(text: str, patterns: Iterable[str]) -> bool:
 
 
 def _finding(
+    manifest: ProfileManifest,
     rule_id: str,
-    severity: Severity,
     path: str,
     message: str,
     action: str,
 ) -> Finding:
     return Finding(
         rule_id=rule_id,
-        severity=severity,
+        severity=manifest.rule(rule_id).severity,
         path=path,
         message=message,
         action=action,
@@ -67,11 +67,8 @@ def _finding(
 
 
 def validate_contract(contract: dict[str, Any]) -> Report:
-    profile = str(contract.get("profile", _SUPPORTED_PROFILE))
-    if profile != _SUPPORTED_PROFILE:
-        raise ValueError(
-            f"Unsupported profile '{profile}'. Supported profiles: {_SUPPORTED_PROFILE}."
-        )
+    profile = str(contract.get("profile", DEFAULT_PROFILE))
+    manifest = get_profile_manifest(profile)
 
     findings: list[Finding] = []
     claim_text = str(_get(contract, "claim.text", "") or "")
@@ -93,8 +90,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
         if _is_blank(_get(contract, path)):
             findings.append(
                 _finding(
+                    manifest,
                     "CC001",
-                    Severity.BLOCK,
                     path,
                     f"Required field '{path}' is missing.",
                     action,
@@ -113,8 +110,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
     ):
         findings.append(
             _finding(
+                manifest,
                 "CC001",
-                Severity.BLOCK,
                 "evidence.sample_size",
                 "Sample size must be a positive number.",
                 "Provide the analyzed sample size as a positive numeric value.",
@@ -124,8 +121,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
     if claim_type and claim_type not in {"descriptive", "comparison", "causal"}:
         findings.append(
             _finding(
+                manifest,
                 "CC001",
-                Severity.BLOCK,
                 "claim.type",
                 f"Unsupported claim type '{claim_type}'.",
                 "Use one of: descriptive, comparison, causal.",
@@ -135,8 +132,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
     if _get(contract, "evidence.checks.metric_definition_locked") is not True:
         findings.append(
             _finding(
+                manifest,
                 "CC101",
-                Severity.REVIEW,
                 "evidence.checks.metric_definition_locked",
                 "The metric definition was not declared locked before interpretation.",
                 "Confirm the numerator, denominator, exclusions, aggregation, and version.",
@@ -146,8 +143,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
     if _get(contract, "evidence.checks.missingness_assessed") is not True:
         findings.append(
             _finding(
+                manifest,
                 "CC102",
-                Severity.REVIEW,
                 "evidence.checks.missingness_assessed",
                 "Missingness was not declared assessed.",
                 "Assess missingness and document how it affects the declared metric and population.",
@@ -160,8 +157,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
     if comparison_required and (_is_blank(baseline_group) or _is_blank(comparison_group)):
         findings.append(
             _finding(
+                manifest,
                 "CC201",
-                Severity.BLOCK,
                 "claim.comparison",
                 "Comparison or causal claims require explicit baseline and comparison groups.",
                 "Declare both groups, periods, or conditions being compared.",
@@ -177,8 +174,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
     ):
         findings.append(
             _finding(
+                manifest,
                 "CC202",
-                Severity.BLOCK,
                 "evidence.estimate.baseline_value",
                 "A relative or percentage comparison lacks the baseline value needed for interpretation.",
                 "Provide the baseline value or rewrite the claim as an absolute comparison.",
@@ -189,8 +186,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
         if _is_blank(_get(contract, "evidence.uncertainty")):
             findings.append(
                 _finding(
+                    manifest,
                     "CC203",
-                    Severity.REVIEW,
                     "evidence.uncertainty",
                     "The estimate has no declared uncertainty information.",
                     "Provide an interval, standard error, resampling summary, or explain why uncertainty is out of scope.",
@@ -202,8 +199,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
     ):
         findings.append(
             _finding(
+                manifest,
                 "CC204",
-                Severity.REVIEW,
                 "evidence.checks.composition_stability_assessed",
                 "Composition stability was not assessed for an observational before/after comparison.",
                 "Check whether population or segment mix changed across the comparison window.",
@@ -228,8 +225,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
         if multiplicity_assessed is not True:
             findings.append(
                 _finding(
+                    manifest,
                     "CC205",
-                    Severity.REVIEW,
                     "evidence.checks.multiple_comparisons_assessed",
                     "Multiple-comparison risk was not declared assessed.",
                     "Declare whether the claim was selected from multiple tests, outcomes, segments, or variants.",
@@ -242,8 +239,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
         ):
             findings.append(
                 _finding(
+                    manifest,
                     "CC205",
-                    Severity.REVIEW,
                     "evidence.multiplicity.comparisons",
                     "The declared comparison count is not a positive number.",
                     "Provide the number of comparisons considered or omit the field when unknown.",
@@ -257,8 +254,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
         ):
             findings.append(
                 _finding(
+                    manifest,
                     "CC205",
-                    Severity.REVIEW,
                     "evidence.multiplicity",
                     "Multiple comparisons were declared without an adjustment strategy or rationale.",
                     "Declare an adjustment method or explain why no adjustment was used.",
@@ -272,8 +269,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
     ):
         findings.append(
             _finding(
+                manifest,
                 "CC206",
-                Severity.BLOCK,
                 "evidence.estimate",
                 "Magnitude language lacks a numeric effect estimate on a declared scale.",
                 "Report the estimate value and scale, or remove qualitative magnitude language.",
@@ -283,8 +280,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
     if causal_language and design not in _CAUSAL_DESIGNS:
         findings.append(
             _finding(
+                manifest,
                 "CC301",
-                Severity.BLOCK,
                 "claim.text",
                 f"Causal language is not eligible under design '{design or 'undeclared'}'.",
                 "Use non-causal wording or provide an eligible design and its required diagnostics.",
@@ -295,8 +292,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
         if _get(contract, "evidence.checks.identifying_assumptions_documented") is not True:
             findings.append(
                 _finding(
+                    manifest,
                     "CC302",
-                    Severity.BLOCK,
                     "evidence.checks.identifying_assumptions_documented",
                     "The quasi-experimental claim lacks declared identifying assumptions.",
                     "Document the design-specific identifying assumptions and diagnostics.",
@@ -307,8 +304,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
         if _get(contract, "evidence.checks.treatment_assignment_validated") is not True:
             findings.append(
                 _finding(
+                    manifest,
                     "CC303",
-                    Severity.BLOCK,
                     "evidence.checks.treatment_assignment_validated",
                     "Randomized assignment was not declared validated.",
                     "Verify assignment integrity, exposure, exclusions, and analysis population.",
@@ -318,8 +315,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
     if causal_language and design in _CAUSAL_DESIGNS:
         findings.append(
             _finding(
+                manifest,
                 "CC305",
-                Severity.REVIEW,
                 "claim.type",
                 "Causal claims require qualified human analytical review under minimum-v0.1.",
                 "Have a qualified reviewer inspect the design, diagnostics, assumptions, and execution evidence.",
@@ -334,8 +331,8 @@ def validate_contract(contract: dict[str, Any]) -> Report:
     if design == "observational_before_after" and comparison_required and not has_noncausal_caveat:
         findings.append(
             _finding(
+                manifest,
                 "CC304",
-                Severity.REVIEW,
                 "evidence.caveats",
                 "The observational intervention comparison lacks an explicit non-causal caveat.",
                 "State that timing or association does not establish attribution.",
