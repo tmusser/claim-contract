@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/blob/main/schemas/profile-manifest-v1.schema.json",
+  "title": "claim-contract profile manifest v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "type",
+    "tool",
+    "profile",
+    "scientific_validation",
+    "scope_notice",
+    "not_evaluated",
+    "rule_count",
+    "rules"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "type": {
+      "const": "claim_contract.profile_manifest"
+    },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"const": "claim-contract"},
+        "version": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "profile": {
+      "type": "object",
+      "required": ["name", "contract_schema", "description"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "contract_schema": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "scientific_validation": {
+      "const": false
+    },
+    "scope_notice": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "not scientific validation"
+    },
+    "not_evaluated": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "rule_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "severity",
+          "consumed_fields",
+          "trigger",
+          "known_boundary"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^CC[0-9]{3}$"
+          },
+          "severity": {
+            "enum": ["REVIEW", "BLOCK"]
+          },
+          "consumed_fields": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          },
+          "trigger": {
+            "type": "string",
+            "minLength": 1
+          },
+          "known_boundary": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
