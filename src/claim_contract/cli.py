@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .binding import build_contract_binding, contract_binding_from_dict
 from .formatters import format_json, format_json_error, format_text
+from .handoff import build_chart_handoff, handoff_exit_code
 from .io import load_contract
 from .ledger import verify_pinned_provenance
 from .metadata import (
@@ -54,6 +55,22 @@ def build_parser() -> argparse.ArgumentParser:
         "--warnings-as-errors",
         action="store_true",
         help="Exit 1 for REVIEW as well as BLOCK.",
+    )
+
+    handoff = subparsers.add_parser(
+        "handoff",
+        help="Emit bounded downstream handoff artifacts.",
+    )
+    handoff_commands = handoff.add_subparsers(dest="handoff_command", required=True)
+    chart_handoff = handoff_commands.add_parser(
+        "chart",
+        help="Emit a bounded JSON claim context for chart-contract.",
+    )
+    chart_handoff.add_argument("contract", help="Path to the YAML or JSON contract.")
+    chart_handoff.add_argument(
+        "--warnings-as-errors",
+        action="store_true",
+        help="Exit 1 for REVIEW as well as BLOCK while still emitting the handoff.",
     )
 
     profile = subparsers.add_parser(
@@ -144,6 +161,18 @@ def _run_profile_show(name: str, output_format: str) -> int:
     else:
         print(_format_profile_text(manifest))
     return 0
+
+
+def _run_chart_handoff(contract_path: str, warnings_as_errors: bool) -> int:
+    try:
+        contract = load_contract(contract_path)
+        handoff = build_chart_handoff(contract)
+    except (FileNotFoundError, ValueError, TypeError) as exc:
+        print(format_json_error(f"Input error: {exc}"))
+        return 2
+
+    print(json.dumps(handoff.to_dict(), indent=2, sort_keys=True))
+    return handoff_exit_code(handoff, warnings_as_errors=warnings_as_errors)
 
 
 def _run_ledger_verify(path: str) -> int:
@@ -239,6 +268,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
+    if args.command == "handoff":
+        return _run_chart_handoff(args.contract, args.warnings_as_errors)
     if args.command == "profile":
         return _run_profile_show(args.profile, args.format)
     if args.command == "ledger":
