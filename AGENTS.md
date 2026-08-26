@@ -67,6 +67,26 @@ The profile manifest is descriptive metadata, not a verdict and not a second val
 
 See [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md).
 
+## Chart handoff boundary
+
+Use the bounded chart handoff only to preserve declared claim context across the `claim-contract` → `chart-contract` boundary:
+
+```bash
+claim-contract handoff chart contract.yaml > chart-handoff.json
+```
+
+The handoff is not a chart recommendation and not an approval artifact.
+
+- Preserve the exact `claim.text`; do not soften or rewrite it merely because chart authoring would be easier.
+- Preserve population, time window, metric/unit, provenance source, caveats, validation verdict, and every finding.
+- Preserve the contract input binding; do not detach the handoff from the contract that produced it.
+- Do not add chart type, mark, encoding, aggregation, scale, normalization, or visual-style recommendations to the v1 handoff.
+- A `REVIEW` or `BLOCK` handoff remains unresolved downstream; transport does not upgrade it.
+- `claim-contract READY` does not imply that any particular visualization is safe or accurate.
+- `chart-contract` must still audit the concrete chart/spec independently.
+
+The handoff schema is intentionally closed-world. See [docs/CHART_HANDOFF.md](docs/CHART_HANDOFF.md).
+
 ## Preserve the machine-readable envelope
 
 When returning machine-readable results to another agent, preserve:
@@ -79,7 +99,8 @@ When returning machine-readable results to another agent, preserve:
 - `not_evaluated`;
 - `summary` and every non-PASS finding;
 - the structured `error` object for error envelopes;
-- profile metadata, `rule_count`, and complete `rules` entries when forwarding a profile manifest.
+- profile metadata, `rule_count`, and complete `rules` entries when forwarding a profile manifest;
+- destination, claim, evidence context, validation, and contract metadata when forwarding a chart handoff.
 
 Do not strip these fields to save tokens. Do not construct a replacement “compact” object that omits the interpretation boundary.
 
@@ -91,7 +112,7 @@ claim-contract report verify report.json --contract contract.yaml
 
 A matching binding proves only that the parsed contract content matches the input that produced the saved report. It does not authenticate the report, prove the analysis is correct, or upgrade the verdict.
 
-Consumers should accept additive fields within the same schema major version where the relevant schema permits them. See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md).
+Consumers should accept additive fields within the same schema major version where the relevant schema permits them. The chart-handoff v1 schema is intentionally strict and does not permit undeclared additions. See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md).
 
 The [`agent_misuse`](examples/adversarial/agent_misuse/) fixture contrasts an unsafe summary with a compliant one. The unsafe version is not an alternate style; it is an example of semantic corruption during handoff.
 
