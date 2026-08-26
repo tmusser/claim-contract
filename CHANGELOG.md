@@ -4,6 +4,9 @@
 
 ### Added
 
+- `claim-contract handoff chart <contract>` for emitting a strict JSON-only `claim_contract.chart_handoff` artifact targeted at `chart-contract`.
+- Published `schemas/chart-handoff-v1.schema.json` covering exact claim text, metric/unit, population, time window, provenance source, caveats, validation status/findings, and the bound contract identity while explicitly excluding chart-design recommendations.
+- Python `ChartHandoff` / `build_chart_handoff(...)` support plus schema, drift, blocked-claim, missing-field, and CLI exit-policy tests.
 - `claim-contract profile show minimum-v0.1` with `--json` / `--format json` output for machine-readable profile inspection.
 - Versioned `claim_contract.profile_manifest` documents with rule IDs, severities, consumed fields, short triggers, known boundaries, and preserved interpretation limits.
 - Published `schemas/profile-manifest-v1.schema.json` plus drift tests that lock manifest IDs/severities against the executable validator and human rule table.
