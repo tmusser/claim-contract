@@ -83,6 +83,18 @@ def test_ready_chart_handoff_is_schema_valid_and_bounded() -> None:
     assert forbidden.isdisjoint(_walk_keys(payload))
 
 
+def test_schema_rejects_injected_chart_recommendation() -> None:
+    payload = build_chart_handoff(load_contract(READY_CONTRACT)).to_dict()
+    payload["chart_type"] = "bar"
+
+    try:
+        jsonschema.validate(payload, _schema())
+    except jsonschema.ValidationError:
+        pass
+    else:
+        raise AssertionError("v1 handoff schema must reject chart-design additions")
+
+
 def test_handoff_binding_detects_contract_drift() -> None:
     contract = load_contract(READY_CONTRACT)
     handoff = build_chart_handoff(contract)
