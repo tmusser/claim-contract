@@ -52,17 +52,17 @@ def test_ready_chart_handoff_is_schema_valid_and_bounded() -> None:
         "purpose": "bounded_claim_context",
     }
     assert payload["claim"] == {
-        "text": "Median support-ticket resolution time was 18 hours in June 2026.",
+        "text": "Seven-day activation was 27% among eligible new users from April through June 2026.",
         "metric": {
-            "name": "median_resolution_hours",
-            "unit": "hours",
+            "name": "seven_day_activation_rate",
+            "unit": "proportion",
         },
-        "population": "support tickets closed in June 2026",
-        "time_window": "2026-06-01/2026-06-30",
+        "population": "eligible new users",
+        "time_window": "2026-04-01/2026-06-30",
     }
     assert payload["evidence_context"] == {
-        "provenance_source": "warehouse.support_tickets",
-        "caveats": ["Operational summary for the declared population and window only."],
+        "provenance_source": "warehouse.funnel_events",
+        "caveats": ["Descriptive result for the declared population and time window only."],
     }
     assert payload["validation"]["verdict"] == "READY"
     assert payload["validation"]["scientific_validation"] is False
