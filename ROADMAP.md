@@ -21,14 +21,15 @@ This roadmap records possible directions, not promises or release commitments.
 - Added read-only verification for commit-pinned claim-ledger context references.
 - Bound generated validation reports to deterministic identities for the exact parsed contracts that produced them, with read-only saved-report verification.
 - Exposed the `minimum-v0.1` rule contract as a versioned machine-readable profile manifest with rule IDs, severities, consumed fields, triggers, and known boundaries.
+- Added a strict, versioned `claim-contract` to `chart-contract` handoff envelope that preserves bounded claim context, validation status, and contract identity without recommending a visualization.
 
 ## Candidate directions
 
 These require evidence before promotion:
 
 - Additional narrow profiles for well-defined analytical contexts.
-- A shared handoff format from `claim-contract` to `chart-contract`.
 - Explicit compatibility or diff reporting across profile-manifest versions, including any future report-to-profile binding.
+- Optional downstream consumption of the bounded chart-handoff artifact without collapsing claim-contract and chart-contract responsibilities.
 
 Candidate features stay here. Empirical claims about whether the harness or its interfaces actually improve agent behavior, catch enough violations, or reduce overclaiming belong in the machine-readable [`claims/ledger.yaml`](claims/ledger.yaml), where support and refutation conditions are frozen before the evidence intended to settle them is observed.
 
