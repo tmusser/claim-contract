@@ -11,3 +11,6 @@ ERROR_SCHEMA_VERSION = "1.0"
 
 PROFILE_MANIFEST_TYPE = "claim_contract.profile_manifest"
 PROFILE_MANIFEST_SCHEMA_VERSION = "1.0"
+
+CHART_HANDOFF_TYPE = "claim_contract.chart_handoff"
+CHART_HANDOFF_SCHEMA_VERSION = "1.0"
