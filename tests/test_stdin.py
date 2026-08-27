@@ -91,3 +91,23 @@ def test_chart_handoff_can_reuse_stdin_contract_input(monkeypatch, capsys) -> No
     assert code == 0
     assert payload["type"] == "claim_contract.chart_handoff"
     assert payload["validation"]["verdict"] == "READY"
+
+
+def test_report_verify_can_reuse_stdin_contract_input(
+    monkeypatch, capsys, tmp_path: Path
+) -> None:
+    code = main(["validate", str(READY_CONTRACT), "--json"])
+    report_text = capsys.readouterr().out
+    assert code == 0
+
+    report_path = tmp_path / "report.json"
+    report_path.write_text(report_text, encoding="utf-8")
+    _pipe(monkeypatch, READY_CONTRACT.read_text(encoding="utf-8"))
+
+    verify_code = main(
+        ["report", "verify", str(report_path), "--contract", "-"]
+    )
+    output = capsys.readouterr().out
+
+    assert verify_code == 0
+    assert "Binding: MATCH" in output
