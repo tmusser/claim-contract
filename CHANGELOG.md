@@ -32,7 +32,7 @@
 - `--json` CLI shortcut for agent and tool-calling workflows.
 - Non-promissory `ROADMAP.md` with explicit feature promotion gates and non-goals.
 - Tests for multiplicity assessment, adjustment/rationale handling, magnitude language, and the JSON alias.
-- Adversarial fixtures for false confidence, undeclared assumptions, and downstream agent misuse.
+- Adversarial fixtures for false confidence, undeclared identifying assumptions, and downstream agent misuse.
 - Tests that lock adversarial verdicts, rule IDs, and safe/unsafe agent-summary boundaries.
 - Versioned `claim_contract.report` and `claim_contract.error` JSON envelopes.
 - Published report and error JSON Schemas.
