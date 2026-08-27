@@ -70,6 +70,14 @@ claim-contract profile show minimum-v0.1 --json
 
 The profile manifest exposes each rule's ID, severity, consumed fields, short trigger, and known boundary. It is inspection metadata, not another validator. See [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md).
 
+A validated contract can also be exported as bounded context for downstream chart work:
+
+```bash
+claim-contract handoff chart examples/descriptive_summary/contract.yaml > chart-handoff.json
+```
+
+The handoff carries exact claim/scope/provenance/caveat context, the validation verdict and findings, and the bound contract identity. It deliberately contains **no chart recommendation, mark, encoding, aggregation, scale, or visual interpretation**. See [docs/CHART_HANDOFF.md](docs/CHART_HANDOFF.md).
+
 ## Verdict gallery
 
 | Example | Expected verdict | What it demonstrates |
@@ -194,47 +202,59 @@ claim-contract validate path/to/contract.yaml
 claim-contract validate path/to/contract.yaml --json
 claim-contract validate path/to/contract.yaml --format json
 claim-contract validate path/to/contract.yaml --warnings-as-errors
+claim-contract handoff chart path/to/contract.yaml
+claim-contract handoff chart path/to/contract.yaml --warnings-as-errors
 claim-contract profile show minimum-v0.1
 claim-contract profile show minimum-v0.1 --json
 ```
 
-`--json` is a shortcut for `--format json` on commands that support formatted output. `--version` prints the installed package version without requiring a contract file.
+`--json` is a shortcut for `--format json` on commands that support formatted output. `handoff chart` is JSON-only because its output is a versioned downstream artifact. `--version` prints the installed package version without requiring a contract file.
 
-Exit behavior for validation remains unchanged:
+Exit behavior for validation and chart handoff uses the same verdict gate:
 
 - `READY` exits `0`.
 - `REVIEW` exits `0` by default and `1` with `--warnings-as-errors`.
 - `BLOCK` exits `1`.
-- malformed input exits `2`.
+- malformed or unexportable input exits `2`.
+
+A `REVIEW` or `BLOCK` chart handoff is still emitted when validation completed, so downstream tooling cannot mistake transport for approval.
 
 `profile show` exits `0` for a supported profile and `2` for an unsupported profile. It does not execute validation or produce a verdict.
 
 ## Machine-readable contract
 
-JSON validation reports use `claim_contract.report`; JSON input failures use `claim_contract.error`; profile inspection uses `claim_contract.profile_manifest`. Each currently has its own schema family at `schema_version: "1.0"`.
+JSON validation reports use `claim_contract.report`; JSON input failures use `claim_contract.error`; profile inspection uses `claim_contract.profile_manifest`; chart handoff uses `claim_contract.chart_handoff`. Each currently has its own schema family at `schema_version: "1.0"`.
 
-Every machine-readable document preserves the interpretation boundary with `scientific_validation: false`, the fixed scope notice, and a non-empty `not_evaluated` list where defined by its schema.
+Machine-readable validation/profile/handoff documents preserve the interpretation boundary with `scientific_validation: false`, the fixed scope notice, and a non-empty `not_evaluated` list where defined by their schemas.
 
 Published schemas:
 
 - [`schemas/contract-minimum-v0.1.schema.json`](schemas/contract-minimum-v0.1.schema.json) — canonical input shape for the `minimum-v0.1` profile
 - [`schemas/profile-manifest-v1.schema.json`](schemas/profile-manifest-v1.schema.json) — machine-readable profile/rule metadata
+- [`schemas/chart-handoff-v1.schema.json`](schemas/chart-handoff-v1.schema.json) — strict bounded context for downstream chart work
 - [`schemas/report-v1.schema.json`](schemas/report-v1.schema.json)
 - [`schemas/error-v1.schema.json`](schemas/error-v1.schema.json)
 
-See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md) for output compatibility guarantees and [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md) for profile-manifest semantics. See [docs/CONTRACT_SCHEMA.md](docs/CONTRACT_SCHEMA.md) for input-schema scope and compatibility.
+See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md) for output compatibility guarantees, [docs/CHART_HANDOFF.md](docs/CHART_HANDOFF.md) for the cross-tool boundary, and [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md) for profile-manifest semantics. See [docs/CONTRACT_SCHEMA.md](docs/CONTRACT_SCHEMA.md) for input-schema scope and compatibility.
 
 ## Python API
 
 ```python
-from claim_contract import get_profile_manifest, load_contract, validate_contract
+from claim_contract import (
+    build_chart_handoff,
+    get_profile_manifest,
+    load_contract,
+    validate_contract,
+)
 
 contract = load_contract("examples/onboarding_conversion/contract.yaml")
 report = validate_contract(contract)
 manifest = get_profile_manifest("minimum-v0.1")
+handoff = build_chart_handoff(contract)
 
 print(report.verdict)
 print(manifest.rule("CC301").known_boundary)
+print(handoff.to_dict()["destination"])
 for finding in report.findings:
     print(finding.severity, finding.rule_id, finding.message)
 ```
@@ -267,13 +287,21 @@ See the [worked onboarding example](skills/claim-foil/EXAMPLE.md).
 
 `claim-contract` checks **evidence-to-language integrity**.
 
-`chart-contract` checks **claim-to-visual integrity**.
+The bounded chart handoff preserves the exact claim, analytical scope, caveats, validation status, and contract identity that downstream chart work is allowed to inherit.
+
+`chart-contract` then checks **claim-to-visual integrity** on the concrete chart/spec and its data/claim inputs.
 
 ```text
-analysis → claim-foil → claim-contract → bounded claim → chart-contract → audited visual
+analysis
+  → claim-foil
+  → claim-contract
+  → bounded chart handoff
+  → chart authoring
+  → chart-contract audit
+  → human analytical judgment
 ```
 
-`claim-foil` is optional. Neither skill nor contract replaces analytical judgment.
+The handoff is not a chart generator or adapter. `chart-contract` still performs its own independent audit, and neither tool replaces analytical judgment.
 
 ## Roadmap
 
