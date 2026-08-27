@@ -4,6 +4,7 @@
 
 ### Added
 
+- `-` as a first-class stdin contract source for validation and other contract-taking CLI paths, preserving existing verdict, JSON/error-envelope, and exit-code semantics.
 - `claim-contract handoff chart <contract>` for emitting a strict JSON-only `claim_contract.chart_handoff` artifact targeted at `chart-contract`.
 - Published `schemas/chart-handoff-v1.schema.json` covering exact claim text, metric/unit, population, time window, provenance source, caveats, validation status/findings, and the bound contract identity while explicitly excluding chart-design recommendations.
 - Python `ChartHandoff` / `build_chart_handoff(...)` support plus schema, drift, blocked-claim, missing-field, and CLI exit-policy tests.
@@ -31,7 +32,7 @@
 - `--json` CLI shortcut for agent and tool-calling workflows.
 - Non-promissory `ROADMAP.md` with explicit feature promotion gates and non-goals.
 - Tests for multiplicity assessment, adjustment/rationale handling, magnitude language, and the JSON alias.
-- Adversarial fixtures for false confidence, undeclared identifying assumptions, and downstream agent misuse.
+- Adversarial fixtures for false confidence, undeclared assumptions, and downstream agent misuse.
 - Tests that lock adversarial verdicts, rule IDs, and safe/unsafe agent-summary boundaries.
 - Versioned `claim_contract.report` and `claim_contract.error` JSON envelopes.
 - Published report and error JSON Schemas.
