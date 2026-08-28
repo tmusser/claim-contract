@@ -7,9 +7,11 @@ import jsonschema
 import yaml
 
 from claim_contract.cli import main
+from claim_contract.ledger import LEDGER_STATUSES
 
 ROOT = Path(__file__).parents[1]
 LEDGER_PATH = ROOT / "claims/ledger.yaml"
+LEDGER_SCHEMA_PATH = ROOT / "schemas/claim-ledger-v1.1.schema.json"
 SCHEMA_PATH = ROOT / "schemas/ledger-inspection-v1.schema.json"
 
 
@@ -29,6 +31,13 @@ def _write_ledger(path: Path, ledger: dict) -> None:
 
 def test_ledger_inspection_schema_is_valid_draft_2020_12() -> None:
     jsonschema.Draft202012Validator.check_schema(_schema())
+
+
+def test_ledger_status_registry_matches_published_ledger_schema() -> None:
+    ledger_schema = json.loads(LEDGER_SCHEMA_PATH.read_text(encoding="utf-8"))
+    published = ledger_schema["properties"]["claims"]["items"]["properties"]["status"]["enum"]
+
+    assert list(LEDGER_STATUSES) == published
 
 
 def test_ledger_list_json_filters_recorded_status_without_rewriting(capsys) -> None:
@@ -194,3 +203,17 @@ def test_ledger_show_rejects_duplicate_claim_ids(tmp_path: Path, capsys) -> None
     assert code == 2
     assert captured.out == ""
     assert f"Ledger contains duplicate claim id: {duplicate['id']}" in captured.err
+
+
+def test_ledger_json_serialization_failure_is_input_error(tmp_path: Path, capsys) -> None:
+    changed = _ledger()
+    changed["claims"][0]["judgment"]["last_evaluated"] = yaml.safe_load("2026-08-28")
+    temp_ledger = tmp_path / "ledger.yaml"
+    _write_ledger(temp_ledger, changed)
+
+    code = main(["ledger", "list", str(temp_ledger), "--json"])
+    captured = capsys.readouterr()
+
+    assert code == 2
+    assert captured.out == ""
+    assert "not JSON serializable" in captured.err
