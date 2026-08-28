@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/schemas/ledger-inspection-v1.schema.json",
+  "title": "claim-contract ledger inspection v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "type",
+    "tool",
+    "ledger",
+    "inspection",
+    "count",
+    "claims"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "type": {
+      "const": "claim_contract.ledger_inspection"
+    },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"const": "claim-contract"},
+        "version": {"type": "string", "minLength": 1}
+      }
+    },
+    "ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "type", "scope_notice"],
+      "properties": {
+        "schema_version": {"type": "string", "minLength": 1},
+        "type": {"const": "claim_contract.claim_ledger"},
+        "scope_notice": {"type": "string", "minLength": 1}
+      }
+    },
+    "inspection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "status_filter",
+        "claim_id",
+        "automatic_adjudication",
+        "mutates_ledger",
+        "notice"
+      ],
+      "properties": {
+        "mode": {"enum": ["list", "show"]},
+        "status_filter": {
+          "type": ["string", "null"],
+          "enum": ["OPEN", "SUPPORT_MET", "REFUTE_MET", "INCONCLUSIVE", "RETIRED", null]
+        },
+        "claim_id": {
+          "type": ["string", "null"],
+          "pattern": "^CCL-[0-9]{3}$"
+        },
+        "automatic_adjudication": {"const": false},
+        "mutates_ledger": {"const": false},
+        "notice": {
+          "const": "Inspection exposes recorded ledger fields only. It does not evaluate support_if, refute_if, evidence, or whether any status should change, and it does not mutate the ledger."
+        }
+      }
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^CCL-[0-9]{3}$"
+          },
+          "status": {
+            "enum": ["OPEN", "SUPPORT_MET", "REFUTE_MET", "INCONCLUSIVE", "RETIRED"]
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}
