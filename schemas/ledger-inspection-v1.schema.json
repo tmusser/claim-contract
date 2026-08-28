@@ -88,5 +88,58 @@
         "additionalProperties": true
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "inspection": {
+            "properties": {
+              "mode": {"const": "show"}
+            },
+            "required": ["mode"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "inspection": {
+            "properties": {
+              "status_filter": {"const": null},
+              "claim_id": {
+                "type": "string",
+                "pattern": "^CCL-[0-9]{3}$"
+              }
+            }
+          },
+          "count": {"const": 1},
+          "claims": {
+            "minItems": 1,
+            "maxItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "inspection": {
+            "properties": {
+              "mode": {"const": "list"}
+            },
+            "required": ["mode"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "inspection": {
+            "properties": {
+              "claim_id": {"const": null}
+            }
+          }
+        }
+      }
+    }
+  ]
 }
