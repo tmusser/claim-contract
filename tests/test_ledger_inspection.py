@@ -23,6 +23,10 @@ def _schema() -> dict:
     return json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
 
 
+def _write_ledger(path: Path, ledger: dict) -> None:
+    path.write_text(yaml.safe_dump(ledger, sort_keys=False), encoding="utf-8")
+
+
 def test_ledger_inspection_schema_is_valid_draft_2020_12() -> None:
     jsonschema.Draft202012Validator.check_schema(_schema())
 
@@ -109,12 +113,11 @@ def test_ledger_show_text_labels_judge_contract_as_not_evaluated(capsys) -> None
 
 
 def test_ledger_status_filter_uses_recorded_status_only(tmp_path: Path, capsys) -> None:
-    source = _ledger()
-    changed = yaml.safe_load(yaml.safe_dump(source, sort_keys=False))
+    changed = _ledger()
     target = next(claim for claim in changed["claims"] if claim["id"] == "CCL-003")
     target["status"] = "RETIRED"
     temp_ledger = tmp_path / "ledger.yaml"
-    temp_ledger.write_text(yaml.safe_dump(changed, sort_keys=False), encoding="utf-8")
+    _write_ledger(temp_ledger, changed)
 
     code = main(
         ["ledger", "list", str(temp_ledger), "--status", "RETIRED", "--format", "json"]
@@ -125,6 +128,15 @@ def test_ledger_status_filter_uses_recorded_status_only(tmp_path: Path, capsys) 
     assert payload["count"] == 1
     assert payload["claims"][0] == target
     assert payload["claims"][0]["status"] == "RETIRED"
+
+
+def test_ledger_list_zero_matches_is_success(capsys) -> None:
+    code = main(["ledger", "list", str(LEDGER_PATH), "--status", "RETIRED", "--json"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 0
+    assert payload["count"] == 0
+    assert payload["claims"] == []
 
 
 def test_ledger_list_does_not_mutate_source_file(capsys) -> None:
@@ -153,3 +165,32 @@ def test_ledger_list_rejects_unknown_status(capsys) -> None:
     assert code == 2
     assert captured.out == ""
     assert "Unsupported ledger status 'PROVEN'" in captured.err
+
+
+def test_ledger_inspection_rejects_wrong_ledger_type(tmp_path: Path, capsys) -> None:
+    changed = _ledger()
+    changed["type"] = "claim_contract.not_a_ledger"
+    temp_ledger = tmp_path / "ledger.yaml"
+    _write_ledger(temp_ledger, changed)
+
+    code = main(["ledger", "list", str(temp_ledger), "--json"])
+    captured = capsys.readouterr()
+
+    assert code == 2
+    assert captured.out == ""
+    assert "Ledger type must be 'claim_contract.claim_ledger'" in captured.err
+
+
+def test_ledger_show_rejects_duplicate_claim_ids(tmp_path: Path, capsys) -> None:
+    changed = _ledger()
+    duplicate = yaml.safe_load(yaml.safe_dump(changed["claims"][0], sort_keys=False))
+    changed["claims"].append(duplicate)
+    temp_ledger = tmp_path / "ledger.yaml"
+    _write_ledger(temp_ledger, changed)
+
+    code = main(["ledger", "show", duplicate["id"], str(temp_ledger), "--json"])
+    captured = capsys.readouterr()
+
+    assert code == 2
+    assert captured.out == ""
+    assert f"Ledger contains duplicate claim id: {duplicate['id']}" in captured.err
