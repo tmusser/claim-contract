@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import jsonschema
+import pytest
 import yaml
 
 from claim_contract.cli import main
@@ -87,6 +88,28 @@ def test_ledger_show_json_returns_exact_recorded_claim(capsys) -> None:
     assert payload["claims"] == [expected]
     assert payload["claims"][0]["judge_contract"] == expected["judge_contract"]
     jsonschema.validate(payload, _schema())
+
+
+def test_schema_rejects_show_without_claim_id(capsys) -> None:
+    code = main(["ledger", "show", "CCL-002", str(LEDGER_PATH), "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert code == 0
+
+    payload["inspection"]["claim_id"] = None
+
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(payload, _schema())
+
+
+def test_schema_rejects_claim_of_automatic_adjudication(capsys) -> None:
+    code = main(["ledger", "list", str(LEDGER_PATH), "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert code == 0
+
+    payload["inspection"]["automatic_adjudication"] = True
+
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(payload, _schema())
 
 
 def test_ledger_commands_default_to_repository_ledger(monkeypatch, capsys) -> None:
