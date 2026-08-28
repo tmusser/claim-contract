@@ -78,6 +78,15 @@ claim-contract handoff chart examples/descriptive_summary/contract.yaml > chart-
 
 The handoff carries exact claim/scope/provenance/caveat context, the validation verdict and findings, and the bound contract identity. It deliberately contains **no chart recommendation, mark, encoding, aggregation, scale, or visual interpretation**. See [docs/CHART_HANDOFF.md](docs/CHART_HANDOFF.md).
 
+The open claim ledger can be inspected without directly parsing YAML:
+
+```bash
+claim-contract ledger list --status OPEN --json
+claim-contract ledger show CCL-002 --json
+```
+
+These commands expose recorded ledger state only. They do **not** evaluate free-text `support_if` / `refute_if`, infer a status, or mutate the ledger. See [docs/LEDGER_INSPECTION.md](docs/LEDGER_INSPECTION.md).
+
 ## Verdict gallery
 
 | Example | Expected verdict | What it demonstrates |
@@ -206,9 +215,14 @@ claim-contract handoff chart path/to/contract.yaml
 claim-contract handoff chart path/to/contract.yaml --warnings-as-errors
 claim-contract profile show minimum-v0.1
 claim-contract profile show minimum-v0.1 --json
+claim-contract ledger list --status OPEN
+claim-contract ledger list --status OPEN --json
+claim-contract ledger show CCL-002
+claim-contract ledger show CCL-002 --json
+claim-contract ledger verify claims/ledger.yaml
 ```
 
-`--json` is a shortcut for `--format json` on commands that support formatted output. `handoff chart` is JSON-only because its output is a versioned downstream artifact. `--version` prints the installed package version without requiring a contract file.
+`--json` is a shortcut for `--format json` on commands that support formatted output. `handoff chart` is JSON-only because its output is a versioned downstream artifact. `ledger list` / `show` default to `claims/ledger.yaml` and accept an alternate ledger path positionally. `--version` prints the installed package version without requiring a contract file.
 
 Exit behavior for validation and chart handoff uses the same verdict gate:
 
@@ -221,21 +235,24 @@ A `REVIEW` or `BLOCK` chart handoff is still emitted when validation completed, 
 
 `profile show` exits `0` for a supported profile and `2` for an unsupported profile. It does not execute validation or produce a verdict.
 
+`ledger list` / `show` exit `0` for successful inspection and `2` for ledger-input errors. They never use exit `1` because they do not adjudicate claims. `ledger verify` remains a separate read-only provenance check.
+
 ## Machine-readable contract
 
-JSON validation reports use `claim_contract.report`; JSON input failures use `claim_contract.error`; profile inspection uses `claim_contract.profile_manifest`; chart handoff uses `claim_contract.chart_handoff`. Each currently has its own schema family at `schema_version: "1.0"`.
+JSON validation reports use `claim_contract.report`; JSON input failures use `claim_contract.error`; profile inspection uses `claim_contract.profile_manifest`; chart handoff uses `claim_contract.chart_handoff`; ledger list/show uses `claim_contract.ledger_inspection`. Each currently has its own schema family at `schema_version: "1.0"`.
 
-Machine-readable validation/profile/handoff documents preserve the interpretation boundary with `scientific_validation: false`, the fixed scope notice, and a non-empty `not_evaluated` list where defined by their schemas.
+Machine-readable validation/profile/handoff documents preserve the interpretation boundary with `scientific_validation: false`, the fixed scope notice, and a non-empty `not_evaluated` list where defined by their schemas. Ledger inspection preserves the source ledger scope notice and explicitly carries `automatic_adjudication: false` and `mutates_ledger: false`.
 
 Published schemas:
 
 - [`schemas/contract-minimum-v0.1.schema.json`](schemas/contract-minimum-v0.1.schema.json) — canonical input shape for the `minimum-v0.1` profile
 - [`schemas/profile-manifest-v1.schema.json`](schemas/profile-manifest-v1.schema.json) — machine-readable profile/rule metadata
 - [`schemas/chart-handoff-v1.schema.json`](schemas/chart-handoff-v1.schema.json) — strict bounded context for downstream chart work
+- [`schemas/ledger-inspection-v1.schema.json`](schemas/ledger-inspection-v1.schema.json) — read-only machine-readable ledger inspection
 - [`schemas/report-v1.schema.json`](schemas/report-v1.schema.json)
 - [`schemas/error-v1.schema.json`](schemas/error-v1.schema.json)
 
-See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md) for output compatibility guarantees, [docs/CHART_HANDOFF.md](docs/CHART_HANDOFF.md) for the cross-tool boundary, and [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md) for profile-manifest semantics. See [docs/CONTRACT_SCHEMA.md](docs/CONTRACT_SCHEMA.md) for input-schema scope and compatibility.
+See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md) for output compatibility guarantees, [docs/CHART_HANDOFF.md](docs/CHART_HANDOFF.md) for the cross-tool boundary, [docs/LEDGER_INSPECTION.md](docs/LEDGER_INSPECTION.md) for the ledger inspection boundary, and [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md) for profile-manifest semantics. See [docs/CONTRACT_SCHEMA.md](docs/CONTRACT_SCHEMA.md) for input-schema scope and compatibility.
 
 ## Python API
 

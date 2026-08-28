@@ -1,14 +1,14 @@
 # Machine-readable interoperability
 
-`claim-contract validate ... --json` emits exactly one JSON validation document to stdout. `claim-contract profile show ... --json` emits exactly one JSON profile-manifest document. `claim-contract handoff chart ...` emits exactly one JSON chart-handoff document.
+`claim-contract validate ... --json` emits exactly one JSON validation document to stdout. `claim-contract profile show ... --json` emits exactly one JSON profile-manifest document. `claim-contract handoff chart ...` emits exactly one JSON chart-handoff document. Successful `claim-contract ledger list/show ... --json` commands emit exactly one JSON ledger-inspection document.
 
-The output is designed for agents, CI jobs, and other tools, but machine readability must not erase the interpretation boundary. Validation reports, input-error envelopes, profile manifests, and chart handoffs preserve `scientific_validation: false`, the fixed scope notice, and a non-empty `not_evaluated` list where defined by the schema.
+The output is designed for agents, CI jobs, and other tools, but machine readability must not erase the interpretation boundary. Validation reports, input-error envelopes, profile manifests, and chart handoffs preserve `scientific_validation: false`, the fixed scope notice, and a non-empty `not_evaluated` list where defined by the schema. Ledger inspections preserve the source ledger scope notice plus an explicit `automatic_adjudication: false` / `mutates_ledger: false` boundary.
 
 Consumers must preserve those fields when forwarding or summarizing a result.
 
 ## Output types
 
-Four versioned document types are currently defined:
+Five versioned document types are currently defined:
 
 | Type | Schema | Used for |
 | --- | --- | --- |
@@ -16,6 +16,7 @@ Four versioned document types are currently defined:
 | `claim_contract.error` | [`schemas/error-v1.schema.json`](../schemas/error-v1.schema.json) | A contract that could not be loaded or validated as input. |
 | `claim_contract.profile_manifest` | [`schemas/profile-manifest-v1.schema.json`](../schemas/profile-manifest-v1.schema.json) | Versioned rule metadata for a validation profile. |
 | `claim_contract.chart_handoff` | [`schemas/chart-handoff-v1.schema.json`](../schemas/chart-handoff-v1.schema.json) | Strict bounded claim context for downstream chart work. |
+| `claim_contract.ledger_inspection` | [`schemas/ledger-inspection-v1.schema.json`](../schemas/ledger-inspection-v1.schema.json) | Read-only recorded claim-ledger state for `list` / `show` inspection. |
 
 All currently use `schema_version: "1.0"`, but each schema family evolves independently.
 
@@ -201,6 +202,62 @@ The handoff is a producer-side contract only in this release. It does not automa
 
 See [CHART_HANDOFF.md](CHART_HANDOFF.md) for the full boundary.
 
+## Ledger inspection envelope
+
+Recorded ledger state can be inspected without directly parsing the YAML source:
+
+```bash
+claim-contract ledger list --status OPEN --json
+claim-contract ledger show CCL-002 --json
+```
+
+Representative shape:
+
+```json
+{
+  "schema_version": "1.0",
+  "type": "claim_contract.ledger_inspection",
+  "tool": {
+    "name": "claim-contract",
+    "version": "0.1.0"
+  },
+  "ledger": {
+    "schema_version": "1.1",
+    "type": "claim_contract.claim_ledger",
+    "scope_notice": "Ledger judgments record whether a frozen evidence condition was met. They are not scientific validation and do not prove a claim universally true or false."
+  },
+  "inspection": {
+    "mode": "list",
+    "status_filter": "OPEN",
+    "claim_id": null,
+    "automatic_adjudication": false,
+    "mutates_ledger": false,
+    "notice": "Inspection exposes recorded ledger fields only. It does not evaluate support_if, refute_if, evidence, or whether any status should change, and it does not mutate the ledger."
+  },
+  "count": 1,
+  "claims": [
+    {
+      "id": "CCL-002",
+      "status": "OPEN",
+      "claim": "...",
+      "judge_contract": {
+        "support_if": "...",
+        "refute_if": "...",
+        "otherwise": "INCONCLUSIVE"
+      }
+    }
+  ]
+}
+```
+
+`ledger list --status ...` performs an exact filter on the recorded `status` field only. `ledger show` selects one recorded claim ID. Neither command evaluates `support_if`, `refute_if`, evidence, or whether a status should change.
+
+Embedded claim objects are preserved from the source ledger rather than rewritten into a new semantic summary. The inspection schema governs the envelope and stable `id` / `status` surface; the full embedded claim record remains governed by the source ledger schema.
+
+Successful inspection exits `0`, including a list filter with zero matches. Missing/malformed ledgers, unsupported statuses, and unknown claim IDs exit `2`. Inspection never uses exit `1` because it does not adjudicate a claim.
+
+See [LEDGER_INSPECTION.md](LEDGER_INSPECTION.md) for the full boundary.
+
 ## Error envelope
 
 JSON validation input errors requested with `--json`, and chart-handoff export errors, are written as one JSON document to stdout and exit with code `2`:
@@ -225,7 +282,7 @@ JSON validation input errors requested with `--json`, and chart-handoff export e
 }
 ```
 
-Human-readable validation input errors continue to use stderr.
+Human-readable validation input errors continue to use stderr. Ledger-inspection input errors also use stderr and exit `2`; the contract-oriented `claim_contract.error` envelope is not reused for ledger semantics.
 
 ## Compatibility policy
 
@@ -238,14 +295,17 @@ Within schema major version `1`:
 
 The chart-handoff v1 schema intentionally sets `additionalProperties: false` across its bounded envelope. New handoff content therefore requires an explicit schema compatibility decision rather than silent additive drift.
 
+The ledger-inspection v1 envelope is strict, while embedded claim objects permit source-ledger fields beyond `id` / `status`. This lets inspection preserve additive claim-ledger fields without creating a second ledger schema.
+
 A change that removes `scientific_validation`, `scope_notice`, or `not_evaluated`, permits `scientific_validation: true`, or changes their meaning requires an appropriate new schema major version and is treated as a semantic breaking change.
 
-The package version, report schema version, profile-manifest schema version, chart-handoff schema version, contract document version, and rule profile are separate concepts:
+The package version, report schema version, profile-manifest schema version, chart-handoff schema version, ledger-inspection schema version, contract document version, and rule profile are separate concepts:
 
 - package version: implementation release;
 - report schema version: validation-envelope compatibility;
 - profile-manifest schema version: rule-metadata envelope compatibility;
 - chart-handoff schema version: downstream-context compatibility;
+- ledger-inspection schema version: read-only ledger-inspection compatibility;
 - contract document version: submitted contract-format identifier, preserved when declared;
 - profile: implemented validation-rule semantics.
 
@@ -262,11 +322,13 @@ JSON output does not replace process status:
 | `REVIEW --warnings-as-errors` | `1` |
 | `BLOCK` validation/handoff | `1` |
 | profile show success | `0` |
+| ledger list/show success | `0` |
 | unsupported profile | `2` |
+| ledger inspection input error | `2` |
 | input/export error | `2` |
 
 Consumers should inspect both the JSON `type`/`verdict` when applicable and the process exit code.
 
 ## Validation
 
-The test suite validates every example report against `report-v1.schema.json`, validates structured input errors against `error-v1.schema.json`, validates the profile manifest against `profile-manifest-v1.schema.json`, validates bounded chart handoffs against `chart-handoff-v1.schema.json`, locks the manifest against executable and documented rule IDs/severities, verifies generated contract bindings and legacy unbound v1 compatibility, and verifies that interpretation boundaries remain present.
+The test suite validates every example report against `report-v1.schema.json`, validates structured input errors against `error-v1.schema.json`, validates the profile manifest against `profile-manifest-v1.schema.json`, validates bounded chart handoffs against `chart-handoff-v1.schema.json`, validates ledger inspections against `ledger-inspection-v1.schema.json`, locks the manifest against executable and documented rule IDs/severities, verifies generated contract bindings and legacy unbound v1 compatibility, verifies ledger inspection returns recorded claims without mutation or automatic adjudication, and verifies that interpretation boundaries remain present.

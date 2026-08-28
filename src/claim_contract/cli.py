@@ -10,7 +10,12 @@ from .binding import build_contract_binding, contract_binding_from_dict
 from .formatters import format_json, format_json_error, format_text
 from .handoff import build_chart_handoff, handoff_exit_code
 from .io import load_contract
-from .ledger import verify_pinned_provenance
+from .ledger import (
+    LEDGER_STATUSES,
+    LedgerInspection,
+    inspect_ledger,
+    verify_pinned_provenance,
+)
 from .metadata import (
     REPORT_SCHEMA_VERSION,
     REPORT_TYPE,
@@ -20,6 +25,9 @@ from .metadata import (
 from .models import Verdict
 from .profiles import ProfileManifest, get_profile_manifest
 from .validator import validate_contract
+
+
+DEFAULT_LEDGER_PATH = "claims/ledger.yaml"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -116,6 +124,63 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ledger_verify.add_argument("ledger", help="Path to claims/ledger.yaml or equivalent.")
 
+    ledger_list = ledger_commands.add_parser(
+        "list",
+        help="List recorded ledger claims without adjudicating them.",
+    )
+    ledger_list.add_argument(
+        "ledger",
+        nargs="?",
+        default=DEFAULT_LEDGER_PATH,
+        help=f"Ledger path (default: {DEFAULT_LEDGER_PATH}).",
+    )
+    ledger_list.add_argument(
+        "--status",
+        help="Filter by recorded status: " + ", ".join(LEDGER_STATUSES) + ".",
+    )
+    ledger_list_output = ledger_list.add_mutually_exclusive_group()
+    ledger_list_output.add_argument(
+        "--format",
+        choices=("text", "json"),
+        dest="format",
+        help="Output format.",
+    )
+    ledger_list_output.add_argument(
+        "--json",
+        action="store_const",
+        const="json",
+        dest="format",
+        help="Shortcut for --format json.",
+    )
+    ledger_list.set_defaults(format="text")
+
+    ledger_show = ledger_commands.add_parser(
+        "show",
+        help="Show one recorded ledger claim without adjudicating it.",
+    )
+    ledger_show.add_argument("claim_id", help="Recorded claim ID, for example CCL-002.")
+    ledger_show.add_argument(
+        "ledger",
+        nargs="?",
+        default=DEFAULT_LEDGER_PATH,
+        help=f"Ledger path (default: {DEFAULT_LEDGER_PATH}).",
+    )
+    ledger_show_output = ledger_show.add_mutually_exclusive_group()
+    ledger_show_output.add_argument(
+        "--format",
+        choices=("text", "json"),
+        dest="format",
+        help="Output format.",
+    )
+    ledger_show_output.add_argument(
+        "--json",
+        action="store_const",
+        const="json",
+        dest="format",
+        help="Shortcut for --format json.",
+    )
+    ledger_show.set_defaults(format="text")
+
     report = subparsers.add_parser(
         "report",
         help="Inspect durable validation reports.",
@@ -179,6 +244,59 @@ def _run_chart_handoff(contract_path: str, warnings_as_errors: bool) -> int:
 
     print(json.dumps(handoff.to_dict(), indent=2, sort_keys=True))
     return handoff_exit_code(handoff, warnings_as_errors=warnings_as_errors)
+
+
+def _format_ledger_inspection_text(inspection: LedgerInspection) -> str:
+    lines = [
+        f"Ledger: {inspection.ledger_type} schema {inspection.ledger_schema_version}",
+        f"Claims: {len(inspection.claims)}",
+        "Automatic adjudication: false",
+        f"Inspection: {inspection.mode}",
+        "",
+    ]
+
+    for claim in inspection.claims:
+        lines.extend(
+            [
+                f"{claim['id']} {claim['status']}",
+                f"  Claim: {claim.get('claim', '')}",
+                f"  Next adjudication: {claim.get('next_adjudication', '')}",
+            ]
+        )
+        if inspection.mode == "show":
+            judge_contract = claim.get("judge_contract")
+            if isinstance(judge_contract, Mapping):
+                lines.extend(
+                    [
+                        f"  Support if (recorded, not evaluated): {judge_contract.get('support_if', '')}",
+                        f"  Refute if (recorded, not evaluated): {judge_contract.get('refute_if', '')}",
+                        f"  Otherwise (recorded): {judge_contract.get('otherwise', '')}",
+                    ]
+                )
+        lines.append("")
+
+    return "\n".join(lines).rstrip()
+
+
+def _run_ledger_inspection(
+    path: str,
+    output_format: str,
+    *,
+    status: str | None = None,
+    claim_id: str | None = None,
+) -> int:
+    try:
+        inspection = inspect_ledger(path, status=status, claim_id=claim_id)
+        if output_format == "json":
+            output = json.dumps(inspection.to_dict(), indent=2, sort_keys=True)
+        else:
+            output = _format_ledger_inspection_text(inspection)
+    except (FileNotFoundError, ValueError, TypeError) as exc:
+        print(f"Input error: {exc}", file=sys.stderr)
+        return 2
+
+    print(output)
+    return 0
 
 
 def _run_ledger_verify(path: str) -> int:
@@ -279,7 +397,21 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "profile":
         return _run_profile_show(args.profile, args.format)
     if args.command == "ledger":
-        return _run_ledger_verify(args.ledger)
+        if args.ledger_command == "verify":
+            return _run_ledger_verify(args.ledger)
+        if args.ledger_command == "list":
+            return _run_ledger_inspection(
+                args.ledger,
+                args.format,
+                status=args.status,
+            )
+        if args.ledger_command == "show":
+            return _run_ledger_inspection(
+                args.ledger,
+                args.format,
+                claim_id=args.claim_id,
+            )
+        raise AssertionError(f"Unhandled ledger command: {args.ledger_command}")
     if args.command == "report":
         return _run_report_verify(args.report, args.contract)
 
