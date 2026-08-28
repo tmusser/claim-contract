@@ -100,7 +100,8 @@ When returning machine-readable results to another agent, preserve:
 - `summary` and every non-PASS finding;
 - the structured `error` object for error envelopes;
 - profile metadata, `rule_count`, and complete `rules` entries when forwarding a profile manifest;
-- destination, claim, evidence context, validation, and contract metadata when forwarding a chart handoff.
+- destination, claim, evidence context, validation, and contract metadata when forwarding a chart handoff;
+- source-ledger metadata, inspection metadata, and complete recorded claim objects when forwarding a ledger inspection.
 
 Do not strip these fields to save tokens. Do not construct a replacement “compact” object that omits the interpretation boundary.
 
@@ -138,6 +139,24 @@ See [`skills/claim-foil/EXAMPLE.md`](skills/claim-foil/EXAMPLE.md) for a worked 
 ## Open claim ledger
 
 The repository-level [`claims/ledger.yaml`](claims/ledger.yaml) is a separate evidence backlog for product and research claims that have not been earned yet.
+
+Agents may inspect recorded ledger state without directly parsing YAML:
+
+```bash
+claim-contract ledger list --status OPEN --json
+claim-contract ledger show CCL-002 --json
+```
+
+These are inspection commands, not adjudication commands.
+
+- Treat `status` as recorded state only; do not claim the inspection command independently verified it.
+- Do not evaluate free-text `support_if` or `refute_if` conditions merely because they are exposed in JSON.
+- Preserve `automatic_adjudication: false`, `mutates_ledger: false`, and the inspection notice when forwarding the envelope.
+- `ledger list --status ...` filters the recorded `status` field only; it does not derive a status from evidence.
+- `ledger show` returns the recorded claim entry; it does not decide whether the claim should change state.
+- Use `ledger verify` separately when commit-pinned provenance references need to be checked. Provenance verification still does not adjudicate the judge contract.
+
+See [docs/LEDGER_INSPECTION.md](docs/LEDGER_INSPECTION.md) for the inspection contract.
 
 When adding or adjudicating a ledger entry:
 
