@@ -4,6 +4,8 @@
 
 ### Added
 
+- `claim-contract ledger list [ledger] --status <STATUS> --json` and `claim-contract ledger show <CLAIM_ID> [ledger] --json` for read-only machine-readable ledger inspection without automatic adjudication.
+- Versioned `claim_contract.ledger_inspection` output with an explicit `automatic_adjudication: false` / `mutates_ledger: false` boundary and published `schemas/ledger-inspection-v1.schema.json`.
 - `-` as a first-class stdin contract source for validation and other contract-taking CLI paths, preserving existing verdict, JSON/error-envelope, and exit-code semantics.
 - `claim-contract handoff chart <contract>` for emitting a strict JSON-only `claim_contract.chart_handoff` artifact targeted at `chart-contract`.
 - Published `schemas/chart-handoff-v1.schema.json` covering exact claim text, metric/unit, population, time window, provenance source, caveats, validation status/findings, and the bound contract identity while explicitly excluding chart-design recommendations.
