@@ -17,6 +17,7 @@ from .metadata import (
 )
 
 
+LEDGER_TYPE = "claim_contract.claim_ledger"
 LEDGER_STATUSES = (
     "OPEN",
     "SUPPORT_MET",
@@ -96,6 +97,7 @@ def _load_ledger(path: Path) -> dict[str, Any]:
 
 def _inspection_claims(ledger: dict[str, Any]) -> list[dict[str, Any]]:
     claims: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
     for claim in ledger["claims"]:
         if not isinstance(claim, dict):
             raise ValueError("Each ledger claim must be an object/mapping.")
@@ -103,6 +105,9 @@ def _inspection_claims(ledger: dict[str, Any]) -> list[dict[str, Any]]:
         claim_id = claim.get("id")
         if not isinstance(claim_id, str) or not claim_id.strip():
             raise ValueError("Each ledger claim must have a non-empty string id.")
+        if claim_id in seen_ids:
+            raise ValueError(f"Ledger contains duplicate claim id: {claim_id}")
+        seen_ids.add(claim_id)
 
         status = claim.get("status")
         if status not in LEDGER_STATUSES:
@@ -134,8 +139,8 @@ def inspect_ledger(
     scope_notice = ledger.get("scope_notice")
     if not isinstance(ledger_schema_version, str) or not ledger_schema_version:
         raise ValueError("Ledger must declare a non-empty schema_version.")
-    if not isinstance(ledger_type, str) or not ledger_type:
-        raise ValueError("Ledger must declare a non-empty type.")
+    if ledger_type != LEDGER_TYPE:
+        raise ValueError(f"Ledger type must be {LEDGER_TYPE!r}.")
     if not isinstance(scope_notice, str) or not scope_notice:
         raise ValueError("Ledger must declare a non-empty scope_notice.")
 
