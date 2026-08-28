@@ -35,7 +35,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     validate = subparsers.add_parser("validate", help="Validate a YAML or JSON contract.")
-    validate.add_argument("contract", help="Path to the contract file.")
+    validate.add_argument(
+        "contract",
+        help="Path to the contract file, or - to read YAML/JSON from stdin.",
+    )
     output = validate.add_mutually_exclusive_group()
     output.add_argument(
         "--format",
@@ -66,7 +69,10 @@ def build_parser() -> argparse.ArgumentParser:
         "chart",
         help="Emit a bounded JSON claim context for chart-contract.",
     )
-    chart_handoff.add_argument("contract", help="Path to the YAML or JSON contract.")
+    chart_handoff.add_argument(
+        "contract",
+        help="Path to the YAML or JSON contract, or - to read from stdin.",
+    )
     chart_handoff.add_argument(
         "--warnings-as-errors",
         action="store_true",
@@ -123,7 +129,7 @@ def build_parser() -> argparse.ArgumentParser:
     report_verify.add_argument(
         "--contract",
         required=True,
-        help="Current YAML or JSON contract to compare with the saved report binding.",
+        help="Current YAML/JSON contract path, or - to read the contract from stdin.",
     )
 
     return parser
