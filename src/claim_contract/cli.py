@@ -287,14 +287,15 @@ def _run_ledger_inspection(
 ) -> int:
     try:
         inspection = inspect_ledger(path, status=status, claim_id=claim_id)
+        if output_format == "json":
+            output = json.dumps(inspection.to_dict(), indent=2, sort_keys=True)
+        else:
+            output = _format_ledger_inspection_text(inspection)
     except (FileNotFoundError, ValueError, TypeError) as exc:
         print(f"Input error: {exc}", file=sys.stderr)
         return 2
 
-    if output_format == "json":
-        print(json.dumps(inspection.to_dict(), indent=2, sort_keys=True))
-    else:
-        print(_format_ledger_inspection_text(inspection))
+    print(output)
     return 0
 
 
