@@ -62,8 +62,39 @@ claim-contract profile show minimum-v0.1
 
 This is an inspection command only. It does not load a contract, execute validation, produce a verdict, or change any rule semantics.
 
+## Report binding
+
+New contract-bound validation reports also preserve the semantic identity of the selected profile:
+
+```json
+{
+  "contract": {
+    "profile": "minimum-v0.1",
+    "profile_manifest_binding": {
+      "algorithm": "sha256",
+      "canonicalization": "profile-manifest-semantics-v1",
+      "profile_manifest_sha256": "..."
+    }
+  }
+}
+```
+
+The digest covers the machine-readable manifest's schema/type, profile metadata, interpretation limits, rule count, and full ordered rule metadata. The top-level `tool` block is deliberately excluded, so a package-version change does not create ruleset drift when the manifest semantics are unchanged.
+
+Changing rule IDs, severities, consumed fields, trigger text, known boundaries, rule order, profile metadata, or profile-wide scope fields changes the digest.
+
+A saved report can compare its bound profile identity with the currently installed manifest through the existing verifier:
+
+```bash
+claim-contract report verify report.json --contract contract.yaml
+```
+
+Current bound reports report `Profile manifest SHA-256: MATCH` or `MISMATCH`. Historical report-v1 documents that predate this field remain schema-valid and report `Profile manifest SHA-256: UNBOUND`; their existing contract-binding verification semantics are preserved.
+
+The digest is an identity/drift check, not an authenticity mechanism. It does not prove that saved findings were genuinely computed by the bound profile, make a report tamper-proof, or establish scientific validity. A party able to rewrite a report and its digest can construct a new internally consistent artifact.
+
 ## Compatibility
 
 The profile manifest schema, validation profile, contract document schema, report schema, and package version are separate versioned concepts.
 
-A future compatibility or digest feature can build on this manifest, but reports do not carry a profile-manifest digest in this version. Adding such a binding should be treated as a separate compatibility decision rather than silently changing report identity semantics.
+`profile_manifest_binding` is additive and optional in report-v1 for historical compatibility. Newly generated contract-bound reports include it. A future change to what `profile-manifest-semantics-v1` includes would require a new canonicalization identifier rather than silently changing the existing digest meaning.

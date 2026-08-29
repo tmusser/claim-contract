@@ -63,7 +63,9 @@ The profile manifest is descriptive metadata, not a verdict and not a second val
 - `trigger` is a concise description of executable rule logic, not a machine-executable replacement for that logic.
 - `known_boundary` describes what the rule does not establish; do not omit or reverse that limitation when summarizing the rule.
 - Do not fill missing contract fields merely because the manifest says a rule consumes them.
-- Do not translate a rule list, rule severity, or manifest-schema match into scientific approval.
+- Do not translate a rule list, rule severity, manifest-schema match, or profile-manifest digest into scientific approval.
+
+New contract-bound reports may carry `contract.profile_manifest_binding`. That digest identifies the semantic machine-readable manifest associated with the report; it does not prove that the saved findings were authentically executed by that ruleset. The top-level manifest `tool` block is intentionally excluded from the digest, so package-version-only changes do not imply ruleset drift.
 
 See [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md).
 
@@ -80,6 +82,7 @@ The handoff is not a chart recommendation and not an approval artifact.
 - Preserve the exact `claim.text`; do not soften or rewrite it merely because chart authoring would be easier.
 - Preserve population, time window, metric/unit, provenance source, caveats, validation verdict, and every finding.
 - Preserve the contract input binding; do not detach the handoff from the contract that produced it.
+- Do not inject report-only `profile_manifest_binding` metadata into chart-handoff v1; its strict schema does not currently define that field.
 - Do not add chart type, mark, encoding, aggregation, scale, normalization, or visual-style recommendations to the v1 handoff.
 - A `REVIEW` or `BLOCK` handoff remains unresolved downstream; transport does not upgrade it.
 - `claim-contract READY` does not imply that any particular visualization is safe or accurate.
@@ -92,7 +95,7 @@ The handoff schema is intentionally closed-world. See [docs/CHART_HANDOFF.md](do
 When returning machine-readable results to another agent, preserve:
 
 - `schema_version` and `type`;
-- `tool` and `contract` metadata, including `contract.version` and `contract.input_binding` when present;
+- `tool` and `contract` metadata, including `contract.version`, `contract.input_binding`, and `contract.profile_manifest_binding` when present;
 - `verdict`, `profile`, and `claim_text` for reports;
 - `scientific_validation` (which is always `false`);
 - `scope_notice`;
@@ -111,7 +114,7 @@ Before reusing a saved bound report beside a contract, run:
 claim-contract report verify report.json --contract contract.yaml
 ```
 
-A matching binding proves only that the parsed contract content matches the input that produced the saved report. It does not authenticate the report, prove the analysis is correct, or upgrade the verdict.
+A current matching report verifies both the parsed contract identity and any present profile-manifest identity. Historical report-v1 artifacts without `profile_manifest_binding` remain contract-verifiable and are reported as profile `UNBOUND`. Neither result authenticates the report, proves that the analysis is correct, proves the findings were genuinely executed by the bound ruleset, or upgrades the verdict.
 
 Consumers should accept additive fields within the same schema major version where the relevant schema permits them. The chart-handoff v1 schema is intentionally strict and does not permit undeclared additions. See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md).
 

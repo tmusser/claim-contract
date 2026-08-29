@@ -4,7 +4,11 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any
 
-from .binding import ContractBinding
+from .binding import (
+    ContractBinding,
+    ProfileManifestBinding,
+    build_profile_manifest_binding,
+)
 from .metadata import REPORT_SCHEMA_VERSION, REPORT_TYPE, TOOL_NAME, TOOL_VERSION
 
 
@@ -62,6 +66,28 @@ class Report:
     # positional callers keep their previous meaning.
     contract_version: str | None = None
     input_binding: ContractBinding | None = None
+    profile_manifest_binding: ProfileManifestBinding | None = None
+
+    def __post_init__(self) -> None:
+        if self.profile_manifest_binding is not None or self.input_binding is None:
+            return
+
+        # Capture profile identity when the bound report object is created rather
+        # than later during serialization. The local import avoids a models <->
+        # profiles import cycle.
+        from .profiles import get_profile_manifest
+
+        try:
+            manifest = get_profile_manifest(self.profile)
+        except ValueError:
+            # Manually constructed reports may use external/custom profiles. Do not
+            # manufacture identity for a profile this package cannot inspect.
+            return
+        object.__setattr__(
+            self,
+            "profile_manifest_binding",
+            build_profile_manifest_binding(manifest.to_dict()),
+        )
 
     def matches_contract(self, contract: dict[str, Any]) -> bool:
         """Return whether this report is bound to the supplied parsed contract."""
@@ -69,6 +95,11 @@ class Report:
         if self.input_binding is None:
             return False
         return self.input_binding.matches_contract(contract)
+
+    def resolved_profile_manifest_binding(self) -> ProfileManifestBinding | None:
+        """Return the profile binding captured for this report, when available."""
+
+        return self.profile_manifest_binding
 
     def to_dict(self) -> dict[str, Any]:
         findings = [finding.to_dict() for finding in self.findings]
@@ -86,6 +117,10 @@ class Report:
             contract_metadata["version"] = self.contract_version
         if self.input_binding is not None:
             contract_metadata["input_binding"] = self.input_binding.to_dict()
+        if self.profile_manifest_binding is not None:
+            contract_metadata[
+                "profile_manifest_binding"
+            ] = self.profile_manifest_binding.to_dict()
 
         return {
             "schema_version": REPORT_SCHEMA_VERSION,

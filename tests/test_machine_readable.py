@@ -44,6 +44,10 @@ def test_every_example_report_matches_report_v1_schema(contract_path: Path) -> N
     assert binding["algorithm"] == "sha256"
     assert binding["canonicalization"] == "parsed-contract-v1"
     assert len(binding["contract_sha256"]) == 64
+    profile_binding = report["contract"]["profile_manifest_binding"]
+    assert profile_binding["algorithm"] == "sha256"
+    assert profile_binding["canonicalization"] == "profile-manifest-semantics-v1"
+    assert len(profile_binding["profile_manifest_sha256"]) == 64
     assert report["summary"]["finding_count"] == len(report["findings"])
     assert report["summary"]["review_count"] == sum(
         finding["severity"] == "REVIEW" for finding in report["findings"]
@@ -53,12 +57,13 @@ def test_every_example_report_matches_report_v1_schema(contract_path: Path) -> N
     )
 
 
-def test_report_schema_keeps_binding_optional_for_legacy_v1_reports() -> None:
+def test_report_schema_keeps_bindings_optional_for_legacy_v1_reports() -> None:
     report = validate_contract(
         load_contract(ROOT / "examples/descriptive_summary/contract.yaml")
     ).to_dict()
     legacy = deepcopy(report)
     legacy["contract"].pop("input_binding")
+    legacy["contract"].pop("profile_manifest_binding")
     legacy["contract"].pop("version", None)
 
     jsonschema.validate(legacy, load_schema("report-v1.schema.json"))
@@ -70,6 +75,19 @@ def test_report_schema_rejects_malformed_binding_when_present() -> None:
     ).to_dict()
     malformed = deepcopy(report)
     malformed["contract"]["input_binding"]["contract_sha256"] = "not-a-sha"
+
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(malformed, load_schema("report-v1.schema.json"))
+
+
+def test_report_schema_rejects_malformed_profile_binding_when_present() -> None:
+    report = validate_contract(
+        load_contract(ROOT / "examples/descriptive_summary/contract.yaml")
+    ).to_dict()
+    malformed = deepcopy(report)
+    malformed["contract"]["profile_manifest_binding"][
+        "profile_manifest_sha256"
+    ] = "not-a-sha"
 
     with pytest.raises(jsonschema.ValidationError):
         jsonschema.validate(malformed, load_schema("report-v1.schema.json"))

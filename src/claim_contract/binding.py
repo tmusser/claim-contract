@@ -12,6 +12,7 @@ from typing import Any
 
 HASH_ALGORITHM = "sha256"
 CANONICALIZATION = "parsed-contract-v1"
+PROFILE_MANIFEST_CANONICALIZATION = "profile-manifest-semantics-v1"
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
@@ -30,6 +31,21 @@ class ContractBinding:
         return self == build_contract_binding(contract)
 
 
+@dataclass(frozen=True)
+class ProfileManifestBinding:
+    """Deterministic identity for the profile semantics used by a report."""
+
+    algorithm: str
+    canonicalization: str
+    profile_manifest_sha256: str
+
+    def to_dict(self) -> dict[str, str]:
+        return asdict(self)
+
+    def matches_manifest(self, manifest: Mapping[str, Any]) -> bool:
+        return self == build_profile_manifest_binding(manifest)
+
+
 def build_contract_binding(contract: Mapping[str, Any]) -> ContractBinding:
     """Build a deterministic binding over parsed contract content.
 
@@ -40,17 +56,33 @@ def build_contract_binding(contract: Mapping[str, Any]) -> ContractBinding:
     if not isinstance(contract, Mapping):
         raise TypeError("Contract binding requires a mapping/object.")
 
-    encoded = json.dumps(
-        _normalize(contract),
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-        allow_nan=False,
-    ).encode("utf-8")
     return ContractBinding(
         algorithm=HASH_ALGORITHM,
         canonicalization=CANONICALIZATION,
-        contract_sha256=hashlib.sha256(encoded).hexdigest(),
+        contract_sha256=_sha256_mapping(contract),
+    )
+
+
+def build_profile_manifest_binding(
+    manifest: Mapping[str, Any],
+) -> ProfileManifestBinding:
+    """Build a deterministic binding over profile-manifest semantics.
+
+    The manifest's top-level ``tool`` block is presentation/release metadata, not
+    ruleset identity. Everything else in the machine-readable manifest is bound,
+    including its schema/type, profile metadata, interpretation limits, and full
+    ordered rule metadata.
+    """
+
+    if not isinstance(manifest, Mapping):
+        raise TypeError("Profile manifest binding requires a mapping/object.")
+
+    semantic_manifest = dict(manifest)
+    semantic_manifest.pop("tool", None)
+    return ProfileManifestBinding(
+        algorithm=HASH_ALGORITHM,
+        canonicalization=PROFILE_MANIFEST_CANONICALIZATION,
+        profile_manifest_sha256=_sha256_mapping(semantic_manifest),
     )
 
 
@@ -78,6 +110,47 @@ def contract_binding_from_dict(payload: Mapping[str, Any]) -> ContractBinding:
         canonicalization=canonicalization,
         contract_sha256=contract_sha256,
     )
+
+
+def profile_manifest_binding_from_dict(
+    payload: Mapping[str, Any],
+) -> ProfileManifestBinding:
+    """Parse and validate a serialized profile-manifest binding."""
+
+    algorithm = payload.get("algorithm")
+    canonicalization = payload.get("canonicalization")
+    profile_manifest_sha256 = payload.get("profile_manifest_sha256")
+
+    if algorithm != HASH_ALGORITHM:
+        raise ValueError(f"Unsupported profile-binding algorithm: {algorithm!r}")
+    if canonicalization != PROFILE_MANIFEST_CANONICALIZATION:
+        raise ValueError(
+            "Unsupported profile-binding canonicalization: "
+            f"{canonicalization!r}"
+        )
+    if not isinstance(profile_manifest_sha256, str) or not _SHA256_RE.fullmatch(
+        profile_manifest_sha256
+    ):
+        raise ValueError(
+            "profile_manifest_sha256 must be 64 lowercase hexadecimal characters."
+        )
+
+    return ProfileManifestBinding(
+        algorithm=algorithm,
+        canonicalization=canonicalization,
+        profile_manifest_sha256=profile_manifest_sha256,
+    )
+
+
+def _sha256_mapping(value: Mapping[str, Any]) -> str:
+    encoded = json.dumps(
+        _normalize(value),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _normalize(value: Any) -> Any:

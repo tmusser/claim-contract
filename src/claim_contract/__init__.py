@@ -1,4 +1,9 @@
-from .binding import ContractBinding, build_contract_binding
+from .binding import (
+    ContractBinding,
+    ProfileManifestBinding,
+    build_contract_binding,
+    build_profile_manifest_binding,
+)
 from .handoff import ChartHandoff, build_chart_handoff
 from .io import load_contract
 from .metadata import REPORT_SCHEMA_VERSION, TOOL_VERSION
@@ -11,6 +16,7 @@ __all__ = [
     "ContractBinding",
     "Finding",
     "ProfileManifest",
+    "ProfileManifestBinding",
     "Report",
     "RuleSpec",
     "Severity",
@@ -18,6 +24,7 @@ __all__ = [
     "REPORT_SCHEMA_VERSION",
     "build_chart_handoff",
     "build_contract_binding",
+    "build_profile_manifest_binding",
     "get_profile_manifest",
     "load_contract",
     "validate_contract",

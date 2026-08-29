@@ -56,6 +56,19 @@
             }
           },
           "additionalProperties": false
+        },
+        "profile_manifest_binding": {
+          "type": "object",
+          "required": ["algorithm", "canonicalization", "profile_manifest_sha256"],
+          "properties": {
+            "algorithm": {"const": "sha256"},
+            "canonicalization": {"const": "profile-manifest-semantics-v1"},
+            "profile_manifest_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": true

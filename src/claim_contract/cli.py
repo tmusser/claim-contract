@@ -6,7 +6,12 @@ import sys
 from collections.abc import Mapping
 from pathlib import Path
 
-from .binding import build_contract_binding, contract_binding_from_dict
+from .binding import (
+    build_contract_binding,
+    build_profile_manifest_binding,
+    contract_binding_from_dict,
+    profile_manifest_binding_from_dict,
+)
 from .formatters import format_json, format_json_error, format_text
 from .handoff import build_chart_handoff, handoff_exit_code
 from .io import load_contract
@@ -372,15 +377,56 @@ def _run_report_verify(report_path: str, contract_path: str) -> int:
         binding = contract_binding_from_dict(serialized_binding)
         contract = load_contract(contract_path)
         candidate = build_contract_binding(contract)
+
+        serialized_profile_binding = contract_metadata.get("profile_manifest_binding")
+        profile_binding = None
+        profile_candidate = None
+        if serialized_profile_binding is not None:
+            if not isinstance(serialized_profile_binding, Mapping):
+                raise ValueError(
+                    "Report contract.profile_manifest_binding must be an object/mapping."
+                )
+            bound_profile = contract_metadata.get("profile")
+            if not isinstance(bound_profile, str) or not bound_profile:
+                raise ValueError(
+                    "Report with profile_manifest_binding must declare contract.profile."
+                )
+            profile_binding = profile_manifest_binding_from_dict(
+                serialized_profile_binding
+            )
+            manifest = get_profile_manifest(bound_profile)
+            profile_candidate = build_profile_manifest_binding(manifest.to_dict())
     except (FileNotFoundError, ValueError, TypeError) as exc:
         print(f"Input error: {exc}", file=sys.stderr)
         return 2
 
-    matches = binding == candidate
+    contract_matches = binding == candidate
+    profile_matches = (
+        None
+        if profile_binding is None
+        else profile_binding == profile_candidate
+    )
+    matches = contract_matches and profile_matches is not False
+
     print(f"Binding: {'MATCH' if matches else 'MISMATCH'}")
-    print(f"Contract SHA-256: {'MATCH' if matches else 'MISMATCH'}")
+    print(f"Contract SHA-256: {'MATCH' if contract_matches else 'MISMATCH'}")
     print(f"Saved SHA-256: {binding.contract_sha256}")
     print(f"Current SHA-256: {candidate.contract_sha256}")
+    if profile_binding is None:
+        print("Profile manifest SHA-256: UNBOUND")
+    else:
+        print(
+            "Profile manifest SHA-256: "
+            f"{'MATCH' if profile_matches else 'MISMATCH'}"
+        )
+        print(
+            "Saved profile manifest SHA-256: "
+            f"{profile_binding.profile_manifest_sha256}"
+        )
+        print(
+            "Current profile manifest SHA-256: "
+            f"{profile_candidate.profile_manifest_sha256}"
+        )
     if "version" in contract_metadata:
         print(f"Bound contract version: {contract_metadata['version']}")
     if "profile" in contract_metadata:
