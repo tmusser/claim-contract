@@ -37,6 +37,11 @@ All currently use `schema_version: "1.0"`, but each schema family evolves indepe
       "algorithm": "sha256",
       "canonicalization": "parsed-contract-v1",
       "contract_sha256": "..."
+    },
+    "profile_manifest_binding": {
+      "algorithm": "sha256",
+      "canonicalization": "profile-manifest-semantics-v1",
+      "profile_manifest_sha256": "..."
     }
   },
   "verdict": "REVIEW",
@@ -86,6 +91,27 @@ report = validate_contract(contract)
 assert report.matches_contract(contract)
 ```
 
+## Profile-manifest binding
+
+New contract-bound reports also fingerprint the semantic machine-readable manifest for the selected profile. The binding uses SHA-256 over `profile-manifest-semantics-v1`.
+
+The digest includes the profile-manifest schema/type, profile metadata, interpretation limits, rule count, and full ordered rule metadata. The top-level manifest `tool` block is excluded so a package-version-only change does not create false ruleset drift.
+
+This means changes to rule IDs, severities, consumed fields, trigger descriptions, known boundaries, rule order, profile metadata, or profile-wide scope fields change the profile digest even when the contract text itself is unchanged.
+
+Python callers can recompute and compare the identity explicitly:
+
+```python
+manifest = get_profile_manifest(report.profile)
+binding = report.resolved_profile_manifest_binding()
+assert binding is not None
+assert binding.matches_manifest(manifest.to_dict())
+```
+
+The profile binding is a drift detector, not proof that the report findings were authentically computed by that ruleset. It does not sign the report, validate the analysis, or upgrade any verdict.
+
+## Saved report verification
+
 A saved JSON report can be checked later through the CLI:
 
 ```bash
@@ -93,13 +119,16 @@ claim-contract validate contract.yaml --json > report.json
 claim-contract report verify report.json --contract contract.yaml
 ```
 
-Representative success output:
+Representative success output for a current report:
 
 ```text
 Binding: MATCH
 Contract SHA-256: MATCH
 Saved SHA-256: ...
 Current SHA-256: ...
+Profile manifest SHA-256: MATCH
+Saved profile manifest SHA-256: ...
+Current profile manifest SHA-256: ...
 Bound contract version: 0.1
 Bound profile: minimum-v0.1
 ```
@@ -108,13 +137,16 @@ Exit behavior is intentionally simple:
 
 | Condition | Exit code |
 | --- | ---: |
-| saved binding matches current contract | `0` |
+| saved contract binding matches and any present profile binding matches | `0` |
 | contract content has drifted | `1` |
-| malformed, unsupported, unreadable, or unbound report/contract | `2` |
+| a present profile-manifest binding differs from the currently installed manifest | `1` |
+| malformed, unsupported, unreadable, or contract-unbound report/contract | `2` |
 
-Binding verification is a content-identity check only. It does not authenticate who created the report, make the report tamper-proof, validate the correctness of the analysis, or upgrade `READY` into scientific approval. A party able to rewrite both a report and its binding can construct a new internally consistent artifact; SHA-256 here is a drift detector, not a signature.
+Historical report-v1 documents that contain a contract input binding but predate `profile_manifest_binding` retain their previous contract-verification behavior and print `Profile manifest SHA-256: UNBOUND`.
 
-The published v1 report schema keeps `contract.version` and `contract.input_binding` optional so reports created before this feature remain valid v1 documents. Newly generated reports include the binding.
+Binding verification is a content-identity check only. It does not authenticate who created the report, make the report tamper-proof, validate the correctness of the analysis, or upgrade `READY` into scientific approval. A party able to rewrite a report and its bindings can construct a new internally consistent artifact; SHA-256 here is a drift detector, not a signature.
+
+The published v1 report schema keeps `contract.version`, `contract.input_binding`, and `contract.profile_manifest_binding` optional so reports created before those fields existed remain valid v1 documents. Newly generated contract-bound reports include both bindings.
 
 ## Profile manifest
 
@@ -196,7 +228,9 @@ The chart handoff is intentionally closed-world. Its v1 schema rejects undeclare
 
 A `REVIEW` or `BLOCK` handoff may still be emitted so unresolved status cannot be hidden by transport. Process exit status continues to reflect the underlying verdict. Missing transferable contract values remain `null`; they are not guessed.
 
-The embedded binding is the same content-identity mechanism used by reports. Python callers can use `ChartHandoff.matches_contract(...)` before reusing the artifact in memory.
+The embedded contract input binding uses the same `parsed-contract-v1` identity mechanism as reports. Python callers can use `ChartHandoff.matches_contract(...)` before reusing the artifact in memory.
+
+The strict chart-handoff v1 envelope does not currently carry `profile_manifest_binding`. Adding that field is a separate handoff-compatibility decision rather than silently expanding a closed-world schema.
 
 The handoff is a producer-side contract only in this release. It does not automatically invoke or configure `chart-contract`; downstream chart authoring and chart-contract auditing remain independent stages.
 
@@ -309,7 +343,7 @@ The package version, report schema version, profile-manifest schema version, cha
 - contract document version: submitted contract-format identifier, preserved when declared;
 - profile: implemented validation-rule semantics.
 
-Reports do not currently carry a profile-manifest digest. A future binding or cross-version compatibility feature should make that relationship explicit rather than silently changing report identity semantics.
+Report v1 now carries two independent optional identity bindings: `parsed-contract-v1` for the submitted contract and `profile-manifest-semantics-v1` for the selected profile manifest. Their canonicalization identifiers are versioned separately so either identity contract can evolve without silently redefining the other.
 
 ## Exit codes
 
@@ -321,6 +355,9 @@ JSON output does not replace process status:
 | `REVIEW` validation/handoff | `0` |
 | `REVIEW --warnings-as-errors` | `1` |
 | `BLOCK` validation/handoff | `1` |
+| report verify match / legacy profile-unbound contract match | `0` |
+| report verify contract or bound-profile drift | `1` |
+| malformed/unsupported report binding | `2` |
 | profile show success | `0` |
 | ledger list/show success | `0` |
 | unsupported profile | `2` |
@@ -331,4 +368,4 @@ Consumers should inspect both the JSON `type`/`verdict` when applicable and the 
 
 ## Validation
 
-The test suite validates every example report against `report-v1.schema.json`, validates structured input errors against `error-v1.schema.json`, validates the profile manifest against `profile-manifest-v1.schema.json`, validates bounded chart handoffs against `chart-handoff-v1.schema.json`, validates ledger inspections against `ledger-inspection-v1.schema.json`, locks the manifest against executable and documented rule IDs/severities, verifies generated contract bindings and legacy unbound v1 compatibility, verifies ledger inspection returns recorded claims without mutation or automatic adjudication, and verifies that interpretation boundaries remain present.
+The test suite validates every example report against `report-v1.schema.json`, validates structured input errors against `error-v1.schema.json`, validates the profile manifest against `profile-manifest-v1.schema.json`, validates bounded chart handoffs against `chart-handoff-v1.schema.json`, validates ledger inspections against `ledger-inspection-v1.schema.json`, locks the manifest against executable and documented rule IDs/severities, verifies generated contract and profile-manifest bindings plus legacy v1 compatibility, verifies ledger inspection returns recorded claims without mutation or automatic adjudication, and verifies that interpretation boundaries remain present.
