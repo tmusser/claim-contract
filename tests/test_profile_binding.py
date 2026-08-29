@@ -22,7 +22,9 @@ def test_generated_bound_report_carries_current_profile_manifest_identity() -> N
     report = validate_contract(contract)
     payload = report.to_dict()
 
+    assert report.profile_manifest_binding is not None
     serialized = payload["contract"]["profile_manifest_binding"]
+    assert serialized == report.profile_manifest_binding.to_dict()
     assert serialized["algorithm"] == "sha256"
     assert serialized["canonicalization"] == "profile-manifest-semantics-v1"
     assert len(serialized["profile_manifest_sha256"]) == 64
@@ -30,6 +32,18 @@ def test_generated_bound_report_carries_current_profile_manifest_identity() -> N
     binding = report.resolved_profile_manifest_binding()
     assert binding is not None
     assert binding.matches_manifest(get_profile_manifest(report.profile).to_dict())
+
+
+def test_profile_binding_is_captured_before_later_manifest_changes() -> None:
+    report = validate_contract(load_contract(CONTRACT_PATH))
+    captured = report.profile_manifest_binding
+    assert captured is not None
+
+    changed = deepcopy(get_profile_manifest(report.profile).to_dict())
+    changed["rules"][0]["trigger"] += " Later mutation."
+
+    assert captured != build_profile_manifest_binding(changed)
+    assert report.to_dict()["contract"]["profile_manifest_binding"] == captured.to_dict()
 
 
 def test_profile_binding_ignores_tool_release_metadata() -> None:
