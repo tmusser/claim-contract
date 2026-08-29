@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any
 
-from .binding import ContractBinding
+from .binding import ContractBinding, ProfileManifestBinding
 from .metadata import REPORT_SCHEMA_VERSION, REPORT_TYPE, TOOL_NAME, TOOL_VERSION
 
 
@@ -62,6 +62,7 @@ class Report:
     # positional callers keep their previous meaning.
     contract_version: str | None = None
     input_binding: ContractBinding | None = None
+    profile_manifest_binding: ProfileManifestBinding | None = None
 
     def matches_contract(self, contract: dict[str, Any]) -> bool:
         """Return whether this report is bound to the supplied parsed contract."""
@@ -86,6 +87,10 @@ class Report:
             contract_metadata["version"] = self.contract_version
         if self.input_binding is not None:
             contract_metadata["input_binding"] = self.input_binding.to_dict()
+        if self.profile_manifest_binding is not None:
+            contract_metadata[
+                "profile_manifest_binding"
+            ] = self.profile_manifest_binding.to_dict()
 
         return {
             "schema_version": REPORT_SCHEMA_VERSION,
