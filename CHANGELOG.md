@@ -4,6 +4,8 @@
 
 ### Added
 
+- Deterministic `profile-manifest-semantics-v1` SHA-256 bindings from new contract-bound reports to the semantic machine-readable profile manifest used by the report.
+- Saved-report verification of present profile-manifest bindings, with explicit `MATCH` / `MISMATCH` / legacy `UNBOUND` output and preserved contract-verification behavior for historical report-v1 artifacts.
 - `claim-contract ledger list [ledger] --status <STATUS> --json` and `claim-contract ledger show <CLAIM_ID> [ledger] --json` for read-only machine-readable ledger inspection without automatic adjudication.
 - Versioned `claim_contract.ledger_inspection` output with an explicit `automatic_adjudication: false` / `mutates_ledger: false` boundary and published `schemas/ledger-inspection-v1.schema.json`.
 - `-` as a first-class stdin contract source for validation and other contract-taking CLI paths, preserving existing verdict, JSON/error-envelope, and exit-code semantics.
@@ -47,7 +49,7 @@
 
 - Rule severities now come from the same registry used to emit profile manifests, while executable trigger logic and verdict semantics remain unchanged.
 - Documented input-schema validation as a separate structural tooling layer; normal `claim-contract validate` continues to emit the existing rule verdicts rather than converting schema mismatches into parser errors.
-- Generated v1 report envelopes now carry additive contract identity metadata while the published v1 schema keeps those fields optional for legacy report compatibility.
+- Generated v1 report envelopes now carry additive contract and profile-manifest identity metadata while the published v1 schema keeps those fields optional for legacy report compatibility.
 - The live claim ledger now uses schema `1.1`; the original `claim-ledger-v1.schema.json` remains published for `1.0` consumers.
 - Added a CI badge and compact verdict gallery to the README.
 - Expanded limitations and agent guidance for the blind spots of multiplicity and magnitude checks.
