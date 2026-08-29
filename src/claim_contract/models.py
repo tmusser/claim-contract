@@ -4,7 +4,11 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any
 
-from .binding import ContractBinding, ProfileManifestBinding
+from .binding import (
+    ContractBinding,
+    ProfileManifestBinding,
+    build_profile_manifest_binding,
+)
 from .metadata import REPORT_SCHEMA_VERSION, REPORT_TYPE, TOOL_NAME, TOOL_VERSION
 
 
@@ -71,6 +75,28 @@ class Report:
             return False
         return self.input_binding.matches_contract(contract)
 
+    def resolved_profile_manifest_binding(self) -> ProfileManifestBinding | None:
+        """Return the explicit or current supported-profile binding for this report.
+
+        Reports without a contract input binding stay unbound. This avoids manufacturing
+        ruleset identity for historical/manual report objects that were never produced by
+        the bound validation path.
+        """
+
+        if self.profile_manifest_binding is not None:
+            return self.profile_manifest_binding
+        if self.input_binding is None:
+            return None
+
+        # Local import avoids a models <-> profiles import cycle.
+        from .profiles import get_profile_manifest
+
+        try:
+            manifest = get_profile_manifest(self.profile)
+        except ValueError:
+            return None
+        return build_profile_manifest_binding(manifest.to_dict())
+
     def to_dict(self) -> dict[str, Any]:
         findings = [finding.to_dict() for finding in self.findings]
         review_count = sum(
@@ -87,10 +113,11 @@ class Report:
             contract_metadata["version"] = self.contract_version
         if self.input_binding is not None:
             contract_metadata["input_binding"] = self.input_binding.to_dict()
-        if self.profile_manifest_binding is not None:
+        profile_manifest_binding = self.resolved_profile_manifest_binding()
+        if profile_manifest_binding is not None:
             contract_metadata[
                 "profile_manifest_binding"
-            ] = self.profile_manifest_binding.to_dict()
+            ] = profile_manifest_binding.to_dict()
 
         return {
             "schema_version": REPORT_SCHEMA_VERSION,
