@@ -42,8 +42,8 @@ class ProfileManifestBinding:
     def to_dict(self) -> dict[str, str]:
         return asdict(self)
 
-    def matches_manifest(self, manifest_identity: Mapping[str, Any]) -> bool:
-        return self == build_profile_manifest_binding(manifest_identity)
+    def matches_manifest(self, manifest: Mapping[str, Any]) -> bool:
+        return self == build_profile_manifest_binding(manifest)
 
 
 def build_contract_binding(contract: Mapping[str, Any]) -> ContractBinding:
@@ -64,22 +64,25 @@ def build_contract_binding(contract: Mapping[str, Any]) -> ContractBinding:
 
 
 def build_profile_manifest_binding(
-    manifest_identity: Mapping[str, Any],
+    manifest: Mapping[str, Any],
 ) -> ProfileManifestBinding:
     """Build a deterministic binding over profile-manifest semantics.
 
-    Callers should pass the manifest's semantic identity payload rather than the
-    presentation envelope so implementation-release metadata such as tool.version
-    does not cause ruleset drift when the profile itself is unchanged.
+    The manifest's top-level ``tool`` block is presentation/release metadata, not
+    ruleset identity. Everything else in the machine-readable manifest is bound,
+    including its schema/type, profile metadata, interpretation limits, and full
+    ordered rule metadata.
     """
 
-    if not isinstance(manifest_identity, Mapping):
+    if not isinstance(manifest, Mapping):
         raise TypeError("Profile manifest binding requires a mapping/object.")
 
+    semantic_manifest = dict(manifest)
+    semantic_manifest.pop("tool", None)
     return ProfileManifestBinding(
         algorithm=HASH_ALGORITHM,
         canonicalization=PROFILE_MANIFEST_CANONICALIZATION,
-        profile_manifest_sha256=_sha256_mapping(manifest_identity),
+        profile_manifest_sha256=_sha256_mapping(semantic_manifest),
     )
 
 
