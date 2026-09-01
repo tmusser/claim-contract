@@ -4,6 +4,8 @@
 
 ### Added
 
+- `claim-contract contract diff <before> <after>` with text and `--json` output for mechanical parsed-contract field diffs plus `READY | REVIEW | BLOCK` verdict transitions.
+- Versioned `claim_contract.contract_diff` output and `schemas/contract-diff-v1.schema.json`, preserving missing-vs-null state and explicit non-interpretation/scientific-validation boundaries.
 - Deterministic `profile-manifest-semantics-v1` SHA-256 bindings from new contract-bound reports to the semantic machine-readable profile manifest used by the report.
 - Saved-report verification of present profile-manifest bindings, with explicit `MATCH` / `MISMATCH` / legacy `UNBOUND` output and preserved contract-verification behavior for historical report-v1 artifacts.
 - `claim-contract ledger list [ledger] --status <STATUS> --json` and `claim-contract ledger show <CLAIM_ID> [ledger] --json` for read-only machine-readable ledger inspection without automatic adjudication.

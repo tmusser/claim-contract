@@ -12,6 +12,7 @@ from .binding import (
     contract_binding_from_dict,
     profile_manifest_binding_from_dict,
 )
+from .contract_diff import ContractDiff, build_contract_diff
 from .formatters import format_json, format_json_error, format_text
 from .handoff import build_chart_handoff, handoff_exit_code
 from .io import load_contract
@@ -72,6 +73,39 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Exit 1 for REVIEW as well as BLOCK.",
     )
+
+    contract = subparsers.add_parser(
+        "contract",
+        help="Inspect differences between parsed analytical contracts.",
+    )
+    contract_commands = contract.add_subparsers(dest="contract_command", required=True)
+    contract_diff = contract_commands.add_parser(
+        "diff",
+        help="Compare two parsed contracts and their validation verdicts.",
+    )
+    contract_diff.add_argument(
+        "before",
+        help="Earlier YAML/JSON contract path, or - to read it from stdin.",
+    )
+    contract_diff.add_argument(
+        "after",
+        help="Later YAML/JSON contract path, or - to read it from stdin.",
+    )
+    contract_diff_output = contract_diff.add_mutually_exclusive_group()
+    contract_diff_output.add_argument(
+        "--format",
+        choices=("text", "json"),
+        dest="format",
+        help="Output format.",
+    )
+    contract_diff_output.add_argument(
+        "--json",
+        action="store_const",
+        const="json",
+        dest="format",
+        help="Shortcut for --format json.",
+    )
+    contract_diff.set_defaults(format="text")
 
     handoff = subparsers.add_parser(
         "handoff",
@@ -203,6 +237,61 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     return parser
+
+
+def _format_contract_value(value: object) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _format_contract_diff_text(diff: ContractDiff) -> str:
+    lines = [
+        f"Verdict: {diff.before_verdict} -> {diff.after_verdict}",
+        f"Contract changed: {'true' if diff.changed else 'false'}",
+        "Scientific validation: false",
+        "Automatic interpretation: false",
+        "",
+    ]
+
+    if not diff.changes:
+        lines.append("Changed fields: none")
+        return "\n".join(lines)
+
+    lines.append("Changed fields:")
+    for change in diff.changes:
+        lines.append(f"  {change.path} [{change.change_type}]")
+        before = _format_contract_value(change.before) if change.before_present else "<MISSING>"
+        after = _format_contract_value(change.after) if change.after_present else "<MISSING>"
+        lines.append(f"    - {before}")
+        lines.append(f"    + {after}")
+    return "\n".join(lines)
+
+
+def _run_contract_diff(before_path: str, after_path: str, output_format: str) -> int:
+    if before_path == "-" and after_path == "-":
+        message = "Input error: only one side of contract diff may read from stdin."
+        if output_format == "json":
+            print(format_json_error(message))
+        else:
+            print(message, file=sys.stderr)
+        return 2
+
+    try:
+        before = load_contract(before_path)
+        after = load_contract(after_path)
+        diff = build_contract_diff(before, after)
+    except (FileNotFoundError, ValueError, TypeError) as exc:
+        message = f"Input error: {exc}"
+        if output_format == "json":
+            print(format_json_error(message))
+        else:
+            print(message, file=sys.stderr)
+        return 2
+
+    if output_format == "json":
+        print(json.dumps(diff.to_dict(), indent=2, sort_keys=True))
+    else:
+        print(_format_contract_diff_text(diff))
+    return 0
 
 
 def _format_profile_text(manifest: ProfileManifest) -> str:
@@ -438,6 +527,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
+    if args.command == "contract":
+        if args.contract_command == "diff":
+            return _run_contract_diff(args.before, args.after, args.format)
+        raise AssertionError(f"Unhandled contract command: {args.contract_command}")
     if args.command == "handoff":
         return _run_chart_handoff(args.contract, args.warnings_as_errors)
     if args.command == "profile":
