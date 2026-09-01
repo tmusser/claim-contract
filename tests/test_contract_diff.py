@@ -120,7 +120,7 @@ def test_cli_contract_diff_input_error(capsys, tmp_path: Path) -> None:
     assert code == 2
     payload = json.loads(capsys.readouterr().out)
     assert payload["type"] == "claim_contract.error"
-    assert "root must be an object" in payload["message"].lower()
+    assert "root must be an object" in payload["error"]["message"].lower()
 
 
 def test_cli_contract_diff_yaml_formatting_is_not_a_change(capsys, tmp_path: Path) -> None:
