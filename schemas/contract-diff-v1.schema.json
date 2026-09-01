@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/blob/main/schemas/contract-diff-v1.schema.json",
+  "title": "claim-contract contract diff v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "type",
+    "tool",
+    "scientific_validation",
+    "automatic_interpretation",
+    "scope_notice",
+    "not_evaluated",
+    "verdict_transition",
+    "contract_changed",
+    "change_count",
+    "changes"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "type": {"const": "claim_contract.contract_diff"},
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"const": "claim-contract"},
+        "version": {"type": "string", "minLength": 1}
+      }
+    },
+    "scientific_validation": {"const": false},
+    "automatic_interpretation": {"const": false},
+    "scope_notice": {"type": "string", "minLength": 1},
+    "not_evaluated": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "verdict_transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["before", "after", "changed"],
+      "properties": {
+        "before": {"enum": ["READY", "REVIEW", "BLOCK"]},
+        "after": {"enum": ["READY", "REVIEW", "BLOCK"]},
+        "changed": {"type": "boolean"}
+      }
+    },
+    "contract_changed": {"type": "boolean"},
+    "change_count": {"type": "integer", "minimum": 0},
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "change_type",
+          "before_present",
+          "after_present",
+          "before",
+          "after"
+        ],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "change_type": {"enum": ["added", "removed", "changed"]},
+          "before_present": {"type": "boolean"},
+          "after_present": {"type": "boolean"},
+          "before": {},
+          "after": {}
+        }
+      }
+    }
+  }
+}
