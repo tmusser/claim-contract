@@ -1,0 +1,474 @@
+schema_version: "1.0"
+type: claim_contract.minimum_v0_1_benchmark_corpus
+profile: minimum-v0.1
+
+# Cases are materialized by deep-copying one base contract, applying dotted-path
+# `set` mutations, then dotted-path `delete` mutations. The mutations are part of
+# the frozen corpus; labels live separately in labels.yaml.
+base_contracts:
+  descriptive_ready:
+    version: "0.1"
+    profile: minimum-v0.1
+    claim:
+      text: "Seven-day activation was 27% among eligible new users in Q2 2026."
+      type: descriptive
+      population: eligible new users
+      time_window: "2026-04-01/2026-06-30"
+      metric:
+        name: seven_day_activation_rate
+        unit: proportion
+        definition: "Users activated within seven days / eligible new users"
+    evidence:
+      design: descriptive_summary
+      sample_size: 18420
+      estimate:
+        value: 0.27
+        scale: absolute
+      uncertainty:
+        method: binomial_interval
+        level: 0.95
+        lower: 0.264
+        upper: 0.276
+      provenance:
+        source: warehouse.funnel_events
+      checks:
+        metric_definition_locked: true
+        missingness_assessed: true
+        composition_stability_assessed: true
+        treatment_assignment_validated: false
+        identifying_assumptions_documented: false
+      caveats:
+        - "Descriptive result for the declared population and time window only."
+
+  comparison_ready:
+    version: "0.1"
+    profile: minimum-v0.1
+    claim:
+      text: "Variant B seven-day activation was 2 percentage points higher than variant A."
+      type: comparison
+      population: eligible new users in the experiment
+      time_window: "2026-04-01/2026-05-15"
+      metric:
+        name: seven_day_activation_rate
+        unit: proportion
+        definition: "Users activated within seven days / eligible assigned users"
+      comparison:
+        baseline: variant_a
+        comparison: variant_b
+    evidence:
+      design: controlled_comparison
+      sample_size: 12000
+      estimate:
+        value: 0.02
+        scale: absolute
+        baseline_value: 0.25
+      uncertainty:
+        method: bootstrap_interval
+        level: 0.95
+        lower: 0.006
+        upper: 0.034
+      provenance:
+        source: warehouse.experiment_assignments_joined_activation
+      checks:
+        metric_definition_locked: true
+        missingness_assessed: true
+        composition_stability_assessed: true
+        treatment_assignment_validated: false
+        identifying_assumptions_documented: false
+        multiple_comparisons_assessed: true
+      multiplicity:
+        comparisons: 1
+        adjustment: null
+        rationale: null
+      caveats:
+        - "Comparison is limited to the declared groups and time window."
+
+  observational_comparison_ready:
+    version: "0.1"
+    profile: minimum-v0.1
+    claim:
+      text: "Seven-day activation was 2 percentage points higher after launch than before launch."
+      type: comparison
+      population: eligible new users
+      time_window: "2026-04-01/2026-06-30"
+      metric:
+        name: seven_day_activation_rate
+        unit: proportion
+        definition: "Users activated within seven days / eligible new users"
+      comparison:
+        baseline: pre_launch
+        comparison: post_launch
+    evidence:
+      design: observational_before_after
+      sample_size: 18420
+      estimate:
+        value: 0.02
+        scale: absolute
+        baseline_value: 0.25
+      uncertainty:
+        method: bootstrap_interval
+        level: 0.95
+        lower: 0.005
+        upper: 0.035
+      provenance:
+        source: warehouse.funnel_events
+      checks:
+        metric_definition_locked: true
+        missingness_assessed: true
+        composition_stability_assessed: true
+        treatment_assignment_validated: false
+        identifying_assumptions_documented: false
+        multiple_comparisons_assessed: true
+      multiplicity:
+        comparisons: 1
+        adjustment: null
+        rationale: null
+      caveats:
+        - "Observational before/after comparison; timing does not establish attribution."
+
+  randomized_causal_review:
+    version: "0.1"
+    profile: minimum-v0.1
+    claim:
+      text: "The randomized onboarding treatment increased seven-day activation by 2 percentage points."
+      type: causal
+      population: eligible randomized new users
+      time_window: "2026-04-01/2026-05-15"
+      metric:
+        name: seven_day_activation_rate
+        unit: proportion
+        definition: "Users activated within seven days / eligible randomized users"
+      comparison:
+        baseline: control
+        comparison: treatment
+    evidence:
+      design: randomized_experiment
+      sample_size: 12000
+      estimate:
+        value: 0.02
+        scale: absolute
+        baseline_value: 0.25
+      uncertainty:
+        method: bootstrap_interval
+        level: 0.95
+        lower: 0.006
+        upper: 0.034
+      provenance:
+        source: warehouse.randomized_onboarding_experiment
+      checks:
+        metric_definition_locked: true
+        missingness_assessed: true
+        composition_stability_assessed: true
+        treatment_assignment_validated: true
+        identifying_assumptions_documented: false
+        multiple_comparisons_assessed: true
+      multiplicity:
+        comparisons: 1
+        adjustment: null
+        rationale: null
+      caveats:
+        - "Causal interpretation remains subject to qualified review of execution and diagnostics."
+
+  quasi_causal_review:
+    version: "0.1"
+    profile: minimum-v0.1
+    claim:
+      text: "The eligibility policy increased seven-day activation by 2 percentage points."
+      type: causal
+      population: users around the eligibility threshold
+      time_window: "2026-01-01/2026-06-30"
+      metric:
+        name: seven_day_activation_rate
+        unit: proportion
+        definition: "Users activated within seven days / eligible users near threshold"
+      comparison:
+        baseline: below_threshold
+        comparison: above_threshold
+    evidence:
+      design: quasi_experiment
+      sample_size: 6400
+      estimate:
+        value: 0.02
+        scale: absolute
+        baseline_value: 0.25
+      uncertainty:
+        method: robust_interval
+        level: 0.95
+        lower: 0.004
+        upper: 0.036
+      provenance:
+        source: warehouse.eligibility_threshold_analysis
+      checks:
+        metric_definition_locked: true
+        missingness_assessed: true
+        composition_stability_assessed: true
+        treatment_assignment_validated: false
+        identifying_assumptions_documented: true
+        multiple_comparisons_assessed: true
+      multiplicity:
+        comparisons: 1
+        adjustment: null
+        rationale: null
+      caveats:
+        - "Causal interpretation depends on the documented identifying assumptions and qualified review."
+
+cases:
+  - id: D001
+    base: descriptive_ready
+    description: "Complete bounded descriptive declaration."
+  - id: D002
+    base: descriptive_ready
+    description: "Metric definition is present but was not declared locked."
+    set:
+      evidence.checks.metric_definition_locked: false
+  - id: D003
+    base: descriptive_ready
+    description: "Missingness was not declared assessed."
+    set:
+      evidence.checks.missingness_assessed: false
+  - id: D004
+    base: descriptive_ready
+    description: "Population scope is absent."
+    delete:
+      - claim.population
+  - id: D005
+    base: descriptive_ready
+    description: "Data provenance source is absent."
+    delete:
+      - evidence.provenance.source
+  - id: D006
+    base: descriptive_ready
+    description: "Analyzed sample size is zero."
+    set:
+      evidence.sample_size: 0
+  - id: D007
+    base: descriptive_ready
+    description: "Qualitative magnitude language has a numeric estimate and scale."
+    set:
+      claim.text: "Seven-day activation was a substantial 27% among eligible new users in Q2 2026."
+  - id: D008
+    base: descriptive_ready
+    description: "Qualitative magnitude language has no numeric estimate."
+    set:
+      claim.text: "Seven-day activation was substantial among eligible new users in Q2 2026."
+    delete:
+      - evidence.estimate.value
+  - id: D009
+    base: descriptive_ready
+    description: "Qualitative magnitude language has no declared estimate scale."
+    set:
+      claim.text: "Seven-day activation was small among eligible new users in Q2 2026."
+    delete:
+      - evidence.estimate.scale
+  - id: D010
+    base: descriptive_ready
+    description: "Claim type is outside the declared descriptive/comparison/causal vocabulary."
+    set:
+      claim.type: forecast
+
+  - id: C001
+    base: comparison_ready
+    description: "Complete bounded comparison declaration."
+  - id: C002
+    base: comparison_ready
+    description: "Comparison baseline group is absent."
+    delete:
+      - claim.comparison.baseline
+  - id: C003
+    base: comparison_ready
+    description: "Comparison group is absent."
+    delete:
+      - claim.comparison.comparison
+  - id: C004
+    base: comparison_ready
+    description: "Relative-language comparison omits the baseline value needed for interpretation."
+    delete:
+      - evidence.estimate.baseline_value
+  - id: C005
+    base: comparison_ready
+    description: "Comparison is interpretable but has no declared uncertainty information."
+    set:
+      evidence.uncertainty: null
+  - id: C006
+    base: comparison_ready
+    description: "Multiple-comparison risk was not declared assessed."
+    set:
+      evidence.checks.multiple_comparisons_assessed: false
+  - id: C007
+    base: comparison_ready
+    description: "Eight comparisons are declared without adjustment or rationale."
+    set:
+      evidence.multiplicity.comparisons: 8
+  - id: C008
+    base: comparison_ready
+    description: "Eight comparisons are declared with an adjustment strategy."
+    set:
+      evidence.multiplicity.comparisons: 8
+      evidence.multiplicity.adjustment: benjamini_hochberg
+  - id: C009
+    base: comparison_ready
+    description: "Magnitude language is numerically anchored in a comparison."
+    set:
+      claim.text: "Variant B had a material 2 percentage point higher activation rate than variant A."
+  - id: C010
+    base: comparison_ready
+    description: "Magnitude language in a comparison has no numeric estimate."
+    set:
+      claim.text: "Variant B had a material increase in activation relative to variant A."
+    delete:
+      - evidence.estimate.value
+
+  - id: O001
+    base: observational_comparison_ready
+    description: "Complete observational before/after comparison with non-causal wording and caveat."
+  - id: O002
+    base: observational_comparison_ready
+    description: "Composition stability was not assessed."
+    set:
+      evidence.checks.composition_stability_assessed: false
+  - id: O003
+    base: observational_comparison_ready
+    description: "Non-causal observational comparison omits an explicit non-causal caveat."
+    set:
+      evidence.caveats: []
+  - id: O004
+    base: observational_comparison_ready
+    description: "Observational comparison omits both composition assessment and non-causal caveat."
+    set:
+      evidence.checks.composition_stability_assessed: false
+      evidence.caveats: []
+  - id: O005
+    base: observational_comparison_ready
+    description: "Before/after evidence is paired with intervention-attribution language."
+    set:
+      claim.text: "The onboarding redesign increased seven-day activation by 2 percentage points."
+  - id: O006
+    base: observational_comparison_ready
+    description: "Claim is explicitly causal despite observational before/after design."
+    set:
+      claim.type: causal
+      claim.text: "The launch caused a 2 percentage point increase in seven-day activation."
+  - id: O007
+    base: observational_comparison_ready
+    description: "Causal observational claim also omits the baseline comparison group."
+    set:
+      claim.text: "The onboarding redesign increased seven-day activation by 2 percentage points."
+    delete:
+      - claim.comparison.baseline
+  - id: O008
+    base: observational_comparison_ready
+    description: "Non-causal before/after comparison omits the relative baseline value."
+    delete:
+      - evidence.estimate.baseline_value
+  - id: O009
+    base: observational_comparison_ready
+    description: "Observational comparison omits its provenance source."
+    delete:
+      - evidence.provenance.source
+  - id: O010
+    base: observational_comparison_ready
+    description: "Observational comparison declares a negative analyzed sample size."
+    set:
+      evidence.sample_size: -25
+
+  - id: R001
+    base: randomized_causal_review
+    description: "Randomized causal declaration with assignment integrity declared validated."
+  - id: R002
+    base: randomized_causal_review
+    description: "Randomized causal declaration does not validate treatment assignment."
+    set:
+      evidence.checks.treatment_assignment_validated: false
+  - id: R003
+    base: randomized_causal_review
+    description: "Randomized causal claim omits the baseline group."
+    delete:
+      - claim.comparison.baseline
+  - id: R004
+    base: randomized_causal_review
+    description: "Randomized causal claim omits the baseline value for increase language."
+    delete:
+      - evidence.estimate.baseline_value
+  - id: R005
+    base: randomized_causal_review
+    description: "Randomized causal claim is interpretable but has no uncertainty declaration."
+    set:
+      evidence.uncertainty: null
+  - id: R006
+    base: randomized_causal_review
+    description: "Randomized causal claim does not declare multiplicity assessed."
+    set:
+      evidence.checks.multiple_comparisons_assessed: false
+  - id: R007
+    base: randomized_causal_review
+    description: "Twelve randomized comparisons are declared without adjustment or rationale."
+    set:
+      evidence.multiplicity.comparisons: 12
+  - id: R008
+    base: randomized_causal_review
+    description: "Twelve randomized comparisons are declared with adjustment."
+    set:
+      evidence.multiplicity.comparisons: 12
+      evidence.multiplicity.adjustment: holm
+  - id: R009
+    base: randomized_causal_review
+    description: "Randomized causal magnitude language is numerically anchored."
+    set:
+      claim.text: "The randomized onboarding treatment produced a substantial increase in seven-day activation."
+  - id: R010
+    base: randomized_causal_review
+    description: "Randomized causal magnitude language has no numeric estimate."
+    set:
+      claim.text: "The randomized onboarding treatment produced a substantial increase in seven-day activation."
+    delete:
+      - evidence.estimate.value
+
+  - id: Q001
+    base: quasi_causal_review
+    description: "Quasi-experimental causal declaration with assumptions documented."
+  - id: Q002
+    base: quasi_causal_review
+    description: "Quasi-experimental causal declaration does not document identifying assumptions."
+    set:
+      evidence.checks.identifying_assumptions_documented: false
+  - id: Q003
+    base: quasi_causal_review
+    description: "Quasi-experimental causal claim omits the comparison group."
+    delete:
+      - claim.comparison.comparison
+  - id: Q004
+    base: quasi_causal_review
+    description: "Quasi-experimental causal claim omits the baseline value for increase language."
+    delete:
+      - evidence.estimate.baseline_value
+  - id: Q005
+    base: quasi_causal_review
+    description: "Quasi-experimental causal claim is interpretable but has no uncertainty declaration."
+    set:
+      evidence.uncertainty: null
+  - id: Q006
+    base: quasi_causal_review
+    description: "Multiplicity count is declared as zero."
+    set:
+      evidence.multiplicity.comparisons: 0
+  - id: Q007
+    base: quasi_causal_review
+    description: "Five comparisons are declared with an explicit exploratory rationale."
+    set:
+      evidence.multiplicity.comparisons: 5
+      evidence.multiplicity.rationale: "Exploratory family; no confirmatory familywise error-rate claim is made."
+  - id: Q008
+    base: quasi_causal_review
+    description: "Metric definition is present but not declared locked."
+    set:
+      evidence.checks.metric_definition_locked: false
+  - id: Q009
+    base: quasi_causal_review
+    description: "Quasi-experimental causal claim omits its provenance source."
+    delete:
+      - evidence.provenance.source
+  - id: Q010
+    base: quasi_causal_review
+    description: "Causal claim is paired with a descriptive-summary design."
+    set:
+      evidence.design: descriptive_summary

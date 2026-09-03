@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/blob/main/schemas/benchmark-result-v1.schema.json",
+  "title": "claim-contract minimum-v0.1 benchmark result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "type",
+    "tool",
+    "scientific_validation",
+    "automatic_adjudication",
+    "scope_notice",
+    "benchmark",
+    "metrics",
+    "cases"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "type": {"const": "claim_contract.minimum_v0_1_benchmark_result"},
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"const": "claim-contract"},
+        "version": {"type": "string", "minLength": 1}
+      }
+    },
+    "scientific_validation": {"const": false},
+    "automatic_adjudication": {"const": false},
+    "scope_notice": {"type": "string", "minLength": 1},
+    "benchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "target_claim_id",
+        "profile",
+        "case_count",
+        "corpus_sha256",
+        "labels_sha256",
+        "profile_manifest_binding"
+      ],
+      "properties": {
+        "version": {"const": "1.0"},
+        "target_claim_id": {"const": "CCL-002"},
+        "profile": {"const": "minimum-v0.1"},
+        "case_count": {"type": "integer", "minimum": 1},
+        "corpus_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "labels_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "profile_manifest_binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["algorithm", "canonicalization", "profile_manifest_sha256"],
+          "properties": {
+            "algorithm": {"const": "sha256"},
+            "canonicalization": {"const": "profile-manifest-semantics-v1"},
+            "profile_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label_defined_blocking_cases",
+        "label_defined_nonblocking_cases",
+        "validator_blocks_on_blocking_cases",
+        "missed_blocking_cases",
+        "validator_blocks_on_nonblocking_cases",
+        "block_recall",
+        "false_block_rate",
+        "all_block_rule_ids_documented",
+        "untraceable_block_rule_ids"
+      ],
+      "properties": {
+        "label_defined_blocking_cases": {"type": "integer", "minimum": 1},
+        "label_defined_nonblocking_cases": {"type": "integer", "minimum": 1},
+        "validator_blocks_on_blocking_cases": {"type": "integer", "minimum": 0},
+        "missed_blocking_cases": {"type": "integer", "minimum": 0},
+        "validator_blocks_on_nonblocking_cases": {"type": "integer", "minimum": 0},
+        "block_recall": {"type": "number", "minimum": 0, "maximum": 1},
+        "false_block_rate": {"type": "number", "minimum": 0, "maximum": 1},
+        "all_block_rule_ids_documented": {"type": "boolean"},
+        "untraceable_block_rule_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^CC[0-9]{3}$"}
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "family",
+          "label_blocking_violation",
+          "validator_verdict",
+          "block_rule_ids",
+          "untraceable_block_rule_ids"
+        ],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[DCORQ][0-9]{3}$"},
+          "family": {"type": "string", "minLength": 1},
+          "label_blocking_violation": {"type": "boolean"},
+          "validator_verdict": {"enum": ["READY", "REVIEW", "BLOCK"]},
+          "block_rule_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"type": "string", "pattern": "^CC[0-9]{3}$"}
+          },
+          "untraceable_block_rule_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"type": "string", "pattern": "^CC[0-9]{3}$"}
+          }
+        }
+      }
+    }
+  }
+}
