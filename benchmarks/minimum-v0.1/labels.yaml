@@ -1,0 +1,210 @@
+schema_version: "1.0"
+type: claim_contract.minimum_v0_1_benchmark_labels
+benchmark_version: "1.0"
+target_claim_id: CCL-002
+
+labels:
+  - id: D001
+    blocking_violation: false
+    family: descriptive
+    rationale: "The descriptive claim declares its population, metric, time window, sample, provenance, and numerical result."
+  - id: D002
+    blocking_violation: false
+    family: metric_governance
+    rationale: "The metric is defined and interpretable, although failure to lock it before interpretation warrants review rather than stopping the language outright."
+  - id: D003
+    blocking_violation: false
+    family: missingness
+    rationale: "Missingness review is absent, but the declared descriptive claim remains interpretable enough for review rather than an automatic stop under this rubric."
+  - id: D004
+    blocking_violation: true
+    family: scope
+    rationale: "Without a population, readers cannot tell who the descriptive percentage covers."
+  - id: D005
+    blocking_violation: true
+    family: provenance
+    rationale: "The claim has no declared source for the evidence, so the evidence-to-language link cannot be inspected."
+  - id: D006
+    blocking_violation: true
+    family: sample_size
+    rationale: "A zero analyzed sample cannot support the declared empirical percentage."
+  - id: D007
+    blocking_violation: false
+    family: magnitude
+    rationale: "The qualitative magnitude word is accompanied by a numeric estimate and declared scale."
+  - id: D008
+    blocking_violation: true
+    family: magnitude
+    rationale: "The claim calls the result substantial while providing no numeric estimate to anchor that characterization."
+  - id: D009
+    blocking_violation: true
+    family: magnitude
+    rationale: "The claim uses qualitative magnitude language without declaring the scale on which the estimate should be interpreted."
+  - id: D010
+    blocking_violation: true
+    family: claim_type
+    rationale: "The claim type is outside the benchmark's declared descriptive, comparison, or causal vocabulary, leaving the minimum contract semantics undefined."
+
+  - id: C001
+    blocking_violation: false
+    family: comparison
+    rationale: "The comparison identifies both groups, numerical effect, baseline, uncertainty, and provenance."
+  - id: C002
+    blocking_violation: true
+    family: comparison_groups
+    rationale: "A comparison cannot be interpreted when its baseline group is not identified."
+  - id: C003
+    blocking_violation: true
+    family: comparison_groups
+    rationale: "A comparison cannot be interpreted when the comparison group is not identified."
+  - id: C004
+    blocking_violation: true
+    family: relative_baseline
+    rationale: "The claim uses higher-than language without the baseline value needed to interpret the change."
+  - id: C005
+    blocking_violation: false
+    family: uncertainty
+    rationale: "The comparison groups and point estimate are interpretable; missing uncertainty should trigger analytical review rather than a label-defined stop."
+  - id: C006
+    blocking_violation: false
+    family: multiplicity
+    rationale: "Multiplicity was not assessed, which warrants review but does not make the declared single comparison uninterpretable."
+  - id: C007
+    blocking_violation: false
+    family: multiplicity
+    rationale: "The declared comparison remains interpretable, but the unhandled family of eight comparisons warrants review."
+  - id: C008
+    blocking_violation: false
+    family: multiplicity
+    rationale: "The declared family of comparisons includes an adjustment strategy and does not contain a label-defined stopping mismatch."
+  - id: C009
+    blocking_violation: false
+    family: magnitude
+    rationale: "The materiality language is paired with a numeric effect and declared scale."
+  - id: C010
+    blocking_violation: true
+    family: magnitude
+    rationale: "Material increase language is used without a numeric effect estimate."
+
+  - id: O001
+    blocking_violation: false
+    family: observational
+    rationale: "The observational before/after comparison uses non-causal wording, identifies the comparison, and states the attribution limitation."
+  - id: O002
+    blocking_violation: false
+    family: composition_stability
+    rationale: "Composition stability was not assessed, which can undermine interpretation but is categorized as review-worthy rather than an automatic stop in this rubric."
+  - id: O003
+    blocking_violation: false
+    family: observational_caveat
+    rationale: "The claim language itself remains non-causal; the missing explicit caveat warrants review rather than a label-defined stop."
+  - id: O004
+    blocking_violation: false
+    family: observational_caveat
+    rationale: "Two observational safeguards are missing, but the claim still states only a before/after difference rather than attribution."
+  - id: O005
+    blocking_violation: true
+    family: causal_design
+    rationale: "A before/after observational comparison is used to attribute the change to an onboarding redesign."
+  - id: O006
+    blocking_violation: true
+    family: causal_design
+    rationale: "The claim explicitly asserts causation while declaring only an observational before/after design."
+  - id: O007
+    blocking_violation: true
+    family: comparison_groups
+    rationale: "The claim both attributes change to an intervention and omits the baseline group needed to define the comparison."
+  - id: O008
+    blocking_violation: true
+    family: relative_baseline
+    rationale: "Higher-after language is used without the baseline value needed to interpret the comparison."
+  - id: O009
+    blocking_violation: true
+    family: provenance
+    rationale: "The observational result has no declared evidence source, preventing inspection of the evidence-to-language link."
+  - id: O010
+    blocking_violation: true
+    family: sample_size
+    rationale: "A negative analyzed sample size is not a usable empirical declaration."
+
+  - id: R001
+    blocking_violation: false
+    family: randomized
+    rationale: "The randomized claim identifies groups and effect, and declares assignment integrity checked; it remains subject to qualified human review."
+  - id: R002
+    blocking_violation: true
+    family: randomization_integrity
+    rationale: "A causal claim relies on randomized assignment while assignment integrity is explicitly not validated."
+  - id: R003
+    blocking_violation: true
+    family: comparison_groups
+    rationale: "The causal effect cannot be interpreted without identifying the baseline group."
+  - id: R004
+    blocking_violation: true
+    family: relative_baseline
+    rationale: "Increase language is used without the baseline value needed to interpret the effect."
+  - id: R005
+    blocking_violation: false
+    family: uncertainty
+    rationale: "The randomized effect is otherwise interpretable; absence of uncertainty warrants review rather than a label-defined stop."
+  - id: R006
+    blocking_violation: false
+    family: multiplicity
+    rationale: "Multiplicity assessment is absent, which warrants review without making the declared treatment comparison undefined."
+  - id: R007
+    blocking_violation: false
+    family: multiplicity
+    rationale: "A family of twelve comparisons is unhandled, but this rubric treats that as review-worthy rather than automatically stopping the stated comparison."
+  - id: R008
+    blocking_violation: false
+    family: multiplicity
+    rationale: "The declared comparison family includes an adjustment strategy."
+  - id: R009
+    blocking_violation: false
+    family: magnitude
+    rationale: "Substantial language is anchored by a numeric effect and declared scale."
+  - id: R010
+    blocking_violation: true
+    family: magnitude
+    rationale: "Substantial causal-effect language has no numeric estimate."
+
+  - id: Q001
+    blocking_violation: false
+    family: quasi_experimental
+    rationale: "The quasi-experimental claim declares its comparison and identifying assumptions, while still requiring qualified human review."
+  - id: Q002
+    blocking_violation: true
+    family: identifying_assumptions
+    rationale: "The causal interpretation relies on a quasi-experimental design without documenting the assumptions that identify the effect."
+  - id: Q003
+    blocking_violation: true
+    family: comparison_groups
+    rationale: "The quasi-experimental causal effect omits the comparison condition."
+  - id: Q004
+    blocking_violation: true
+    family: relative_baseline
+    rationale: "Increase language is used without the baseline value needed to interpret the quasi-experimental effect."
+  - id: Q005
+    blocking_violation: false
+    family: uncertainty
+    rationale: "The quasi-experimental effect is otherwise interpretable; missing uncertainty is review-worthy rather than a label-defined stop."
+  - id: Q006
+    blocking_violation: false
+    family: multiplicity
+    rationale: "The declared comparison count is malformed and needs review, but this rubric does not treat that metadata defect as making the causal comparison itself uninterpretable."
+  - id: Q007
+    blocking_violation: false
+    family: multiplicity
+    rationale: "Multiple comparisons are explicitly declared with an exploratory rationale."
+  - id: Q008
+    blocking_violation: false
+    family: metric_governance
+    rationale: "The metric definition is present but not locked; that is a review issue rather than a label-defined stopping mismatch."
+  - id: Q009
+    blocking_violation: true
+    family: provenance
+    rationale: "The quasi-experimental causal claim has no declared evidence source."
+  - id: Q010
+    blocking_violation: true
+    family: causal_design
+    rationale: "The claim attributes an effect while declaring only a descriptive-summary design."

@@ -7,6 +7,7 @@ This roadmap records possible directions, not promises or release commitments.
 ## Near-term priorities
 
 - Stabilize `minimum-v0.1` rule semantics and output fields.
+- Score the frozen CCL-002 `minimum-v0.1` benchmark only after its freeze revision is merged, retaining case-level outputs for independent adjudication.
 - Expand adversarial coverage only when a recurring misuse or blind spot is observed.
 - Document rule false positives and known blind spots as they are discovered.
 
@@ -24,6 +25,8 @@ This roadmap records possible directions, not promises or release commitments.
 - Exposed the `minimum-v0.1` rule contract as a versioned machine-readable profile manifest with rule IDs, severities, consumed fields, triggers, and known boundaries.
 - Bound new contract-bound reports to the semantic identity of the selected profile manifest, with saved-report drift verification and legacy profile-unbound compatibility.
 - Added a strict, versioned `claim-contract` to `chart-contract` handoff envelope that preserves bounded claim context, validation status, and contract identity without recommending a visualization.
+- Added semantic parsed-contract diff inspection with explicit field changes and verdict transitions without automatic interpretation.
+- Froze a 50-case, independently labeled `minimum-v0.1` benchmark for CCL-002 with a written rubric and a scorer that binds future results to the exact corpus, labels, and profile-manifest identity.
 
 ## Candidate directions
 
