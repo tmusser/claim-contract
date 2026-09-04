@@ -29,6 +29,7 @@ from .metadata import (
     TOOL_VERSION,
 )
 from .models import Verdict
+from .profile_diff import ProfileDiff, build_profile_diff, load_profile_manifest
 from .profiles import ProfileManifest, get_profile_manifest
 from .validator import validate_contract
 
@@ -151,6 +152,28 @@ def build_parser() -> argparse.ArgumentParser:
         help="Shortcut for --format json.",
     )
     profile_show.set_defaults(format="text")
+
+    profile_diff = profile_commands.add_parser(
+        "diff",
+        help="Compare two saved machine-readable profile manifests.",
+    )
+    profile_diff.add_argument("before", help="Earlier profile-manifest JSON path.")
+    profile_diff.add_argument("after", help="Later profile-manifest JSON path.")
+    profile_diff_output = profile_diff.add_mutually_exclusive_group()
+    profile_diff_output.add_argument(
+        "--format",
+        choices=("text", "json"),
+        dest="format",
+        help="Output format.",
+    )
+    profile_diff_output.add_argument(
+        "--json",
+        action="store_const",
+        const="json",
+        dest="format",
+        help="Shortcut for --format json.",
+    )
+    profile_diff.set_defaults(format="text")
 
     ledger = subparsers.add_parser(
         "ledger",
@@ -325,6 +348,81 @@ def _run_profile_show(name: str, output_format: str) -> int:
         print(json.dumps(manifest.to_dict(), indent=2, sort_keys=True))
     else:
         print(_format_profile_text(manifest))
+    return 0
+
+
+def _format_profile_diff_text(diff: ProfileDiff) -> str:
+    lines = [
+        f"Profile: {diff.before_profile} -> {diff.after_profile}",
+        f"Semantic profile changed: {'true' if diff.semantic_changed else 'false'}",
+        f"Tool metadata changed: {'true' if diff.tool_metadata_changed else 'false'}",
+        "Automatic compatibility classification: false",
+        "Profile manifest SHA-256:",
+        f"  - {diff.before_binding.profile_manifest_sha256}",
+        f"  + {diff.after_binding.profile_manifest_sha256}",
+        "",
+    ]
+
+    if diff.profile_changes:
+        lines.append("Profile fields:")
+        for change in diff.profile_changes:
+            lines.append(f"  {change.path}")
+            lines.append(f"    - {_format_contract_value(change.before)}")
+            lines.append(f"    + {_format_contract_value(change.after)}")
+    else:
+        lines.append("Profile fields: none")
+
+    if diff.rules_added:
+        lines.append("Rules added:")
+        for rule in diff.rules_added:
+            lines.append(f"  {rule['id']} {rule['severity']}")
+    else:
+        lines.append("Rules added: none")
+
+    if diff.rules_removed:
+        lines.append("Rules removed:")
+        for rule in diff.rules_removed:
+            lines.append(f"  {rule['id']} {rule['severity']}")
+    else:
+        lines.append("Rules removed: none")
+
+    if diff.rules_changed:
+        lines.append("Rules changed:")
+        for rule in diff.rules_changed:
+            lines.append(f"  {rule.rule_id}")
+            for change in rule.changes:
+                lines.append(f"    {change.field}")
+                lines.append(f"      - {_format_contract_value(change.before)}")
+                lines.append(f"      + {_format_contract_value(change.after)}")
+    else:
+        lines.append("Rules changed: none")
+
+    lines.append(
+        f"Rule order changed: {'true' if diff.rule_order_changed else 'false'}"
+    )
+    if diff.rule_order_changed:
+        lines.append(f"  - {', '.join(diff.before_rule_order)}")
+        lines.append(f"  + {', '.join(diff.after_rule_order)}")
+    return "\n".join(lines)
+
+
+def _run_profile_diff(before_path: str, after_path: str, output_format: str) -> int:
+    try:
+        before = load_profile_manifest(before_path)
+        after = load_profile_manifest(after_path)
+        diff = build_profile_diff(before, after)
+    except (FileNotFoundError, ValueError, TypeError, RuntimeError) as exc:
+        message = f"Input error: {exc}"
+        if output_format == "json":
+            print(format_json_error(message))
+        else:
+            print(message, file=sys.stderr)
+        return 2
+
+    if output_format == "json":
+        print(json.dumps(diff.to_dict(), indent=2, sort_keys=True))
+    else:
+        print(_format_profile_diff_text(diff))
     return 0
 
 
@@ -534,7 +632,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "handoff":
         return _run_chart_handoff(args.contract, args.warnings_as_errors)
     if args.command == "profile":
-        return _run_profile_show(args.profile, args.format)
+        if args.profile_command == "show":
+            return _run_profile_show(args.profile, args.format)
+        if args.profile_command == "diff":
+            return _run_profile_diff(args.before, args.after, args.format)
+        raise AssertionError(f"Unhandled profile command: {args.profile_command}")
     if args.command == "ledger":
         if args.ledger_command == "verify":
             return _run_ledger_verify(args.ledger)

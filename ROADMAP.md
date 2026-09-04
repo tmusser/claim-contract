@@ -24,6 +24,7 @@ This roadmap records possible directions, not promises or release commitments.
 - Bound generated validation reports to deterministic identities for the exact parsed contracts that produced them, with read-only saved-report verification.
 - Exposed the `minimum-v0.1` rule contract as a versioned machine-readable profile manifest with rule IDs, severities, consumed fields, triggers, and known boundaries.
 - Bound new contract-bound reports to the semantic identity of the selected profile manifest, with saved-report drift verification and legacy profile-unbound compatibility.
+- Added mechanical profile-manifest diff inspection aligned to the same semantic identity, without automatic compatibility classification.
 - Added a strict, versioned `claim-contract` to `chart-contract` handoff envelope that preserves bounded claim context, validation status, and contract identity without recommending a visualization.
 - Added semantic parsed-contract diff inspection with explicit field changes and verdict transitions without automatic interpretation.
 - Froze a 50-case, independently labeled `minimum-v0.1` benchmark for CCL-002 with a written rubric and a scorer that binds future results to the exact corpus, labels, and profile-manifest identity.
@@ -33,7 +34,6 @@ This roadmap records possible directions, not promises or release commitments.
 These require evidence before promotion:
 
 - Additional narrow profiles for well-defined analytical contexts.
-- Explicit compatibility or diff reporting across profile-manifest versions.
 - Optional downstream consumption of the bounded chart-handoff artifact without collapsing claim-contract and chart-contract responsibilities.
 
 Candidate features stay here. Empirical claims about whether the harness or its interfaces actually improve agent behavior, catch enough violations, or reduce overclaiming belong in the machine-readable [`claims/ledger.yaml`](claims/ledger.yaml), where support and refutation conditions are frozen before the evidence intended to settle them is observed.
