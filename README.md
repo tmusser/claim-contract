@@ -70,6 +70,15 @@ claim-contract profile show minimum-v0.1 --json
 
 The profile manifest exposes each rule's ID, severity, consumed fields, short trigger, and known boundary. It is inspection metadata, not another validator. See [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md).
 
+Saved profile manifests can be compared mechanically across revisions:
+
+```bash
+claim-contract profile diff before-profile.json after-profile.json
+claim-contract profile diff before-profile.json after-profile.json --json
+```
+
+The diff is aligned to the same `profile-manifest-semantics-v1` identity used by report bindings. It reports profile metadata drift, rule additions/removals, rule-field changes, and rule-order drift, but deliberately does **not** classify changes as breaking, compatible, safe, or scientifically improved. See [docs/PROFILE_DIFF.md](docs/PROFILE_DIFF.md).
+
 A validated contract can also be exported as bounded context for downstream chart work:
 
 ```bash
@@ -215,6 +224,8 @@ claim-contract handoff chart path/to/contract.yaml
 claim-contract handoff chart path/to/contract.yaml --warnings-as-errors
 claim-contract profile show minimum-v0.1
 claim-contract profile show minimum-v0.1 --json
+claim-contract profile diff before-profile.json after-profile.json
+claim-contract profile diff before-profile.json after-profile.json --json
 claim-contract ledger list --status OPEN
 claim-contract ledger list --status OPEN --json
 claim-contract ledger show CCL-002
@@ -233,26 +244,27 @@ Exit behavior for validation and chart handoff uses the same verdict gate:
 
 A `REVIEW` or `BLOCK` chart handoff is still emitted when validation completed, so downstream tooling cannot mistake transport for approval.
 
-`profile show` exits `0` for a supported profile and `2` for an unsupported profile. It does not execute validation or produce a verdict.
+`profile show` exits `0` for a supported profile and `2` for an unsupported profile. `profile diff` exits `0` for a completed comparison and `2` for malformed or unsupported manifest input. Neither command executes analytical validation or produces a compatibility judgment.
 
 `ledger list` / `show` exit `0` for successful inspection and `2` for ledger-input errors. They never use exit `1` because they do not adjudicate claims. `ledger verify` remains a separate read-only provenance check.
 
 ## Machine-readable contract
 
-JSON validation reports use `claim_contract.report`; JSON input failures use `claim_contract.error`; profile inspection uses `claim_contract.profile_manifest`; chart handoff uses `claim_contract.chart_handoff`; ledger list/show uses `claim_contract.ledger_inspection`. Each currently has its own schema family at `schema_version: "1.0"`.
+JSON validation reports use `claim_contract.report`; JSON input failures use `claim_contract.error`; profile inspection uses `claim_contract.profile_manifest`; profile drift inspection uses `claim_contract.profile_diff`; chart handoff uses `claim_contract.chart_handoff`; ledger list/show uses `claim_contract.ledger_inspection`. Each currently has its own schema family at `schema_version: "1.0"`.
 
-Machine-readable validation/profile/handoff documents preserve the interpretation boundary with `scientific_validation: false`, the fixed scope notice, and a non-empty `not_evaluated` list where defined by their schemas. Ledger inspection preserves the source ledger scope notice and explicitly carries `automatic_adjudication: false` and `mutates_ledger: false`.
+Machine-readable validation/profile/handoff documents preserve the interpretation boundary with `scientific_validation: false`, the fixed scope notice, and a non-empty `not_evaluated` list where defined by their schemas. Profile diff additionally carries `automatic_compatibility_classification: false`; ledger inspection preserves the source ledger scope notice and explicitly carries `automatic_adjudication: false` and `mutates_ledger: false`.
 
 Published schemas:
 
 - [`schemas/contract-minimum-v0.1.schema.json`](schemas/contract-minimum-v0.1.schema.json) — canonical input shape for the `minimum-v0.1` profile
 - [`schemas/profile-manifest-v1.schema.json`](schemas/profile-manifest-v1.schema.json) — machine-readable profile/rule metadata
+- [`schemas/profile-diff-v1.schema.json`](schemas/profile-diff-v1.schema.json) — mechanical drift between saved profile manifests
 - [`schemas/chart-handoff-v1.schema.json`](schemas/chart-handoff-v1.schema.json) — strict bounded context for downstream chart work
 - [`schemas/ledger-inspection-v1.schema.json`](schemas/ledger-inspection-v1.schema.json) — read-only machine-readable ledger inspection
 - [`schemas/report-v1.schema.json`](schemas/report-v1.schema.json)
 - [`schemas/error-v1.schema.json`](schemas/error-v1.schema.json)
 
-See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md) for output compatibility guarantees, [docs/CHART_HANDOFF.md](docs/CHART_HANDOFF.md) for the cross-tool boundary, [docs/LEDGER_INSPECTION.md](docs/LEDGER_INSPECTION.md) for the ledger inspection boundary, and [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md) for profile-manifest semantics. See [docs/CONTRACT_SCHEMA.md](docs/CONTRACT_SCHEMA.md) for input-schema scope and compatibility.
+See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md) for output compatibility guarantees, [docs/PROFILE_DIFF.md](docs/PROFILE_DIFF.md) for profile-drift boundaries, [docs/CHART_HANDOFF.md](docs/CHART_HANDOFF.md) for the cross-tool boundary, [docs/LEDGER_INSPECTION.md](docs/LEDGER_INSPECTION.md) for the ledger inspection boundary, and [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md) for profile-manifest semantics. See [docs/CONTRACT_SCHEMA.md](docs/CONTRACT_SCHEMA.md) for input-schema scope and compatibility.
 
 ## Python API
 

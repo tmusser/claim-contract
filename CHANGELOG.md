@@ -4,6 +4,8 @@
 
 ### Added
 
+- `claim-contract profile diff <before.json> <after.json>` for mechanical profile-manifest drift inspection aligned to `profile-manifest-semantics-v1`, including profile metadata changes, rule additions/removals, per-rule field changes, rule-order drift, and before/after semantic SHA-256 identities.
+- Versioned `claim_contract.profile_diff` output and `schemas/profile-diff-v1.schema.json` with explicit `automatic_compatibility_classification: false`; top-level tool metadata is reported separately and remains excluded from semantic profile identity.
 - Frozen `benchmarks/minimum-v0.1` corpus for CCL-002 with 50 synthetic analytical claim/evidence cases, 25 independently labeled blocking violations, 25 nonblocking/review cases, and a written rubric that does not encode expected validator verdicts or rule IDs.
 - Deterministic benchmark evaluator that materializes frozen cases, reports BLOCK recall and false-BLOCK rate with case-level evidence, and binds future results to exact corpus/label bytes plus the semantic profile-manifest identity without automatically adjudicating CCL-002.
 - Published `schemas/benchmark-result-v1.schema.json` plus repository tests that validate benchmark size/balance, label independence, mutation materialization, result-schema validity, and evaluator mechanics on a separate tiny fixture while deliberately leaving the frozen 50 cases unscored in the freeze commit.

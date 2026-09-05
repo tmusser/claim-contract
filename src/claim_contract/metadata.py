@@ -20,3 +20,6 @@ LEDGER_INSPECTION_SCHEMA_VERSION = "1.0"
 
 CONTRACT_DIFF_TYPE = "claim_contract.contract_diff"
 CONTRACT_DIFF_SCHEMA_VERSION = "1.0"
+
+PROFILE_DIFF_TYPE = "claim_contract.profile_diff"
+PROFILE_DIFF_SCHEMA_VERSION = "1.0"
