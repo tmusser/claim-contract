@@ -258,6 +258,13 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         help="Current YAML/JSON contract path, or - to read the contract from stdin.",
     )
+    report_verify.add_argument(
+        "--profile-manifest",
+        help=(
+            "Saved profile-manifest JSON to compare with the report's bound profile "
+            "identity instead of the currently installed profile."
+        ),
+    )
 
     return parser
 
@@ -541,7 +548,11 @@ def _load_report_payload(path: str) -> dict[str, object]:
     return payload
 
 
-def _run_report_verify(report_path: str, contract_path: str) -> int:
+def _run_report_verify(
+    report_path: str,
+    contract_path: str,
+    profile_manifest_path: str | None = None,
+) -> int:
     try:
         payload = _load_report_payload(report_path)
         if payload.get("type") != REPORT_TYPE:
@@ -568,6 +579,7 @@ def _run_report_verify(report_path: str, contract_path: str) -> int:
         serialized_profile_binding = contract_metadata.get("profile_manifest_binding")
         profile_binding = None
         profile_candidate = None
+        profile_candidate_name = None
         if serialized_profile_binding is not None:
             if not isinstance(serialized_profile_binding, Mapping):
                 raise ValueError(
@@ -581,8 +593,17 @@ def _run_report_verify(report_path: str, contract_path: str) -> int:
             profile_binding = profile_manifest_binding_from_dict(
                 serialized_profile_binding
             )
-            manifest = get_profile_manifest(bound_profile)
-            profile_candidate = build_profile_manifest_binding(manifest.to_dict())
+            if profile_manifest_path is None:
+                manifest = get_profile_manifest(bound_profile).to_dict()
+            else:
+                manifest = load_profile_manifest(profile_manifest_path)
+            profile_candidate = build_profile_manifest_binding(manifest)
+            profile_candidate_name = str(manifest["profile"]["name"])
+        elif profile_manifest_path is not None:
+            raise ValueError(
+                "Report does not contain contract.profile_manifest_binding; a supplied "
+                "profile manifest cannot retroactively bind an unbound report."
+            )
     except (FileNotFoundError, ValueError, TypeError) as exc:
         print(f"Input error: {exc}", file=sys.stderr)
         return 2
@@ -610,10 +631,13 @@ def _run_report_verify(report_path: str, contract_path: str) -> int:
             "Saved profile manifest SHA-256: "
             f"{profile_binding.profile_manifest_sha256}"
         )
+        candidate_label = "Supplied" if profile_manifest_path is not None else "Current"
         print(
-            "Current profile manifest SHA-256: "
+            f"{candidate_label} profile manifest SHA-256: "
             f"{profile_candidate.profile_manifest_sha256}"
         )
+        if profile_manifest_path is not None:
+            print(f"Supplied profile: {profile_candidate_name}")
     if "version" in contract_metadata:
         print(f"Bound contract version: {contract_metadata['version']}")
     if "profile" in contract_metadata:
@@ -654,7 +678,11 @@ def main(argv: list[str] | None = None) -> int:
             )
         raise AssertionError(f"Unhandled ledger command: {args.ledger_command}")
     if args.command == "report":
-        return _run_report_verify(args.report, args.contract)
+        return _run_report_verify(
+            args.report,
+            args.contract,
+            args.profile_manifest,
+        )
 
     try:
         contract = load_contract(args.contract)
