@@ -25,6 +25,7 @@ LEDGER_STATUSES = (
     "INCONCLUSIVE",
     "RETIRED",
 )
+_ADJUDICATED_STATUSES = {"SUPPORT_MET", "REFUTE_MET", "INCONCLUSIVE"}
 
 LEDGER_INSPECTION_NOTICE = (
     "Inspection exposes recorded ledger fields only. It does not evaluate support_if, "
@@ -299,6 +300,7 @@ def verify_pinned_provenance(path: str | Path) -> list[ClaimProvenanceResult]:
             snapshot=context_snapshot,
         )
 
+        status = claim.get("status")
         judgment_revision = None
         judgment_refs: tuple[str, ...] = ()
         judgment_revision_resolves = None
@@ -306,27 +308,52 @@ def verify_pinned_provenance(path: str | Path) -> list[ClaimProvenanceResult]:
         judgment_invalid_refs: tuple[str, ...] = ()
 
         judgment = claim.get("judgment")
-        if judgment is not None:
-            if not isinstance(judgment, dict):
-                raise ValueError(f"Claim {claim_id} judgment must be an object/mapping.")
-            evidence_snapshot = judgment.get("evidence_snapshot")
-            if evidence_snapshot is not None:
-                if not isinstance(evidence_snapshot, dict):
-                    raise ValueError(
-                        f"Claim {claim_id} judgment.evidence_snapshot must be an object/mapping."
-                    )
-                (
-                    judgment_revision,
-                    judgment_refs,
-                    judgment_revision_resolves,
-                    judgment_missing_refs,
-                    judgment_invalid_refs,
-                ) = _verify_snapshot(
-                    repository_root,
-                    claim_id=claim_id,
-                    field_path="judgment.evidence_snapshot",
-                    snapshot=evidence_snapshot,
+        if judgment is not None and not isinstance(judgment, dict):
+            raise ValueError(f"Claim {claim_id} judgment must be an object/mapping.")
+
+        evidence_snapshot = (
+            judgment.get("evidence_snapshot") if isinstance(judgment, dict) else None
+        )
+        if status in _ADJUDICATED_STATUSES and evidence_snapshot is None:
+            raise ValueError(
+                f"Claim {claim_id} status {status} requires judgment.evidence_snapshot."
+            )
+        if status == "OPEN" and evidence_snapshot is not None:
+            raise ValueError(
+                f"Claim {claim_id} status OPEN cannot carry judgment.evidence_snapshot."
+            )
+
+        if evidence_snapshot is not None:
+            if not isinstance(evidence_snapshot, dict):
+                raise ValueError(
+                    f"Claim {claim_id} judgment.evidence_snapshot must be an object/mapping."
                 )
+            readable_refs = judgment.get("evidence_refs") if isinstance(judgment, dict) else None
+            if readable_refs is not None:
+                if not isinstance(readable_refs, list) or not all(
+                    isinstance(ref, str) and ref for ref in readable_refs
+                ):
+                    raise ValueError(
+                        f"Claim {claim_id} judgment.evidence_refs must be a string list."
+                    )
+                if readable_refs != evidence_snapshot.get("refs"):
+                    raise ValueError(
+                        f"Claim {claim_id} judgment.evidence_refs must exactly match "
+                        "judgment.evidence_snapshot.refs."
+                    )
+
+            (
+                judgment_revision,
+                judgment_refs,
+                judgment_revision_resolves,
+                judgment_missing_refs,
+                judgment_invalid_refs,
+            ) = _verify_snapshot(
+                repository_root,
+                claim_id=claim_id,
+                field_path="judgment.evidence_snapshot",
+                snapshot=evidence_snapshot,
+            )
 
         results.append(
             ClaimProvenanceResult(
