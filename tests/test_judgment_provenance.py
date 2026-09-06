@@ -40,6 +40,8 @@ def _write_ledger(
     creation_revision: str,
     judgment_revision: str,
     judgment_refs: list[str],
+    readable_refs: list[str] | None = None,
+    status: str = "SUPPORT_MET",
 ) -> Path:
     ledger_path = repo / "claims" / "ledger.yaml"
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
@@ -47,6 +49,7 @@ def _write_ledger(
         "claims": [
             {
                 "id": "CCL-TEST",
+                "status": status,
                 "provenance": {
                     "context_snapshot": {
                         "repository_revision": creation_revision,
@@ -54,10 +57,11 @@ def _write_ledger(
                     }
                 },
                 "judgment": {
+                    "evidence_refs": judgment_refs if readable_refs is None else readable_refs,
                     "evidence_snapshot": {
                         "repository_revision": judgment_revision,
                         "refs": judgment_refs,
-                    }
+                    },
                 },
             }
         ]
@@ -137,3 +141,71 @@ def test_cli_ledger_verify_fails_for_broken_judgment_snapshot(
 
     assert code == 1
     assert "CCL-TEST: INVALID" in output
+
+
+def test_verifier_rejects_completed_status_without_judgment_snapshot(
+    tmp_path: Path, capsys
+) -> None:
+    repo = _init_repo(tmp_path)
+    (repo / "README.md").write_text("context\n", encoding="utf-8")
+    revision = _commit_all(repo, "add claim context")
+
+    ledger_path = _write_ledger(
+        repo,
+        creation_revision=revision,
+        judgment_revision=revision,
+        judgment_refs=["README.md"],
+    )
+    payload = yaml.safe_load(ledger_path.read_text(encoding="utf-8"))
+    payload["claims"][0]["judgment"]["evidence_snapshot"] = None
+    ledger_path.write_text(yaml.safe_dump(payload), encoding="utf-8")
+
+    code = main(["ledger", "verify", str(ledger_path)])
+    captured = capsys.readouterr()
+
+    assert code == 2
+    assert "requires judgment.evidence_snapshot" in captured.err
+
+
+def test_verifier_rejects_divergent_readable_and_frozen_evidence_refs(
+    tmp_path: Path, capsys
+) -> None:
+    repo = _init_repo(tmp_path)
+    (repo / "README.md").write_text("context\n", encoding="utf-8")
+    revision = _commit_all(repo, "add claim context")
+
+    ledger_path = _write_ledger(
+        repo,
+        creation_revision=revision,
+        judgment_revision=revision,
+        judgment_refs=["README.md"],
+        readable_refs=["different.md"],
+    )
+
+    code = main(["ledger", "verify", str(ledger_path)])
+    captured = capsys.readouterr()
+
+    assert code == 2
+    assert "must exactly match judgment.evidence_snapshot.refs" in captured.err
+
+
+def test_verifier_rejects_open_claim_with_judgment_snapshot(
+    tmp_path: Path, capsys
+) -> None:
+    repo = _init_repo(tmp_path)
+    (repo / "README.md").write_text("context\n", encoding="utf-8")
+    revision = _commit_all(repo, "add claim context")
+
+    ledger_path = _write_ledger(
+        repo,
+        creation_revision=revision,
+        judgment_revision=revision,
+        judgment_refs=["README.md"],
+        status="OPEN",
+    )
+
+    code = main(["ledger", "verify", str(ledger_path)])
+    captured = capsys.readouterr()
+
+    assert code == 2
+    assert "status OPEN cannot carry judgment.evidence_snapshot" in captured.err
