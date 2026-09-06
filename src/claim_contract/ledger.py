@@ -41,10 +41,29 @@ class ClaimProvenanceResult:
     revision_resolves: bool
     missing_refs: tuple[str, ...] = ()
     invalid_refs: tuple[str, ...] = ()
+    judgment_revision: str | None = None
+    judgment_refs: tuple[str, ...] = ()
+    judgment_revision_resolves: bool | None = None
+    judgment_missing_refs: tuple[str, ...] = ()
+    judgment_invalid_refs: tuple[str, ...] = ()
+
+    @property
+    def creation_ok(self) -> bool:
+        return self.revision_resolves and not self.missing_refs and not self.invalid_refs
+
+    @property
+    def judgment_ok(self) -> bool | None:
+        if self.judgment_revision is None:
+            return None
+        return bool(
+            self.judgment_revision_resolves
+            and not self.judgment_missing_refs
+            and not self.judgment_invalid_refs
+        )
 
     @property
     def ok(self) -> bool:
-        return self.revision_resolves and not self.missing_refs and not self.invalid_refs
+        return self.creation_ok and self.judgment_ok is not False
 
 
 @dataclass(frozen=True)
@@ -204,6 +223,47 @@ def _validate_ref(ref: str) -> str | None:
     return normalized
 
 
+def _verify_snapshot(
+    repository_root: Path,
+    *,
+    claim_id: str,
+    field_path: str,
+    snapshot: dict[str, Any],
+) -> tuple[str, tuple[str, ...], bool, tuple[str, ...], tuple[str, ...]]:
+    revision = snapshot.get("repository_revision")
+    refs = snapshot.get("refs")
+    if not isinstance(revision, str) or not re.fullmatch(r"[0-9a-fA-F]{40}", revision):
+        raise ValueError(
+            f"Claim {claim_id} {field_path}.repository_revision must be a full "
+            "40-character Git SHA."
+        )
+    if not isinstance(refs, list) or not refs:
+        raise ValueError(f"Claim {claim_id} must declare {field_path}.refs.")
+    if not all(isinstance(ref, str) and ref for ref in refs):
+        raise ValueError(f"Claim {claim_id} {field_path} refs must be non-empty strings.")
+
+    revision_resolves = _git_object_exists(repository_root, f"{revision}^{{commit}}")
+    missing_refs: list[str] = []
+    invalid_refs: list[str] = []
+
+    if revision_resolves:
+        for ref in refs:
+            normalized = _validate_ref(ref)
+            if normalized is None:
+                invalid_refs.append(ref)
+                continue
+            if not _git_object_exists(repository_root, f"{revision}:{normalized}"):
+                missing_refs.append(ref)
+
+    return (
+        revision,
+        tuple(refs),
+        revision_resolves,
+        tuple(missing_refs),
+        tuple(invalid_refs),
+    )
+
+
 def verify_pinned_provenance(path: str | Path) -> list[ClaimProvenanceResult]:
     ledger_path = Path(path)
     ledger = _load_ledger(ledger_path)
@@ -222,43 +282,65 @@ def verify_pinned_provenance(path: str | Path) -> list[ClaimProvenanceResult]:
         if not isinstance(provenance, dict):
             raise ValueError(f"Claim {claim_id} is missing provenance.")
 
-        snapshot = provenance.get("context_snapshot")
-        if not isinstance(snapshot, dict):
+        context_snapshot = provenance.get("context_snapshot")
+        if not isinstance(context_snapshot, dict):
             raise ValueError(f"Claim {claim_id} is missing provenance.context_snapshot.")
 
-        revision = snapshot.get("repository_revision")
-        refs = snapshot.get("refs")
-        if not isinstance(revision, str) or not re.fullmatch(r"[0-9a-fA-F]{40}", revision):
-            raise ValueError(
-                f"Claim {claim_id} provenance.context_snapshot.repository_revision "
-                "must be a full 40-character Git SHA."
-            )
-        if not isinstance(refs, list) or not refs:
-            raise ValueError(f"Claim {claim_id} must declare provenance.context_snapshot.refs.")
-        if not all(isinstance(ref, str) and ref for ref in refs):
-            raise ValueError(f"Claim {claim_id} context refs must be non-empty strings.")
+        (
+            revision,
+            refs,
+            revision_resolves,
+            missing_refs,
+            invalid_refs,
+        ) = _verify_snapshot(
+            repository_root,
+            claim_id=claim_id,
+            field_path="provenance.context_snapshot",
+            snapshot=context_snapshot,
+        )
 
-        revision_resolves = _git_object_exists(repository_root, f"{revision}^{{commit}}")
-        missing_refs: list[str] = []
-        invalid_refs: list[str] = []
+        judgment_revision = None
+        judgment_refs: tuple[str, ...] = ()
+        judgment_revision_resolves = None
+        judgment_missing_refs: tuple[str, ...] = ()
+        judgment_invalid_refs: tuple[str, ...] = ()
 
-        if revision_resolves:
-            for ref in refs:
-                normalized = _validate_ref(ref)
-                if normalized is None:
-                    invalid_refs.append(ref)
-                    continue
-                if not _git_object_exists(repository_root, f"{revision}:{normalized}"):
-                    missing_refs.append(ref)
+        judgment = claim.get("judgment")
+        if judgment is not None:
+            if not isinstance(judgment, dict):
+                raise ValueError(f"Claim {claim_id} judgment must be an object/mapping.")
+            evidence_snapshot = judgment.get("evidence_snapshot")
+            if evidence_snapshot is not None:
+                if not isinstance(evidence_snapshot, dict):
+                    raise ValueError(
+                        f"Claim {claim_id} judgment.evidence_snapshot must be an object/mapping."
+                    )
+                (
+                    judgment_revision,
+                    judgment_refs,
+                    judgment_revision_resolves,
+                    judgment_missing_refs,
+                    judgment_invalid_refs,
+                ) = _verify_snapshot(
+                    repository_root,
+                    claim_id=claim_id,
+                    field_path="judgment.evidence_snapshot",
+                    snapshot=evidence_snapshot,
+                )
 
         results.append(
             ClaimProvenanceResult(
                 claim_id=claim_id,
                 revision=revision,
-                refs=tuple(refs),
+                refs=refs,
                 revision_resolves=revision_resolves,
-                missing_refs=tuple(missing_refs),
-                invalid_refs=tuple(invalid_refs),
+                missing_refs=missing_refs,
+                invalid_refs=invalid_refs,
+                judgment_revision=judgment_revision,
+                judgment_refs=judgment_refs,
+                judgment_revision_resolves=judgment_revision_resolves,
+                judgment_missing_refs=judgment_missing_refs,
+                judgment_invalid_refs=judgment_invalid_refs,
             )
         )
 
