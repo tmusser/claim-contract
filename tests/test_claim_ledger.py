@@ -1,16 +1,21 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path
 
+import pytest
 import yaml
-from jsonschema import Draft202012Validator, FormatChecker
+from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER_PATH = ROOT / "claims" / "ledger.yaml"
-SCHEMA_PATH = ROOT / "schemas" / "claim-ledger-v1.1.schema.json"
-LEGACY_SCHEMA_PATH = ROOT / "schemas" / "claim-ledger-v1.schema.json"
+SCHEMA_PATH = ROOT / "schemas" / "claim-ledger-v1.2.schema.json"
+LEGACY_SCHEMA_PATHS = (
+    ROOT / "schemas" / "claim-ledger-v1.schema.json",
+    ROOT / "schemas" / "claim-ledger-v1.1.schema.json",
+)
 
 
 def _load_ledger() -> dict[str, object]:
@@ -25,15 +30,20 @@ def _load_schema(path: Path = SCHEMA_PATH) -> dict[str, object]:
     return value
 
 
+def _validator() -> Draft202012Validator:
+    return Draft202012Validator(_load_schema(), format_checker=FormatChecker())
+
+
 def test_live_claim_ledger_matches_published_schema() -> None:
     schema = _load_schema()
     Draft202012Validator.check_schema(schema)
-    Draft202012Validator(schema, format_checker=FormatChecker()).validate(_load_ledger())
+    _validator().validate(_load_ledger())
 
 
-def test_legacy_claim_ledger_schema_remains_published() -> None:
-    schema = _load_schema(LEGACY_SCHEMA_PATH)
-    Draft202012Validator.check_schema(schema)
+def test_historical_claim_ledger_schemas_remain_published() -> None:
+    for path in LEGACY_SCHEMA_PATHS:
+        schema = _load_schema(path)
+        Draft202012Validator.check_schema(schema)
 
 
 def test_claim_ids_are_unique_and_open_claims_are_unjudged() -> None:
@@ -54,13 +64,14 @@ def test_claim_ids_are_unique_and_open_claims_are_unjudged() -> None:
             "last_evaluated": None,
             "judged_by": None,
             "evidence_refs": [],
+            "evidence_snapshot": None,
             "note": None,
         }
 
 
 def test_live_claims_preserve_creation_provenance() -> None:
     ledger = _load_ledger()
-    assert ledger["schema_version"] == "1.1"
+    assert ledger["schema_version"] == "1.2"
 
     claims = ledger["claims"]
     assert isinstance(claims, list)
@@ -82,3 +93,49 @@ def test_live_claims_preserve_creation_provenance() -> None:
 
         if provenance["generated_at"] is None:
             assert "not retained" in context["note"].lower()
+
+
+def _adjudicated_ledger(status: str = "SUPPORT_MET") -> dict[str, object]:
+    ledger = deepcopy(_load_ledger())
+    claim = ledger["claims"][0]
+    claim["status"] = status
+    claim["judgment"] = {
+        "last_evaluated": "2026-09-06T14:00:00Z",
+        "judged_by": "independent-reviewer",
+        "evidence_refs": ["README.md"],
+        "evidence_snapshot": {
+            "repository_revision": "0c2cea01537cf90dcc224614f2e35d4e1b2916fb",
+            "refs": ["README.md"],
+            "note": "Frozen repository evidence used for this bounded adjudication.",
+        },
+        "note": "Recorded judgment under the frozen judge contract.",
+    }
+    return ledger
+
+
+@pytest.mark.parametrize("status", ["SUPPORT_MET", "REFUTE_MET", "INCONCLUSIVE"])
+def test_adjudicated_status_requires_frozen_judgment_provenance(status: str) -> None:
+    _validator().validate(_adjudicated_ledger(status))
+
+
+def test_adjudicated_status_rejects_missing_evidence_snapshot() -> None:
+    ledger = _adjudicated_ledger()
+    ledger["claims"][0]["judgment"]["evidence_snapshot"] = None
+
+    with pytest.raises(ValidationError):
+        _validator().validate(ledger)
+
+
+def test_open_status_cannot_carry_completed_judgment() -> None:
+    ledger = _adjudicated_ledger()
+    ledger["claims"][0]["status"] = "OPEN"
+
+    with pytest.raises(ValidationError):
+        _validator().validate(ledger)
+
+
+def test_retired_status_may_remain_unjudged() -> None:
+    ledger = deepcopy(_load_ledger())
+    ledger["claims"][0]["status"] = "RETIRED"
+
+    _validator().validate(ledger)

@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: "1.2"
 type: claim_contract.claim_ledger
 scope_notice: "Ledger judgments record whether a frozen evidence condition was met. They are not scientific validation and do not prove a claim universally true or false."
 
@@ -61,6 +61,7 @@ claims:
       last_evaluated: null
       judged_by: null
       evidence_refs: []
+      evidence_snapshot: null
       note: null
     supersedes: null
 
@@ -119,6 +120,7 @@ claims:
       last_evaluated: null
       judged_by: null
       evidence_refs: []
+      evidence_snapshot: null
       note: null
     supersedes: null
 
@@ -177,5 +179,6 @@ claims:
       last_evaluated: null
       judged_by: null
       evidence_refs: []
+      evidence_snapshot: null
       note: null
     supersedes: null

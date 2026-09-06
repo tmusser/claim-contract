@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/schemas/claim-ledger-v1.2.schema.json",
+  "title": "claim-contract claim ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "type", "scope_notice", "claims"],
+  "properties": {
+    "schema_version": {
+      "const": "1.2"
+    },
+    "type": {
+      "const": "claim_contract.claim_ledger"
+    },
+    "scope_notice": {
+      "const": "Ledger judgments record whether a frozen evidence condition was met. They are not scientific validation and do not prove a claim universally true or false."
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/claim"
+      }
+    }
+  },
+  "$defs": {
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository_revision", "refs", "note"],
+      "properties": {
+        "repository_revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "unjudged_judgment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "last_evaluated",
+        "judged_by",
+        "evidence_refs",
+        "evidence_snapshot",
+        "note"
+      ],
+      "properties": {
+        "last_evaluated": {"const": null},
+        "judged_by": {"const": null},
+        "evidence_refs": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "evidence_snapshot": {"const": null},
+        "note": {"const": null}
+      }
+    },
+    "adjudicated_judgment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "last_evaluated",
+        "judged_by",
+        "evidence_refs",
+        "evidence_snapshot",
+        "note"
+      ],
+      "properties": {
+        "last_evaluated": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "judged_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "evidence_snapshot": {
+          "$ref": "#/$defs/snapshot"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "provenance",
+        "claim",
+        "scope",
+        "decision_impact",
+        "judge_contract",
+        "evidence",
+        "next_adjudication",
+        "judgment"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^CCL-[0-9]{3}$"
+        },
+        "status": {
+          "enum": ["OPEN", "SUPPORT_MET", "REFUTE_MET", "INCONCLUSIVE", "RETIRED"]
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["generated_at", "recorded_at", "record_ref", "origin_refs", "context_snapshot"],
+          "properties": {
+            "generated_at": {
+              "type": ["string", "null"],
+              "format": "date-time"
+            },
+            "recorded_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "record_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "origin_refs": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "context_snapshot": {
+              "$ref": "#/$defs/snapshot"
+            }
+          }
+        },
+        "claim": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_impact": {
+          "type": "string",
+          "minLength": 1
+        },
+        "judge_contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["support_if", "refute_if", "otherwise"],
+          "properties": {
+            "support_if": {
+              "type": "string",
+              "minLength": 1
+            },
+            "refute_if": {
+              "type": "string",
+              "minLength": 1
+            },
+            "otherwise": {
+              "const": "INCONCLUSIVE"
+            }
+          }
+        },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["current_refs", "counterevidence_or_gaps", "required"],
+          "properties": {
+            "current_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "counterevidence_or_gaps": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "next_adjudication": {
+          "type": "string",
+          "minLength": 1
+        },
+        "judgment": {
+          "oneOf": [
+            {"$ref": "#/$defs/unjudged_judgment"},
+            {"$ref": "#/$defs/adjudicated_judgment"}
+          ]
+        },
+        "supersedes": {
+          "type": ["string", "null"],
+          "pattern": "^CCL-[0-9]{3}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {"const": "OPEN"}
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "judgment": {"$ref": "#/$defs/unjudged_judgment"}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": ["SUPPORT_MET", "REFUTE_MET", "INCONCLUSIVE"]
+              }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "judgment": {"$ref": "#/$defs/adjudicated_judgment"}
+            }
+          }
+        }
+      ]
+    }
+  }
+}

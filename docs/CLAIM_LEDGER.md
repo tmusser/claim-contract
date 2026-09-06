@@ -53,8 +53,8 @@ what happened under the recorded scope and rule; it does not establish universal
 
 ## Creation provenance
 
-Ledger schema `1.1` records the context in which a claim was frozen, separately from later
-evidence and adjudication.
+Ledger schema `1.1` introduced the context in which a claim was frozen, separately from later
+evidence and adjudication. Schema `1.2` preserves that creation-provenance contract unchanged.
 
 Each claim has a `provenance` block:
 
@@ -128,21 +128,64 @@ A fresh agent can judge an `OPEN` claim when the required evidence exists:
 6. If support is met, set `SUPPORT_MET`.
 7. If refutation is met, set `REFUTE_MET`.
 8. If evidence was evaluated but neither condition is met, set `INCONCLUSIVE`.
-9. Record the exact evidence references, date, judge identity/model, and a short note.
+9. Record the exact evidence references, date, judge identity/model, short note, and the
+   frozen repository revision against which those evidence refs were judged.
 10. Preserve contradictory or unfavorable evidence rather than summarizing only the winning
     side.
 
 If the evidence is incomplete, leave the claim `OPEN` rather than guessing.
 
+## Judgment provenance
+
+Ledger schema `1.2` closes a separate provenance gap: an adjudication result must retain the
+repository state containing the evidence that was actually judged.
+
+`judgment.evidence_refs` remains the readable list of evidence paths. An adjudicated claim
+also requires `judgment.evidence_snapshot`:
+
+```yaml
+judgment:
+  last_evaluated: "2026-09-06T14:00:00Z"
+  judged_by: independent-reviewer
+  evidence_refs:
+    - benchmarks/minimum-v0.1/results/minimum-v0.1.json
+  evidence_snapshot:
+    repository_revision: "0123456789abcdef0123456789abcdef01234567"
+    refs:
+      - benchmarks/minimum-v0.1/results/minimum-v0.1.json
+    note: "Frozen repository evidence used for this bounded adjudication."
+  note: "Support condition met under the recorded judge contract."
+```
+
+The snapshot is an identity/provenance boundary, not a statement that the referenced evidence
+is correct. It means only that the judgment records which repository revision and paths were
+used when applying the frozen judge contract.
+
+Schema `1.2` enforces these state semantics:
+
+- `OPEN` must remain fully unjudged: null evaluation/judge/note, empty evidence refs, and
+  `evidence_snapshot: null`;
+- `SUPPORT_MET`, `REFUTE_MET`, and `INCONCLUSIVE` require a non-empty completed judgment and
+  a frozen evidence snapshot;
+- `RETIRED` may remain unjudged because retirement is administrative, not evidence-based
+  support or refutation. If a retired claim already has a completed judgment, that judgment
+  remains allowed and must retain its frozen snapshot.
+
+Do not create a judgment snapshot after the fact by guessing which revision probably
+contained the evidence. If the exact adjudication evidence state was not retained, record the
+provenance gap explicitly rather than manufacturing certainty.
+
 ## Structural validation
 
-The live ledger uses schema `1.1`, published at
-[`schemas/claim-ledger-v1.1.schema.json`](../schemas/claim-ledger-v1.1.schema.json). CI
+The live ledger uses schema `1.2`, published at
+[`schemas/claim-ledger-v1.2.schema.json`](../schemas/claim-ledger-v1.2.schema.json). CI
 validates that the live ledger conforms to that schema, that provenance timestamps are valid
-RFC 3339 date-times when present, and that claim IDs are unique.
+RFC 3339 date-times when present, that claim IDs are unique, and that completed adjudication
+statuses carry a frozen evidence snapshot.
 
-The original `1.0` schema remains published at
-[`schemas/claim-ledger-v1.schema.json`](../schemas/claim-ledger-v1.schema.json) so historical
+The historical `1.0` and `1.1` schemas remain published at
+[`schemas/claim-ledger-v1.schema.json`](../schemas/claim-ledger-v1.schema.json) and
+[`schemas/claim-ledger-v1.1.schema.json`](../schemas/claim-ledger-v1.1.schema.json) so old
 consumers are not silently moved onto the stricter provenance contract.
 
 Schema validation proves only that the ledger is structurally complete. It does not prove
@@ -159,18 +202,20 @@ claim-contract ledger verify claims/ledger.yaml
 ```
 
 The verifier is read-only. For each claim, it checks that
-`context_snapshot.repository_revision` resolves to a commit in the local Git repository and
-that every repository-relative `context_snapshot.refs` path exists at that exact revision.
-A path that exists on current `HEAD` but did not exist at the frozen revision fails.
+`provenance.context_snapshot.repository_revision` resolves to a commit in the local Git
+repository and that every repository-relative `provenance.context_snapshot.refs` path exists
+at that exact revision. When `judgment.evidence_snapshot` is present, the verifier also checks
+its frozen repository revision and evidence refs. A path that exists on current `HEAD` but did
+not exist at the frozen revision fails.
 
 Exit codes are intentionally simple:
 
-- `0` — every pinned revision and ref resolves;
+- `0` — every pinned creation and judgment revision/ref resolves;
 - `1` — at least one pinned revision or ref cannot be resolved;
 - `2` — the ledger input is malformed or cannot be checked in a Git worktree.
 
 An unavailable revision means only that the commit is not present in the local checkout. A
 shallow clone may therefore need additional history before verification can succeed. The
 verifier does not fetch history, follow `record_ref` or `origin_refs` over the network, judge
-whether the referenced material actually supports the claim, or perform scientific
-validation.
+whether the referenced material actually supports the claim, reproduce the adjudication, or
+perform scientific validation.
