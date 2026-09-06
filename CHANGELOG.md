@@ -4,6 +4,8 @@
 
 ### Added
 
+- Claim-ledger schema `1.2` with status-coupled judgment provenance: `SUPPORT_MET`, `REFUTE_MET`, and `INCONCLUSIVE` now require a completed judgment plus a commit-pinned `judgment.evidence_snapshot`, while `OPEN` remains explicitly unjudged and `RETIRED` remains administrative.
+- `claim-contract ledger verify` now includes any frozen judgment evidence snapshot in its provenance result and fails when the pinned judgment revision or evidence refs do not resolve, without adjudicating whether the evidence supports the recorded status.
 - `claim-contract report verify <report> --contract <contract> --profile-manifest <saved.json>` for checking a bound historical report against an explicitly supplied frozen profile-manifest identity instead of only the currently installed profile, while refusing to retroactively bind profile-unbound legacy reports.
 - `claim-contract profile diff <before.json> <after.json>` for mechanical profile-manifest drift inspection aligned to `profile-manifest-semantics-v1`, including profile metadata changes, rule additions/removals, per-rule field changes, rule-order drift, and before/after semantic SHA-256 identities.
 - Versioned `claim_contract.profile_diff` output and `schemas/profile-diff-v1.schema.json` with explicit `automatic_compatibility_classification: false`; top-level tool metadata is reported separately and remains excluded from semantic profile identity.
@@ -55,10 +57,10 @@
 
 ### Changed
 
+- The live claim ledger now uses schema `1.2`; the published `1.0` and `1.1` ledger schemas remain available for historical consumers.
 - Rule severities now come from the same registry used to emit profile manifests, while executable trigger logic and verdict semantics remain unchanged.
 - Documented input-schema validation as a separate structural tooling layer; normal `claim-contract validate` continues to emit the existing rule verdicts rather than converting schema mismatches into parser errors.
 - Generated v1 report envelopes now carry additive contract and profile-manifest identity metadata while the published v1 schema keeps those fields optional for legacy report compatibility.
-- The live claim ledger now uses schema `1.1`; the original `claim-ledger-v1.schema.json` remains published for `1.0` consumers.
 - Added a CI badge and compact verdict gallery to the README.
 - Expanded limitations and agent guidance for the blind spots of multiplicity and magnitude checks.
 - Updated CI to exercise the `--json` alias.
