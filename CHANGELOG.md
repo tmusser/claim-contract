@@ -4,6 +4,8 @@
 
 ### Added
 
+- Versioned `claim_contract.assumptions_ledger` sidecar schema with stable typed assumption IDs, bounded scope/invalidation triggers, explicit `OPEN` / `REVIEWED` / `CHALLENGED` / `RETIRED` lifecycle records, and exact parsed-contract/profile-manifest bindings.
+- Synthetic assumptions-ledger fixture and regression tests that lock lifecycle structure and identity while proving the sidecar does not change existing `minimum-v0.1` verdict semantics.
 - Claim-ledger schema `1.2` with status-coupled judgment provenance: `SUPPORT_MET`, `REFUTE_MET`, and `INCONCLUSIVE` now require a completed judgment plus a commit-pinned `judgment.evidence_snapshot`, while `OPEN` remains explicitly unjudged and `RETIRED` remains administrative.
 - `claim-contract ledger verify` now includes any frozen judgment evidence snapshot in its provenance result and fails when the pinned judgment revision or evidence refs do not resolve, without adjudicating whether the evidence supports the recorded status.
 - `claim-contract report verify <report> --contract <contract> --profile-manifest <saved.json>` for checking a bound historical report against an explicitly supplied frozen profile-manifest identity instead of only the currently installed profile, while refusing to retroactively bind profile-unbound legacy reports.

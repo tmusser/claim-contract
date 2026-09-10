@@ -18,6 +18,12 @@ claim-contract validate examples/onboarding_conversion/contract.yaml
 
 These expected verdicts are locked by `tests/test_examples.py`. They describe declared-contract status, not scientific validity.
 
+## Bound assumptions ledger
+
+The [`assumptions_ledger`](assumptions_ledger/) fixture is a separate sidecar-artifact example rather than a fourth verdict-gallery case. It binds typed assumption cards to an exact contract and profile-manifest identity and demonstrates `REVIEWED` versus `CHALLENGED` lifecycle state without changing `minimum-v0.1` verdict semantics.
+
+See [`docs/ASSUMPTIONS_LEDGER.md`](../docs/ASSUMPTIONS_LEDGER.md) for the artifact boundary.
+
 ## Adversarial fixtures
 
 The [`adversarial`](adversarial/) gallery covers three different failure surfaces:

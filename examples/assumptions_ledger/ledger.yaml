@@ -1,0 +1,99 @@
+schema_version: "1.0"
+type: claim_contract.assumptions_ledger
+scope_notice: "Assumption records make declared analytical premises inspectable. Status records review state; it is not scientific validation and does not prove an assumption true or false."
+scientific_validation: false
+automatic_adjudication: false
+mutates_contract: false
+
+contract:
+  version: "0.1"
+  profile: minimum-v0.1
+  input_binding:
+    algorithm: sha256
+    canonicalization: parsed-contract-v1
+    contract_sha256: "8196cee125a257b03d688af1b4892a825eb7d95191730dc60642fc787193734b"
+  profile_manifest_binding:
+    algorithm: sha256
+    canonicalization: profile-manifest-semantics-v1
+    profile_manifest_sha256: "c5cc47bdd840e10ac7d455a93f5bb63bca460f3d82a2b09deced39b6389a7329"
+claim_text: "Crossing the eligibility threshold increased seven-day activation by 2 percentage points."
+
+assumptions:
+  - id: continuity_at_cutoff
+    aliases:
+      - continuity
+    category: identifying
+    role: regression discontinuity identification
+    statement: >-
+      In the absence of the eligibility treatment, potential seven-day activation
+      outcomes vary continuously through the eligibility cutoff.
+    scope: >-
+      Users inside the predeclared analysis bandwidth around the eligibility threshold
+      during 2026-01-01 through 2026-06-30.
+    status: REVIEWED
+    evidence:
+      refs:
+        - examples/assumptions_ledger/diagnostics.md
+      validation_method: "Predeclared covariate-continuity and placebo-cutoff checks."
+      last_checked_at: "2026-09-10T19:45:00Z"
+      note: "The synthetic fixture does not show a material discontinuity in the checked pre-treatment covariates."
+    caveat: "Observed balance cannot establish continuity of unobserved potential outcomes."
+    invalidation_trigger: >-
+      A material discontinuity in a pre-treatment covariate or placebo outcome at the
+      cutoff that cannot be explained by the declared design.
+    provenance:
+      recorded_at: "2026-09-10T19:45:00Z"
+      source_refs:
+        - examples/assumptions_ledger/contract.yaml
+        - examples/assumptions_ledger/diagnostics.md
+    review:
+      reviewed_at: "2026-09-10T19:45:00Z"
+      reviewed_by: synthetic-example-reviewer
+      evidence_refs:
+        - examples/assumptions_ledger/diagnostics.md
+      note: "Reviewed as an explicit identifying premise; review does not certify that the premise is true."
+    challenge: null
+    retirement: null
+    supersedes: null
+
+  - id: no_precise_cutoff_manipulation
+    aliases:
+      - no_sorting_at_cutoff
+    category: identifying
+    role: regression discontinuity assignment integrity
+    statement: >-
+      Subjects cannot precisely manipulate the running variable to sort around the
+      eligibility cutoff in a way that invalidates local comparison.
+    scope: >-
+      Users inside the predeclared analysis bandwidth around the eligibility threshold
+      during 2026-01-01 through 2026-06-30.
+    status: CHALLENGED
+    evidence:
+      refs:
+        - examples/assumptions_ledger/diagnostics.md
+      validation_method: "Density inspection around the eligibility cutoff."
+      last_checked_at: "2026-09-10T19:45:00Z"
+      note: "The synthetic density diagnostic shows local bunching near the cutoff; the cause is unresolved."
+    caveat: "Bunching can have benign explanations, but it must not be silently ignored."
+    invalidation_trigger: >-
+      Evidence that subjects or operators can precisely control the running variable
+      near the cutoff in a way that changes treatment assignment.
+    provenance:
+      recorded_at: "2026-09-10T19:45:00Z"
+      source_refs:
+        - examples/assumptions_ledger/contract.yaml
+        - examples/assumptions_ledger/diagnostics.md
+    review:
+      reviewed_at: "2026-09-10T19:45:00Z"
+      reviewed_by: synthetic-example-reviewer
+      evidence_refs:
+        - examples/assumptions_ledger/diagnostics.md
+      note: "Reviewed because assignment integrity is material to the declared design."
+    challenge:
+      challenged_at: "2026-09-10T19:45:00Z"
+      challenged_by: synthetic-example-reviewer
+      evidence_refs:
+        - examples/assumptions_ledger/diagnostics.md
+      reason: "Local bunching is visible in the synthetic diagnostic and its data-generation explanation remains unresolved."
+    retirement: null
+    supersedes: null

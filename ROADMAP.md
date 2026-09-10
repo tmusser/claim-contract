@@ -28,6 +28,7 @@ This roadmap records possible directions, not promises or release commitments.
 - Added a strict, versioned `claim-contract` to `chart-contract` handoff envelope that preserves bounded claim context, validation status, and contract identity without recommending a visualization.
 - Added semantic parsed-contract diff inspection with explicit field changes and verdict transitions without automatic interpretation.
 - Froze a 50-case, independently labeled `minimum-v0.1` benchmark for CCL-002 with a written rubric and a scorer that binds future results to the exact corpus, labels, and profile-manifest identity.
+- Published a versioned assumptions-ledger sidecar schema with typed assumption cards, explicit review/challenge/retirement lifecycle state, and exact contract/profile-manifest bindings without changing `minimum-v0.1` verdict semantics.
 
 ## Candidate directions
 
@@ -35,6 +36,7 @@ These require evidence before promotion:
 
 - Additional narrow profiles for well-defined analytical contexts.
 - Optional downstream consumption of the bounded chart-handoff artifact without collapsing claim-contract and chart-contract responsibilities.
+- Read-only assumptions-ledger inspection and binding verification after the sidecar format sees real use; any validator consumption of assumption records requires a separate profile/versioning decision.
 
 Candidate features stay here. Empirical claims about whether the harness or its interfaces actually improve agent behavior, catch enough violations, or reduce overclaiming belong in the machine-readable [`claims/ledger.yaml`](claims/ledger.yaml), where support and refutation conditions are frozen before the evidence intended to settle them is observed.
 
