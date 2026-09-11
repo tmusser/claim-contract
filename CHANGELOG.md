@@ -4,6 +4,7 @@
 
 ### Added
 
+- Adversarial `claim-foil` failure gallery covering invented rival evidence, duplicate foil inflation, vague discriminators, absence-of-evidence inversion, no-foil endorsement, contract-field laundering, assumptions-ledger laundering, claim-type escalation, and generic family dumps.
 - Versioned `claim_contract.assumptions_ledger` sidecar schema with stable typed assumption IDs, bounded scope/invalidation triggers, explicit `OPEN` / `REVIEWED` / `CHALLENGED` / `RETIRED` lifecycle records, and exact parsed-contract/profile-manifest bindings.
 - Synthetic assumptions-ledger fixture and regression tests that lock lifecycle structure and identity while proving the sidecar does not change existing `minimum-v0.1` verdict semantics.
 - Claim-ledger schema `1.2` with status-coupled judgment provenance: `SUPPORT_MET`, `REFUTE_MET`, and `INCONCLUSIVE` now require a completed judgment plus a commit-pinned `judgment.evidence_snapshot`, while `OPEN` remains explicitly unjudged and `RETIRED` remains administrative.
@@ -59,6 +60,7 @@
 
 ### Changed
 
+- Hardened `claim-foil` with a five-part foil admission gate, evidence-source conservation, explicit no-negative-evidence-inversion rules, concrete discriminator-quality requirements, stop conditions, and a no-mutation boundary for assumptions-ledger lifecycle state.
 - The live claim ledger now uses schema `1.2`; the published `1.0` and `1.1` ledger schemas remain available for historical consumers.
 - Rule severities now come from the same registry used to emit profile manifests, while executable trigger logic and verdict semantics remain unchanged.
 - Documented input-schema validation as a separate structural tooling layer; normal `claim-contract validate` continues to emit the existing rule verdicts rather than converting schema mismatches into parser errors.
