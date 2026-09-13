@@ -39,7 +39,7 @@ The DAG does not upgrade or reinterpret those declarations. It uses them only to
 ## Inspect
 
 ```bash
-claim-contract dag inspect examples/claim_dag/dag.yaml
+claim-dag inspect examples/claim_dag/dag.yaml
 ```
 
 Expected structural result:
@@ -54,7 +54,7 @@ Expected structural result:
 ## Render
 
 ```bash
-claim-contract dag render examples/claim_dag/dag.yaml
+claim-dag render examples/claim_dag/dag.yaml
 ```
 
 The command emits Mermaid source. GitHub can render that source inside a Mermaid code block.
