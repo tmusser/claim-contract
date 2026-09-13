@@ -4,6 +4,8 @@
 
 ### Added
 
+- Optional `claim_contract.claim_dag` sidecar schema for explicit claim/assumption/evidence dependency graphs with `REQUIRES` / `SUPPORTED_BY` / `QUALIFIED_BY` edges, review-triage attention states, cycle rejection, and no numeric fragility score.
+- `claim-dag inspect` structural exposure/blast-radius triage plus `claim-dag render` Mermaid output, with a worked onboarding fixture and regression tests that keep graph exposure separate from scientific adjudication and `READY` / `REVIEW` / `BLOCK` semantics.
 - Adversarial `claim-foil` failure gallery covering invented rival evidence, duplicate foil inflation, vague discriminators, absence-of-evidence inversion, no-foil endorsement, contract-field laundering, assumptions-ledger laundering, claim-type escalation, and generic family dumps.
 - Versioned `claim_contract.assumptions_ledger` sidecar schema with stable typed assumption IDs, bounded scope/invalidation triggers, explicit `OPEN` / `REVIEWED` / `CHALLENGED` / `RETIRED` lifecycle records, and exact parsed-contract/profile-manifest bindings.
 - Synthetic assumptions-ledger fixture and regression tests that lock lifecycle structure and identity while proving the sidecar does not change existing `minimum-v0.1` verdict semantics.
