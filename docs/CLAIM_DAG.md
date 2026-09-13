@@ -86,7 +86,7 @@ Every edge source must be a `CLAIM` node. Nodes may still have many incoming edg
 
 ## Structural fragility
 
-`claim-contract dag inspect` performs mechanical graph triage over `REQUIRES` paths.
+`claim-dag inspect` performs mechanical graph triage over `REQUIRES` paths.
 
 A root claim is shown as `EXPOSED` when a required dependency reachable from that root has attention state:
 
@@ -112,13 +112,13 @@ A score would collapse different semantics—missing evidence, an unresolved ass
 Inspect a DAG in text:
 
 ```bash
-claim-contract dag inspect examples/claim_dag/dag.yaml
+claim-dag inspect examples/claim_dag/dag.yaml
 ```
 
 Render Mermaid suitable for GitHub Markdown or any Mermaid-capable viewer:
 
 ```bash
-claim-contract dag render examples/claim_dag/dag.yaml
+claim-dag render examples/claim_dag/dag.yaml
 ```
 
 The renderer uses:
