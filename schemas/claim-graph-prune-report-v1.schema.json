@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/schemas/claim-graph-prune-report-v1.schema.json",
+  "title": "claim-contract claim graph prune report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "type",
+    "scientific_validation",
+    "automatic_retirement",
+    "mutates_ledger",
+    "notice",
+    "ledger",
+    "graph",
+    "counts",
+    "claims"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "type": {"const": "claim_contract.claim_graph_prune_report"},
+    "scientific_validation": {"const": false},
+    "automatic_retirement": {"const": false},
+    "mutates_ledger": {"const": false},
+    "notice": {"type": "string", "minLength": 1},
+    "ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "type"],
+      "properties": {
+        "schema_version": {"type": "string", "minLength": 1},
+        "type": {"const": "claim_contract.claim_ledger"}
+      }
+    },
+    "graph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "type", "scope_notice", "roots", "edge_count"],
+      "properties": {
+        "schema_version": {"const": "1.0"},
+        "type": {"const": "claim_contract.claim_graph"},
+        "scope_notice": {"type": "string", "minLength": 1},
+        "roots": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^CCL-[0-9]{3}$"}
+        },
+        "edge_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claims", "roots", "connected", "prune_candidates", "retired"],
+      "properties": {
+        "claims": {"type": "integer", "minimum": 0},
+        "roots": {"type": "integer", "minimum": 0},
+        "connected": {"type": "integer", "minimum": 0},
+        "prune_candidates": {"type": "integer", "minimum": 0},
+        "retired": {"type": "integer", "minimum": 0}
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "status",
+          "classification",
+          "structurally_extraneous",
+          "path_to_root",
+          "reason"
+        ],
+        "properties": {
+          "claim_id": {"type": "string", "pattern": "^CCL-[0-9]{3}$"},
+          "status": {
+            "enum": ["OPEN", "SUPPORT_MET", "REFUTE_MET", "INCONCLUSIVE", "RETIRED"]
+          },
+          "classification": {
+            "enum": ["ROOT", "CONNECTED", "PRUNE_CANDIDATE", "RETIRED"]
+          },
+          "structurally_extraneous": {"type": "boolean"},
+          "path_to_root": {
+            "oneOf": [
+              {"type": "null"},
+              {
+                "type": "array",
+                "minItems": 1,
+                "items": {"type": "string", "pattern": "^CCL-[0-9]{3}$"}
+              }
+            ]
+          },
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

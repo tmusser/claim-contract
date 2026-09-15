@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/schemas/claim-graph-v1.schema.json",
+  "title": "claim-contract claim relevance graph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "type", "scope_notice", "roots", "edges"],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "type": {
+      "const": "claim_contract.claim_graph"
+    },
+    "scope_notice": {
+      "const": "Claim-graph edges declare relevance only. Connectivity does not establish truth, support, entailment, scientific validity, or priority. A prune candidate is an active claim with no declared relevance path to a root; it is not automatically safe to delete or retire."
+    },
+    "roots": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^CCL-[0-9]{3}$"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "rationale"],
+        "properties": {
+          "from": {
+            "type": "string",
+            "pattern": "^CCL-[0-9]{3}$"
+          },
+          "to": {
+            "type": "string",
+            "pattern": "^CCL-[0-9]{3}$"
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

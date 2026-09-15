@@ -1,0 +1,12 @@
+schema_version: "1.0"
+type: claim_contract.claim_graph
+scope_notice: "Claim-graph edges declare relevance only. Connectivity does not establish truth, support, entailment, scientific validity, or priority. A prune candidate is an active claim with no declared relevance path to a root; it is not automatically safe to delete or retire."
+
+# The three current ledger claims are independent top-level research/product claims.
+# Declaring each as a root avoids inventing a hierarchy that the ledger does not record.
+roots:
+  - CCL-001
+  - CCL-002
+  - CCL-003
+
+edges: []

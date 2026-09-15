@@ -30,6 +30,7 @@ dev = [
 
 [project.scripts]
 claim-contract = "claim_contract.cli:main"
+claim-contract-graph = "claim_contract.claim_graph:main"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
