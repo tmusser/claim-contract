@@ -59,6 +59,8 @@ jobs:
           claim-contract validate examples/descriptive_summary/contract.yaml
           claim-contract validate examples/descriptive_summary/contract.yaml --json > /dev/null
           claim-contract validate examples/missing_uncertainty/contract.yaml
+          claim-contract-graph prune --json > graph-prune.json
+          claim-contract-graph prune --fail-on-candidate
 
           set +e
           claim-contract validate examples/missing_uncertainty/contract.yaml --warnings-as-errors
@@ -108,6 +110,7 @@ jobs:
           .venv-smoke/bin/claim-contract validate examples/descriptive_summary/contract.yaml --json > report.json
           .venv-smoke/bin/claim-contract report verify report.json \
             --contract examples/descriptive_summary/contract.yaml > binding-check.txt
+          .venv-smoke/bin/claim-contract-graph prune --json > graph-report.json
 
       - name: Verify installed CLI metadata and scope fields
         run: |
@@ -138,4 +141,11 @@ jobs:
           binding_output = Path("binding-check.txt").read_text(encoding="utf-8")
           assert "Binding: MATCH" in binding_output
           assert "Contract SHA-256: MATCH" in binding_output
+
+          graph = json.loads(Path("graph-report.json").read_text(encoding="utf-8"))
+          assert graph["type"] == "claim_contract.claim_graph_prune_report"
+          assert graph["scientific_validation"] is False
+          assert graph["automatic_retirement"] is False
+          assert graph["mutates_ledger"] is False
+          assert graph["counts"]["prune_candidates"] == 0
           PY
