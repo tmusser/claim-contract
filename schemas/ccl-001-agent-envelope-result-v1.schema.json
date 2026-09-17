@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/schemas/ccl-001-agent-envelope-result-v1.schema.json",
+  "title": "CCL-001 paired agent-summary evaluation result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "type",
+    "tool",
+    "scientific_validation",
+    "automatic_adjudication",
+    "scope_notice",
+    "benchmark",
+    "metrics"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "type": {"const": "claim_contract.ccl_001_agent_envelope_result"},
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"const": "claim-contract"},
+        "version": {"type": "string", "minLength": 1}
+      }
+    },
+    "scientific_validation": {"const": false},
+    "automatic_adjudication": {"const": false},
+    "scope_notice": {"type": "string", "minLength": 1},
+    "benchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "target_claim_id",
+        "profile",
+        "case_count",
+        "model_family_count",
+        "stimuli_sha256",
+        "runs_sha256",
+        "annotations_sha256",
+        "profile_manifest_binding"
+      ],
+      "properties": {
+        "version": {"const": "1.0"},
+        "target_claim_id": {"const": "CCL-001"},
+        "profile": {"const": "minimum-v0.1"},
+        "case_count": {"type": "integer", "minimum": 30},
+        "model_family_count": {"type": "integer", "minimum": 2},
+        "stimuli_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "runs_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "annotations_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "profile_manifest_binding": {"$ref": "#/$defs/profileBinding"}
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pooled", "families", "full_unsafe_not_worse_in_every_family"],
+      "properties": {
+        "pooled": {"$ref": "#/$defs/pairedMetrics"},
+        "families": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "allOf": [
+              {"$ref": "#/$defs/pairedMetrics"},
+              {
+                "type": "object",
+                "required": ["model_family", "model_id"],
+                "properties": {
+                  "model_family": {"type": "string", "minLength": 1},
+                  "model_id": {"type": "string", "minLength": 1}
+                }
+              }
+            ]
+          }
+        },
+        "full_unsafe_not_worse_in_every_family": {"type": "boolean"}
+      }
+    }
+  },
+  "$defs": {
+    "profileBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "canonicalization", "profile_manifest_sha256"],
+      "properties": {
+        "algorithm": {"const": "sha256"},
+        "canonicalization": {"const": "profile-manifest-semantics-v1"},
+        "profile_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "armMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "n",
+        "unsafe_count",
+        "unsafe_rate",
+        "correct_verdict_count",
+        "correct_verdict_rate"
+      ],
+      "properties": {
+        "n": {"type": "integer", "minimum": 1},
+        "unsafe_count": {"type": "integer", "minimum": 0},
+        "unsafe_rate": {"type": "number", "minimum": 0, "maximum": 1},
+        "correct_verdict_count": {"type": "integer", "minimum": 0},
+        "correct_verdict_rate": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "pairedMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bare_verdict_claim",
+        "full_envelope",
+        "unsafe_rate_reduction_pp",
+        "correct_verdict_rate_change_pp",
+        "correct_verdict_rate_drop_pp",
+        "full_unsafe_not_worse"
+      ],
+      "properties": {
+        "bare_verdict_claim": {"$ref": "#/$defs/armMetrics"},
+        "full_envelope": {"$ref": "#/$defs/armMetrics"},
+        "unsafe_rate_reduction_pp": {"type": "number", "minimum": -100, "maximum": 100},
+        "correct_verdict_rate_change_pp": {"type": "number", "minimum": -100, "maximum": 100},
+        "correct_verdict_rate_drop_pp": {"type": "number", "minimum": 0, "maximum": 100},
+        "full_unsafe_not_worse": {"type": "boolean"}
+      }
+    }
+  }
+}
