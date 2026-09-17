@@ -64,19 +64,7 @@
         "families": {
           "type": "array",
           "minItems": 2,
-          "items": {
-            "allOf": [
-              {"$ref": "#/$defs/pairedMetrics"},
-              {
-                "type": "object",
-                "required": ["model_family", "model_id"],
-                "properties": {
-                  "model_family": {"type": "string", "minLength": 1},
-                  "model_id": {"type": "string", "minLength": 1}
-                }
-              }
-            ]
-          }
+          "items": {"$ref": "#/$defs/familyMetrics"}
         },
         "full_unsafe_not_worse_in_every_family": {"type": "boolean"}
       }
@@ -123,6 +111,30 @@
         "full_unsafe_not_worse"
       ],
       "properties": {
+        "bare_verdict_claim": {"$ref": "#/$defs/armMetrics"},
+        "full_envelope": {"$ref": "#/$defs/armMetrics"},
+        "unsafe_rate_reduction_pp": {"type": "number", "minimum": -100, "maximum": 100},
+        "correct_verdict_rate_change_pp": {"type": "number", "minimum": -100, "maximum": 100},
+        "correct_verdict_rate_drop_pp": {"type": "number", "minimum": 0, "maximum": 100},
+        "full_unsafe_not_worse": {"type": "boolean"}
+      }
+    },
+    "familyMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_family",
+        "model_id",
+        "bare_verdict_claim",
+        "full_envelope",
+        "unsafe_rate_reduction_pp",
+        "correct_verdict_rate_change_pp",
+        "correct_verdict_rate_drop_pp",
+        "full_unsafe_not_worse"
+      ],
+      "properties": {
+        "model_family": {"type": "string", "minLength": 1},
+        "model_id": {"type": "string", "minLength": 1},
         "bare_verdict_claim": {"$ref": "#/$defs/armMetrics"},
         "full_envelope": {"$ref": "#/$defs/armMetrics"},
         "unsafe_rate_reduction_pp": {"type": "number", "minimum": -100, "maximum": 100},
