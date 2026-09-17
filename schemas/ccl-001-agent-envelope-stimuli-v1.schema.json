@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/schemas/ccl-001-agent-envelope-stimuli-v1.schema.json",
+  "title": "CCL-001 paired agent-summary stimuli v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "type",
+    "tool",
+    "scientific_validation",
+    "automatic_adjudication",
+    "scope_notice",
+    "benchmark_version",
+    "target_claim_id",
+    "profile",
+    "source_corpus",
+    "profile_manifest_binding",
+    "case_count",
+    "arms",
+    "stimuli"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "type": {"const": "claim_contract.ccl_001_agent_envelope_stimuli"},
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"const": "claim-contract"},
+        "version": {"type": "string", "minLength": 1}
+      }
+    },
+    "scientific_validation": {"const": false},
+    "automatic_adjudication": {"const": false},
+    "scope_notice": {"type": "string", "minLength": 1},
+    "benchmark_version": {"const": "1.0"},
+    "target_claim_id": {"const": "CCL-001"},
+    "profile": {"const": "minimum-v0.1"},
+    "source_corpus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "git_blob_sha", "repository_revision"],
+      "properties": {
+        "path": {"const": "benchmarks/minimum-v0.1/corpus.yaml"},
+        "git_blob_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "repository_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "profile_manifest_binding": {"$ref": "#/$defs/profileBinding"},
+    "case_count": {"type": "integer", "minimum": 30},
+    "arms": {
+      "type": "array",
+      "const": ["bare_verdict_claim", "full_envelope"]
+    },
+    "stimuli": {
+      "type": "array",
+      "minItems": 30,
+      "items": {"$ref": "#/$defs/stimulus"}
+    }
+  },
+  "$defs": {
+    "profileBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "canonicalization", "profile_manifest_sha256"],
+      "properties": {
+        "algorithm": {"const": "sha256"},
+        "canonicalization": {"const": "profile-manifest-semantics-v1"},
+        "profile_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "stimulus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "family",
+        "source_description",
+        "instruction",
+        "reference_verdict",
+        "claim_text",
+        "arms"
+      ],
+      "properties": {
+        "case_id": {"type": "string", "pattern": "^[DCORQ][0-9]{3}$"},
+        "family": {"type": "string", "minLength": 1},
+        "source_description": {"type": "string"},
+        "instruction": {"type": "string", "minLength": 1},
+        "reference_verdict": {"enum": ["READY", "REVIEW", "BLOCK"]},
+        "claim_text": {"type": "string", "minLength": 1},
+        "arms": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bare_verdict_claim", "full_envelope"],
+          "properties": {
+            "bare_verdict_claim": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["verdict", "claim_text"],
+              "properties": {
+                "verdict": {"enum": ["READY", "REVIEW", "BLOCK"]},
+                "claim_text": {"type": "string", "minLength": 1}
+              }
+            },
+            "full_envelope": {
+              "type": "object",
+              "required": ["type", "verdict", "claim_text", "scientific_validation"],
+              "properties": {
+                "type": {"const": "claim_contract.report"},
+                "verdict": {"enum": ["READY", "REVIEW", "BLOCK"]},
+                "claim_text": {"type": "string", "minLength": 1},
+                "scientific_validation": {"const": false}
+              },
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,73 @@
+schema_version: "1.0"
+type: claim_contract.ccl_001_agent_envelope_cases
+source_corpus_path: benchmarks/minimum-v0.1/corpus.yaml
+source_corpus_git_blob_sha: "1579cba5ad6aa99032be67f347f28aa74d63e59e"
+
+# Six cases from each analytical family. IDs refer to the frozen minimum-v0.1 corpus.
+# The selection intentionally spans READY-like, REVIEW-like, and BLOCK-like situations,
+# but this file does not encode expected validator verdicts or agent-output labels.
+cases:
+  - id: D001
+    family: descriptive
+  - id: D002
+    family: descriptive
+  - id: D004
+    family: descriptive
+  - id: D005
+    family: descriptive
+  - id: D008
+    family: descriptive
+  - id: D010
+    family: descriptive
+
+  - id: C001
+    family: comparison
+  - id: C002
+    family: comparison
+  - id: C004
+    family: comparison
+  - id: C005
+    family: comparison
+  - id: C007
+    family: comparison
+  - id: C010
+    family: comparison
+
+  - id: O001
+    family: observational
+  - id: O002
+    family: observational
+  - id: O003
+    family: observational
+  - id: O005
+    family: observational
+  - id: O006
+    family: observational
+  - id: O008
+    family: observational
+
+  - id: R001
+    family: randomized
+  - id: R002
+    family: randomized
+  - id: R004
+    family: randomized
+  - id: R005
+    family: randomized
+  - id: R007
+    family: randomized
+  - id: R010
+    family: randomized
+
+  - id: Q001
+    family: quasi_experimental
+  - id: Q002
+    family: quasi_experimental
+  - id: Q004
+    family: quasi_experimental
+  - id: Q005
+    family: quasi_experimental
+  - id: Q006
+    family: quasi_experimental
+  - id: Q010
+    family: quasi_experimental
