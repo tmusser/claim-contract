@@ -96,7 +96,10 @@ def test_stimulus_builder_is_pinned_and_preserves_only_the_treatment_difference(
     jsonschema.validate(artifact, schema)
 
     assert artifact["case_count"] == 30
-    assert artifact["source_corpus"]["git_blob_sha"] == "1579cba5ad6aa99032be67f347f28aa74d63e59e"
+    assert (
+        artifact["source_corpus"]["git_blob_sha"]
+        == "1579cba5ad6aa99032be67f347f28aa74d63e59e"
+    )
     assert artifact["scientific_validation"] is False
     assert artifact["automatic_adjudication"] is False
 
@@ -245,4 +248,14 @@ def test_evaluator_requires_two_complete_model_families(tmp_path: Path) -> None:
     runs_path.write_text(yaml.safe_dump(runs, sort_keys=False), encoding="utf-8")
 
     with pytest.raises(ValueError, match="at least two model families"):
+        evaluator.evaluate(stimuli_path, runs_path, annotations_path)
+
+
+def test_evaluator_rejects_same_model_relabelled_as_two_families(tmp_path: Path) -> None:
+    stimuli_path, runs_path, annotations_path = _write_synthetic_evidence(tmp_path)
+    runs = _yaml(runs_path)
+    runs["model_families"][1]["model_id"] = runs["model_families"][0]["model_id"]
+    runs_path.write_text(yaml.safe_dump(runs, sort_keys=False), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="reused across model families"):
         evaluator.evaluate(stimuli_path, runs_path, annotations_path)
