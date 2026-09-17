@@ -114,6 +114,7 @@ def _load_runs(
     expected_cells = {(case_id, arm) for case_id in case_ids for arm in ARMS}
     responses: dict[tuple[str, str, str], str] = {}
     model_ids: dict[str, str] = {}
+    used_model_ids: set[str] = set()
     for family_record in families:
         if not isinstance(family_record, dict):
             raise ValueError("Every model family record must be a mapping.")
@@ -126,9 +127,15 @@ def _load_runs(
             raise ValueError(f"Duplicate model family: {family}")
         if not isinstance(model_id, str) or not model_id:
             raise ValueError(f"Model family {family} must declare a non-empty model_id.")
+        if model_id in used_model_ids:
+            raise ValueError(
+                f"Concrete model_id {model_id!r} is reused across model families; "
+                "CCL-001 requires at least two distinct model families."
+            )
         if not isinstance(decoding, dict):
             raise ValueError(f"Model family {family} decoding_settings must be a mapping.")
         model_ids[family] = model_id
+        used_model_ids.add(model_id)
 
         family_responses = family_record.get("responses")
         if not isinstance(family_responses, list):
