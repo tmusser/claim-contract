@@ -8,6 +8,7 @@ This roadmap records possible directions, not promises or release commitments.
 
 - Stabilize `minimum-v0.1` rule semantics and output fields.
 - Score the frozen CCL-002 `minimum-v0.1` benchmark only after its freeze revision is merged, retaining case-level outputs for independent adjudication.
+- Run the frozen CCL-001 paired agent-summary evaluation only after its case set, instruction, and annotation rubric are merged; retain raw outputs and human annotations for at least two model families before independently applying the ledger judge contract.
 - Expand adversarial coverage only when a recurring misuse or blind spot is observed.
 - Document rule false positives and known blind spots as they are discovered.
 
@@ -28,6 +29,7 @@ This roadmap records possible directions, not promises or release commitments.
 - Added a strict, versioned `claim-contract` to `chart-contract` handoff envelope that preserves bounded claim context, validation status, and contract identity without recommending a visualization.
 - Added semantic parsed-contract diff inspection with explicit field changes and verdict transitions without automatic interpretation.
 - Froze a 50-case, independently labeled `minimum-v0.1` benchmark for CCL-002 with a written rubric and a scorer that binds future results to the exact corpus, labels, and profile-manifest identity.
+- Froze a 30-case paired agent-summary evaluation for CCL-001 comparing bare verdict + claim text against the full report envelope, with a predeclared human annotation rubric and a scorer that computes judge-relevant rates without adjudicating the ledger claim.
 - Published a versioned assumptions-ledger sidecar schema with typed assumption cards, explicit review/challenge/retirement lifecycle state, and exact contract/profile-manifest bindings without changing `minimum-v0.1` verdict semantics.
 
 ## Candidate directions
