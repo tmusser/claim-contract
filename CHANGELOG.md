@@ -4,6 +4,8 @@
 
 ### Added
 
+- Frozen `benchmarks/ccl-001-agent-envelope` paired evaluation for CCL-001 with 30 synthetic report cases, an identical cross-arm summary instruction, a predeclared human unsafe-overstatement/verdict-reporting rubric, and an explicit no-model-results-in-freeze boundary.
+- Deterministic CCL-001 stimulus builder plus machine-readable stimuli/result schemas and a scorer that requires complete paired runs across at least two model families, binds annotations to exact raw outputs, computes pooled/per-family judge-relevant rates, and deliberately does not adjudicate the ledger claim.
 - Adversarial `claim-foil` failure gallery covering invented rival evidence, duplicate foil inflation, vague discriminators, absence-of-evidence inversion, no-foil endorsement, contract-field laundering, assumptions-ledger laundering, claim-type escalation, and generic family dumps.
 - Versioned `claim_contract.assumptions_ledger` sidecar schema with stable typed assumption IDs, bounded scope/invalidation triggers, explicit `OPEN` / `REVIEWED` / `CHALLENGED` / `RETIRED` lifecycle records, and exact parsed-contract/profile-manifest bindings.
 - Synthetic assumptions-ledger fixture and regression tests that lock lifecycle structure and identity while proving the sidecar does not change existing `minimum-v0.1` verdict semantics.
