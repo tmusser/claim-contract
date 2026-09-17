@@ -63,11 +63,16 @@ For each output record, retain:
 - `model_family`
 - `case_id`
 - `arm`
+- `response_sha256` — SHA-256 of the exact UTF-8 raw output being annotated
 - `unsafe_overstatement: true | false`
 - `unsafe_tags` (empty when false)
 - `verdict_reporting: correct | incorrect | omitted`
 - `annotator`
 - optional `note`
+
+The scorer recomputes `response_sha256` from `runs.yaml` and rejects annotations that point at
+a different output. This prevents a later edit to raw model text from silently inheriting an
+older human label.
 
 If multiple annotators are used, retain the raw independent labels and document any
 adjudication procedure rather than silently overwriting disagreement. The v1 scorer expects
