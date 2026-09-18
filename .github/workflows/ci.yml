@@ -111,6 +111,7 @@ jobs:
           .venv-smoke/bin/claim-contract report verify report.json \
             --contract examples/descriptive_summary/contract.yaml > binding-check.txt
           .venv-smoke/bin/claim-contract-graph prune --json > graph-report.json
+          .venv-smoke/bin/claim-dag inspect examples/claim_dag/dag.yaml > dag-report.txt
 
       - name: Verify installed CLI metadata and scope fields
         run: |
@@ -149,3 +150,37 @@ jobs:
           assert graph["mutates_ledger"] is False
           assert graph["counts"]["prune_candidates"] == 0
           PY
+
+  action-smoke:
+    name: GitHub Action smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: REVIEW passes by default
+        uses: ./
+        with:
+          contract: examples/missing_uncertainty/contract.yaml
+
+      - name: REVIEW fails when warnings are errors
+        id: strict_review
+        continue-on-error: true
+        uses: ./
+        with:
+          contract: examples/missing_uncertainty/contract.yaml
+          warnings-as-errors: "true"
+
+      - name: Verify strict REVIEW failure
+        env:
+          STRICT_REVIEW_OUTCOME: ${{ steps.strict_review.outcome }}
+        run: test "$STRICT_REVIEW_OUTCOME" = "failure"
