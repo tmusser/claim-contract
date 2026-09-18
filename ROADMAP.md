@@ -31,6 +31,8 @@ This roadmap records possible directions, not promises or release commitments.
 - Froze a 50-case, independently labeled `minimum-v0.1` benchmark for CCL-002 with a written rubric and a scorer that binds future results to the exact corpus, labels, and profile-manifest identity.
 - Froze a 30-case paired agent-summary evaluation for CCL-001 comparing bare verdict + claim text against the full report envelope, with a predeclared human annotation rubric and a scorer that computes judge-relevant rates without adjudicating the ledger claim.
 - Published a versioned assumptions-ledger sidecar schema with typed assumption cards, explicit review/challenge/retirement lifecycle state, and exact contract/profile-manifest bindings without changing `minimum-v0.1` verdict semantics.
+- Added an optional claim DAG sidecar with explicit claim/assumption/evidence dependencies, required-path exposure triage, and Mermaid rendering without numeric fragility scoring or scientific adjudication.
+- Added a thin official GitHub Action that sets up Python and delegates contract gating to the existing CLI, preserving the same READY / REVIEW / BLOCK and `--warnings-as-errors` exit semantics.
 
 ## Candidate directions
 
