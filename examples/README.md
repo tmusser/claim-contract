@@ -24,6 +24,14 @@ The [`assumptions_ledger`](assumptions_ledger/) fixture is a separate sidecar-ar
 
 See [`docs/ASSUMPTIONS_LEDGER.md`](../docs/ASSUMPTIONS_LEDGER.md) for the artifact boundary.
 
+## Optional claim DAG
+
+The [`claim_dag`](claim_dag/) fixture demonstrates a separate dependency sidecar for analyses whose argument structure has become difficult to inspect linearly. It shows two root claims sharing an intermediate claim, a watched assumption, and an explicitly missing evidence dependency.
+
+Use `claim-dag inspect examples/claim_dag/dag.yaml` for structural exposure/blast-radius triage or `claim-dag render examples/claim_dag/dag.yaml` for Mermaid source. The DAG does not produce or reinterpret `READY`, `REVIEW`, or `BLOCK` and deliberately has no numeric fragility score.
+
+See [`docs/CLAIM_DAG.md`](../docs/CLAIM_DAG.md) for the graph and propagation boundaries.
+
 ## Adversarial fixtures
 
 The [`adversarial`](adversarial/) gallery covers three different failure surfaces:

@@ -4,6 +4,9 @@
 
 ### Added
 
+- Root `action.yml` composite GitHub Action for CI gating with a required contract path and optional `warnings-as-errors`, delegating directly to the existing CLI after setting up Python 3.12.
+- Optional `claim_contract.claim_dag` sidecar schema for explicit claim/assumption/evidence dependency graphs with `REQUIRES` / `SUPPORTED_BY` / `QUALIFIED_BY` edges, review-triage attention states, cycle rejection, and no numeric fragility score.
+- `claim-dag inspect` structural exposure/blast-radius triage plus `claim-dag render` Mermaid output, with a worked onboarding fixture and regression tests that keep graph exposure separate from scientific adjudication and `READY` / `REVIEW` / `BLOCK` semantics.
 - Frozen `benchmarks/ccl-001-agent-envelope` paired evaluation for CCL-001 with 30 synthetic report cases, an identical cross-arm summary instruction, a predeclared human unsafe-overstatement/verdict-reporting rubric, and an explicit no-model-results-in-freeze boundary.
 - Deterministic CCL-001 stimulus builder plus machine-readable stimuli/result schemas and a scorer that requires complete paired runs across at least two model families, binds annotations to exact raw outputs, computes pooled/per-family judge-relevant rates, and deliberately does not adjudicate the ledger claim.
 - Adversarial `claim-foil` failure gallery covering invented rival evidence, duplicate foil inflation, vague discriminators, absence-of-evidence inversion, no-foil endorsement, contract-field laundering, assumptions-ledger laundering, claim-type escalation, and generic family dumps.

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/blob/main/schemas/claim-dag-v1.schema.json",
+  "title": "claim-contract claim DAG v1",
+  "description": "An optional sidecar DAG for declared claim dependencies and structural fragility triage without automatic scientific adjudication.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "type",
+    "scope_notice",
+    "scientific_validation",
+    "automatic_adjudication",
+    "mutates_source_artifacts",
+    "title",
+    "root_claim_ids",
+    "nodes",
+    "edges"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "type": {"const": "claim_contract.claim_dag"},
+    "scope_notice": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "not scientific validation"
+    },
+    "scientific_validation": {"const": false},
+    "automatic_adjudication": {"const": false},
+    "mutates_source_artifacts": {"const": false},
+    "title": {"$ref": "#/$defs/nonEmptyString"},
+    "root_claim_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/nodeId"}
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/node"}
+    },
+    "edges": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/edge"}
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {"type": "string", "minLength": 1},
+    "nodeId": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9._:-]*$"
+    },
+    "attention": {
+      "type": "object",
+      "required": ["state", "reason", "refs"],
+      "properties": {
+        "state": {"enum": ["NONE", "WATCH", "CHALLENGED", "MISSING"]},
+        "reason": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonEmptyString"}
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"state": {"const": "NONE"}},
+            "required": ["state"]
+          },
+          "then": {"properties": {"reason": {"type": "null"}}}
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {"enum": ["WATCH", "CHALLENGED", "MISSING"]}
+            },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "reason": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "node": {
+      "type": "object",
+      "required": ["id", "kind", "label", "attention", "note"],
+      "properties": {
+        "id": {"$ref": "#/$defs/nodeId"},
+        "kind": {"enum": ["CLAIM", "ASSUMPTION", "EVIDENCE"]},
+        "label": {"$ref": "#/$defs/nonEmptyString"},
+        "attention": {"$ref": "#/$defs/attention"},
+        "note": {
+          "type": ["string", "null"],
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "edge": {
+      "type": "object",
+      "required": ["from", "to", "relation", "note"],
+      "properties": {
+        "from": {"$ref": "#/$defs/nodeId"},
+        "to": {"$ref": "#/$defs/nodeId"},
+        "relation": {"enum": ["REQUIRES", "SUPPORTED_BY", "QUALIFIED_BY"]},
+        "note": {
+          "type": ["string", "null"],
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

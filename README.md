@@ -133,6 +133,27 @@ If you prefer an isolated CLI environment, `pipx` works too:
 pipx install "git+https://github.com/tmusser/claim-contract.git"
 ```
 
+### GitHub Action
+
+The repository also ships a thin composite action that delegates directly to the same CLI
+verdict and exit-code semantics:
+
+```yaml
+- name: Check analytical claim contract
+  uses: tmusser/claim-contract@main
+  with:
+    contract: path/to/contract.yaml
+    warnings-as-errors: "true"
+```
+
+`warnings-as-errors` defaults to `false`: `REVIEW` passes by default, while `BLOCK`
+fails. Set it to `true` when CI should fail on either `REVIEW` or `BLOCK`. The action
+sets up Python 3.12, installs the exact action revision, and runs `claim-contract validate`;
+it does not implement a second verdict classifier or reinterpret the report.
+
+`@main` is convenient for trying the action, but it is a moving ref. Pin a release tag or
+full commit SHA for a reproducible production gate.
+
 To run the bundled examples, clone the repository and install the package without development dependencies:
 
 ```bash
