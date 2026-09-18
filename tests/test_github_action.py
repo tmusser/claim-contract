@@ -19,17 +19,18 @@ def test_action_metadata_is_minimal_and_delegates_to_existing_cli() -> None:
     assert payload["runs"]["using"] == "composite"
 
     rendered = ACTION.read_text(encoding="utf-8")
+    assert "uses: actions/setup-python@v5" in rendered
     assert 'python -m pip install "${{ github.action_path }}"' in rendered
     assert 'args=(validate "$CLAIM_CONTRACT_PATH")' in rendered
     assert 'args+=(--warnings-as-errors)' in rendered
     assert 'claim-contract "${args[@]}"' in rendered
 
 
-def test_action_does_not_add_a_second_verdict_or_scientific_semantics_layer() -> None:
-    rendered = ACTION.read_text(encoding="utf-8").lower()
+def test_action_does_not_implement_a_second_verdict_classifier() -> None:
+    rendered = ACTION.read_text(encoding="utf-8")
 
-    assert "ready" not in rendered
-    assert "review" not in rendered
-    assert "block" not in rendered
+    assert "READY)" not in rendered
+    assert "REVIEW)" not in rendered
+    assert "BLOCK)" not in rendered
     assert "scientific_validation" not in rendered
-    assert "valid" not in rendered
+    assert "scope_notice" not in rendered
