@@ -1,0 +1,148 @@
+schema_version: "1.0"
+type: claim_contract.claim_dag
+scope_notice: >-
+  Claim DAG records declared dependency structure and structural fragility signals.
+  It is not scientific validation and does not prove any claim, assumption, or
+  evidence item true or false.
+scientific_validation: false
+automatic_adjudication: false
+mutates_source_artifacts: false
+
+title: Onboarding decision dependency map
+root_claim_ids:
+  - claim_ship_redesign
+  - claim_reuse_result_in_board_deck
+
+nodes:
+  - id: claim_ship_redesign
+    kind: CLAIM
+    label: Ship the onboarding redesign broadly
+    attention:
+      state: NONE
+      reason: null
+      refs:
+        - examples/claim_dag/README.md
+    note: >-
+      Synthetic decision-facing root claim used only to demonstrate dependency
+      structure and structural exposure.
+
+  - id: claim_reuse_result_in_board_deck
+    kind: CLAIM
+    label: Reuse the activation result as a headline board claim
+    attention:
+      state: NONE
+      reason: null
+      refs:
+        - examples/claim_dag/README.md
+    note: >-
+      Synthetic communication-facing root claim that intentionally shares an
+      intermediate dependency with the shipping claim.
+
+  - id: claim_redesign_improves_activation
+    kind: CLAIM
+    label: The redesign improves seven-day activation
+    attention:
+      state: NONE
+      reason: null
+      refs:
+        - examples/onboarding_conversion/contract.yaml
+    note: >-
+      Intermediate claim modeled from the existing onboarding conversion example.
+      Its NONE attention state means only that this DAG records no direct fragility
+      annotation on this node.
+
+  - id: assumption_population_comparable
+    kind: ASSUMPTION
+    label: Pre-launch and post-launch populations are sufficiently comparable
+    attention:
+      state: WATCH
+      reason: >-
+        The source contract records composition_stability_assessed: false, so the
+        DAG keeps this dependency visibly under review rather than treating the
+        populations as established comparable.
+      refs:
+        - examples/onboarding_conversion/contract.yaml
+    note: >-
+      WATCH is a DAG triage annotation only. It does not rewrite the source contract
+      or create an assumptions-ledger lifecycle transition.
+
+  - id: claim_effect_material
+    kind: CLAIM
+    label: The observed activation change is materially important
+    attention:
+      state: WATCH
+      reason: >-
+        The example has a numeric estimate, but the substantive importance of the
+        effect remains a separate interpretive burden.
+      refs:
+        - examples/onboarding_conversion/contract.yaml
+    note: >-
+      The DAG separates the materiality subclaim from the causal-effect subclaim so
+      downstream users can see that they are distinct dependencies.
+
+  - id: evidence_uncertainty
+    kind: EVIDENCE
+    label: Uncertainty information for the activation estimate
+    attention:
+      state: MISSING
+      reason: >-
+        The source contract explicitly records uncertainty: null.
+      refs:
+        - examples/onboarding_conversion/contract.yaml
+    note: >-
+      MISSING records an absent dependency in this illustrative graph. It does not
+      independently decide whether a particular inferential method is required.
+
+  - id: evidence_before_after_estimate
+    kind: EVIDENCE
+    label: Declared pre/post activation estimate
+    attention:
+      state: NONE
+      reason: null
+      refs:
+        - examples/onboarding_conversion/contract.yaml
+    note: >-
+      This node represents supplied evidence context only; NONE does not mean the
+      estimate was independently verified.
+
+edges:
+  - from: claim_ship_redesign
+    to: claim_redesign_improves_activation
+    relation: REQUIRES
+    note: >-
+      The shipping recommendation is modeled as depending on the activation-effect
+      claim for this synthetic example.
+
+  - from: claim_reuse_result_in_board_deck
+    to: claim_redesign_improves_activation
+    relation: REQUIRES
+    note: >-
+      The board-level headline is modeled as depending on the same activation-effect
+      claim, creating a shared downstream dependency.
+
+  - from: claim_redesign_improves_activation
+    to: assumption_population_comparable
+    relation: REQUIRES
+    note: >-
+      The example treats population comparability as an explicit prerequisite for
+      the stronger interpretation.
+
+  - from: claim_redesign_improves_activation
+    to: claim_effect_material
+    relation: REQUIRES
+    note: >-
+      The high-level decision story requires a separate materiality subclaim.
+
+  - from: claim_effect_material
+    to: evidence_uncertainty
+    relation: REQUIRES
+    note: >-
+      This illustrative materiality branch declares uncertainty information as a
+      required dependency rather than letting the missing field disappear in prose.
+
+  - from: claim_redesign_improves_activation
+    to: evidence_before_after_estimate
+    relation: SUPPORTED_BY
+    note: >-
+      The declared pre/post estimate is shown as support context, not as a required
+      dependency that automatically propagates structural exposure.
