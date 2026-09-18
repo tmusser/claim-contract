@@ -1,0 +1,43 @@
+name: claim-contract
+description: Gate a declared analytical claim contract with claim-contract.
+author: Thomas Musser
+
+inputs:
+  contract:
+    description: Path to the YAML or JSON contract in the caller workspace.
+    required: true
+  warnings-as-errors:
+    description: Fail REVIEW verdicts in addition to BLOCK verdicts.
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Install claim-contract
+      shell: bash
+      run: python -m pip install "${{ github.action_path }}"
+
+    - name: Validate analytical claim contract
+      shell: bash
+      env:
+        CLAIM_CONTRACT_PATH: ${{ inputs.contract }}
+        CLAIM_CONTRACT_WARNINGS_AS_ERRORS: ${{ inputs['warnings-as-errors'] }}
+      run: |
+        args=(validate "$CLAIM_CONTRACT_PATH")
+        case "$CLAIM_CONTRACT_WARNINGS_AS_ERRORS" in
+          true)
+            args+=(--warnings-as-errors)
+            ;;
+          false)
+            ;;
+          *)
+            echo "::error::warnings-as-errors must be 'true' or 'false'." >&2
+            exit 2
+            ;;
+        esac
+        claim-contract "${args[@]}"
+
+branding:
+  icon: check-circle
+  color: blue
