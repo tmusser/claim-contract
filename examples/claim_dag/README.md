@@ -39,7 +39,7 @@ The DAG does not upgrade or reinterpret those declarations. It uses them only to
 ## Inspect
 
 ```bash
-claim-dag inspect examples/claim_dag/dag.yaml
+claim-contract dag inspect examples/claim_dag/dag.yaml
 ```
 
 Expected structural result:
@@ -54,7 +54,7 @@ Expected structural result:
 ## Render
 
 ```bash
-claim-dag render examples/claim_dag/dag.yaml
+claim-contract dag render examples/claim_dag/dag.yaml
 ```
 
 The command emits Mermaid source. GitHub can render that source inside a Mermaid code block.
@@ -62,3 +62,6 @@ The command emits Mermaid source. GitHub can render that source inside a Mermaid
 The rendered graph uses solid `REQUIRES` edges and dashed support/qualification edges. Attention styling is visual triage only.
 
 See [`docs/CLAIM_DAG.md`](../../docs/CLAIM_DAG.md) for the artifact and propagation semantics.
+
+Compatibility note: `claim-dag` remains available as a backwards-compatible executable,
+but new documentation uses the canonical `claim-contract dag ...` command surface.
