@@ -340,16 +340,7 @@ def _format_text(report: ClaimGraphPruneReport) -> str:
     return "\n".join(lines)
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="claim-contract-graph",
-        description="Flag structurally disconnected claims without adjudicating them.",
-    )
-    subparsers = parser.add_subparsers(dest="command", required=True)
-    prune = subparsers.add_parser(
-        "prune",
-        help="Inspect a claim graph and flag active claims with no path to a declared root.",
-    )
+def _configure_prune_parser(prune: argparse.ArgumentParser) -> None:
     prune.add_argument(
         "ledger",
         nargs="?",
@@ -367,15 +358,36 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Exit 1 when one or more prune candidates are present.",
     )
+
+
+def add_graph_subparser(subparsers: argparse._SubParsersAction) -> None:
+    graph = subparsers.add_parser(
+        "graph",
+        help="Inspect structural relevance among repository claims.",
+    )
+    graph_commands = graph.add_subparsers(dest="graph_command", required=True)
+    prune = graph_commands.add_parser(
+        "prune",
+        help="Flag active claims with no path to a declared root.",
+    )
+    _configure_prune_parser(prune)
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="claim-contract-graph",
+        description="Flag structurally disconnected claims without adjudicating them.",
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    prune = subparsers.add_parser(
+        "prune",
+        help="Inspect a claim graph and flag active claims with no path to a declared root.",
+    )
+    _configure_prune_parser(prune)
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = build_parser()
-    args = parser.parse_args(argv)
-    if args.command != "prune":
-        raise AssertionError(f"Unhandled graph command: {args.command}")
-
+def run_prune_command(args: argparse.Namespace) -> int:
     try:
         report = analyze_claim_graph(args.ledger, args.graph)
     except (FileNotFoundError, ValueError, TypeError) as exc:
@@ -390,6 +402,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.fail_on_candidate and report.prune_candidates:
         return 1
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if args.command != "prune":
+        raise AssertionError(f"Unhandled graph command: {args.command}")
+    return run_prune_command(args)
 
 
 if __name__ == "__main__":
