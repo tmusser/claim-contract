@@ -80,16 +80,16 @@ references, or model judgment. Missing relevance remains missing.
 The pruning helper is intentionally read-only:
 
 ```bash
-claim-contract-graph prune
-claim-contract-graph prune claims/ledger.yaml --graph claims/graph.yaml
-claim-contract-graph prune --json
+claim-contract graph prune
+claim-contract graph prune claims/ledger.yaml --graph claims/graph.yaml
+claim-contract graph prune --json
 ```
 
 By default, prune candidates are reported but the process exits `0`. For a CI or agent gate,
 opt into a nonzero exit code:
 
 ```bash
-claim-contract-graph prune --fail-on-candidate
+claim-contract graph prune --fail-on-candidate
 ```
 
 Exit behavior:
@@ -111,3 +111,8 @@ research/product claims and does not contain evidence for a hierarchy among them
 Future claims should either be declared as roots or receive an explicit relevance path to a
 root. If neither is justified, the analyzer will surface them as prune candidates for human
 review.
+
+
+Compatibility note: `claim-contract-graph` remains available as a backwards-compatible
+executable, but new documentation uses the canonical `claim-contract graph ...` command
+surface.
