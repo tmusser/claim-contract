@@ -13,6 +13,8 @@ from .binding import (
     profile_manifest_binding_from_dict,
 )
 from .contract_diff import ContractDiff, build_contract_diff
+from .claim_graph import add_graph_subparser, run_prune_command
+from .dag_cli import add_dag_subparser, run_dag_command
 from .formatters import format_json, format_json_error, format_text
 from .handoff import build_chart_handoff, handoff_exit_code
 from .io import load_contract
@@ -265,6 +267,9 @@ def build_parser() -> argparse.ArgumentParser:
             "identity instead of the currently installed profile."
         ),
     )
+
+    add_graph_subparser(subparsers)
+    add_dag_subparser(subparsers)
 
     return parser
 
@@ -648,6 +653,13 @@ def _run_report_verify(
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    if args.command == "graph":
+        if args.graph_command == "prune":
+            return run_prune_command(args)
+        raise AssertionError(f"Unhandled graph command: {args.graph_command}")
+    if args.command == "dag":
+        return run_dag_command(args.dag_command, args.dag)
 
     if args.command == "contract":
         if args.contract_command == "diff":
