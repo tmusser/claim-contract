@@ -33,6 +33,7 @@ This roadmap records possible directions, not promises or release commitments.
 - Published a versioned assumptions-ledger sidecar schema with typed assumption cards, explicit review/challenge/retirement lifecycle state, and exact contract/profile-manifest bindings without changing `minimum-v0.1` verdict semantics.
 - Added an optional claim DAG sidecar with explicit claim/assumption/evidence dependencies, required-path exposure triage, and Mermaid rendering without numeric fragility scoring or scientific adjudication.
 - Added a thin official GitHub Action that sets up Python and delegates contract gating to the existing CLI, preserving the same READY / REVIEW / BLOCK and `--warnings-as-errors` exit semantics.
+- Unified graph and DAG tooling under the primary `claim-contract` command tree while preserving the older executables as compatibility aliases.
 
 ## Candidate directions
 

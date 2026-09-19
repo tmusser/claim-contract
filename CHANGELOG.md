@@ -65,6 +65,7 @@
 
 ### Changed
 
+- Unified graph-pruning and claim-DAG commands under the canonical `claim-contract graph ...` / `claim-contract dag ...` command tree while retaining `claim-contract-graph` and `claim-dag` as backwards-compatible executables backed by the same parser/runner functions.
 - Hardened `claim-foil` with a five-part foil admission gate, evidence-source conservation, explicit no-negative-evidence-inversion rules, concrete discriminator-quality requirements, stop conditions, and a no-mutation boundary for assumptions-ledger lifecycle state.
 - The live claim ledger now uses schema `1.2`; the published `1.0` and `1.1` ledger schemas remain available for historical consumers.
 - Rule severities now come from the same registry used to emit profile manifests, while executable trigger logic and verdict semantics remain unchanged.

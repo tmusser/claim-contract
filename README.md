@@ -252,7 +252,14 @@ claim-contract ledger list --status OPEN --json
 claim-contract ledger show CCL-002
 claim-contract ledger show CCL-002 --json
 claim-contract ledger verify claims/ledger.yaml
+claim-contract graph prune --json
+claim-contract dag inspect examples/claim_dag/dag.yaml
+claim-contract dag render examples/claim_dag/dag.yaml
 ```
+
+The canonical command surface is `claim-contract ...`. The older
+`claim-contract-graph prune ...` and `claim-dag inspect|render ...` executables remain
+available as backwards-compatible aliases and use the same parser/runner implementation.
 
 `--json` is a shortcut for `--format json` on commands that support formatted output. `handoff chart` is JSON-only because its output is a versioned downstream artifact. `ledger list` / `show` default to `claims/ledger.yaml` and accept an alternate ledger path positionally. `--version` prints the installed package version without requiring a contract file.
 

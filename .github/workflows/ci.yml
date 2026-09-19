@@ -59,8 +59,11 @@ jobs:
           claim-contract validate examples/descriptive_summary/contract.yaml
           claim-contract validate examples/descriptive_summary/contract.yaml --json > /dev/null
           claim-contract validate examples/missing_uncertainty/contract.yaml
-          claim-contract-graph prune --json > graph-prune.json
-          claim-contract-graph prune --fail-on-candidate
+          claim-contract graph prune --json > graph-prune.json
+          claim-contract graph prune --fail-on-candidate
+          claim-contract dag inspect examples/claim_dag/dag.yaml > /dev/null
+          claim-contract-graph prune --json > /dev/null
+          claim-dag inspect examples/claim_dag/dag.yaml > /dev/null
 
           set +e
           claim-contract validate examples/missing_uncertainty/contract.yaml --warnings-as-errors
@@ -110,8 +113,10 @@ jobs:
           .venv-smoke/bin/claim-contract validate examples/descriptive_summary/contract.yaml --json > report.json
           .venv-smoke/bin/claim-contract report verify report.json \
             --contract examples/descriptive_summary/contract.yaml > binding-check.txt
-          .venv-smoke/bin/claim-contract-graph prune --json > graph-report.json
-          .venv-smoke/bin/claim-dag inspect examples/claim_dag/dag.yaml > dag-report.txt
+          .venv-smoke/bin/claim-contract graph prune --json > graph-report.json
+          .venv-smoke/bin/claim-contract dag inspect examples/claim_dag/dag.yaml > dag-report.txt
+          .venv-smoke/bin/claim-contract-graph prune --json > /dev/null
+          .venv-smoke/bin/claim-dag inspect examples/claim_dag/dag.yaml > /dev/null
 
       - name: Verify installed CLI metadata and scope fields
         run: |
