@@ -33,6 +33,7 @@ from .metadata import (
 from .models import Verdict
 from .profile_diff import ProfileDiff, build_profile_diff, load_profile_manifest
 from .profiles import ProfileManifest, get_profile_manifest
+from .trace import build_rule_trace, format_rule_trace_text
 from .validator import validate_contract
 
 
@@ -76,6 +77,30 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Exit 1 for REVIEW as well as BLOCK.",
     )
+
+    trace = subparsers.add_parser(
+        "trace",
+        help="Inspect deterministic rule applicability and outcomes for a contract.",
+    )
+    trace.add_argument(
+        "contract",
+        help="Path to the contract file, or - to read YAML/JSON from stdin.",
+    )
+    trace_output = trace.add_mutually_exclusive_group()
+    trace_output.add_argument(
+        "--format",
+        choices=("text", "json"),
+        dest="format",
+        help="Output format.",
+    )
+    trace_output.add_argument(
+        "--json",
+        action="store_const",
+        const="json",
+        dest="format",
+        help="Shortcut for --format json.",
+    )
+    trace.set_defaults(format="text")
 
     contract = subparsers.add_parser(
         "contract",
@@ -272,6 +297,28 @@ def build_parser() -> argparse.ArgumentParser:
     add_dag_subparser(subparsers)
 
     return parser
+
+
+def _run_rule_trace(contract_path: str, output_format: str) -> int:
+    try:
+        contract = load_contract(contract_path)
+        trace = build_rule_trace(contract)
+    except (FileNotFoundError, ValueError, TypeError) as exc:
+        message = f"Input error: {exc}"
+        if output_format == "json":
+            print(format_json_error(message))
+        else:
+            print(message, file=sys.stderr)
+        return 2
+
+    if output_format == "json":
+        print(json.dumps(trace.to_dict(), indent=2, sort_keys=True))
+    else:
+        print(format_rule_trace_text(trace))
+
+    # Trace is an inspection command, not a verdict gate. A successfully produced
+    # trace exits 0 even when the underlying validator verdict is REVIEW or BLOCK.
+    return 0
 
 
 def _format_contract_value(value: object) -> str:
@@ -653,6 +700,9 @@ def _run_report_verify(
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    if args.command == "trace":
+        return _run_rule_trace(args.contract, args.format)
 
     if args.command == "graph":
         if args.graph_command == "prune":
