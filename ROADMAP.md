@@ -34,6 +34,7 @@ This roadmap records possible directions, not promises or release commitments.
 - Added an optional claim DAG sidecar with explicit claim/assumption/evidence dependencies, required-path exposure triage, and Mermaid rendering without numeric fragility scoring or scientific adjudication.
 - Added a thin official GitHub Action that sets up Python and delegates contract gating to the existing CLI, preserving the same READY / REVIEW / BLOCK and `--warnings-as-errors` exit semantics.
 - Unified graph and DAG tooling under the primary `claim-contract` command tree while preserving the older executables as compatibility aliases.
+- Added deterministic per-rule trace inspection so agents and analysts can distinguish triggered rules, applicable passes, and non-applicable rules without changing validator verdict semantics.
 
 ## Candidate directions
 
