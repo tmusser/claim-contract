@@ -2,7 +2,7 @@
 
 `claim-contract validate ... --json` emits exactly one JSON validation document to stdout. `claim-contract trace ... --json` emits exactly one JSON rule-trace document. `claim-contract profile show ... --json` emits exactly one JSON profile-manifest document. `claim-contract handoff chart ...` emits exactly one JSON chart-handoff document. Successful `claim-contract ledger list/show ... --json` commands emit exactly one JSON ledger-inspection document.
 
-The output is designed for agents, CI jobs, and other tools, but machine readability must not erase the interpretation boundary. Validation reports, rule traces, input-error envelopes, profile manifests, and chart handoffs preserve `scientific_validation: false`, the fixed scope notice, and a non-empty `not_evaluated` list where defined by the schema. Ledger inspections preserve the source ledger scope notice plus an explicit `automatic_adjudication: false` / `mutates_ledger: false` boundary.
+The output is designed for agents, CI jobs, and other tools, but machine readability must not erase the interpretation boundary. Validation reports, rule traces, input-error envelopes, profile manifests, and chart handoffs preserve `scientific_validation: false`, an explicit scope notice, and a non-empty `not_evaluated` list where defined by the schema. Ledger inspections preserve the source ledger scope notice plus an explicit `automatic_adjudication: false` / `mutates_ledger: false` boundary.
 
 Consumers must preserve those fields when forwarding or summarizing a result.
 
