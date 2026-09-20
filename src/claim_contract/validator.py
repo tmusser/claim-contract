@@ -112,6 +112,8 @@ def _rule_evaluation(
 
 def _evaluate_contract(
     contract: dict[str, Any],
+    *,
+    include_trace: bool,
 ) -> tuple[Report, tuple[RuleEvaluation, ...]]:
     profile = str(contract.get("profile", DEFAULT_PROFILE))
     manifest = get_profile_manifest(profile)
@@ -516,18 +518,26 @@ def _evaluate_contract(
         input_binding=build_contract_binding(contract),
         findings=findings,
     )
-    ordered_evaluations = tuple(
-        evaluations[rule.rule_id]
-        for rule in manifest.rules
-    )
+    if not include_trace:
+        return report, ()
+
+    manifest_ids = tuple(rule.rule_id for rule in manifest.rules)
+    if set(evaluations) != set(manifest_ids):
+        missing = sorted(set(manifest_ids) - set(evaluations))
+        extra = sorted(set(evaluations) - set(manifest_ids))
+        raise RuntimeError(
+            "Rule trace coverage drifted from the selected profile manifest; "
+            f"missing={missing}, extra={extra}."
+        )
+    ordered_evaluations = tuple(evaluations[rule_id] for rule_id in manifest_ids)
     return report, ordered_evaluations
 
 
 def validate_contract(contract: dict[str, Any]) -> Report:
-    return _evaluate_contract(contract)[0]
+    return _evaluate_contract(contract, include_trace=False)[0]
 
 
 def validate_contract_with_trace(
     contract: dict[str, Any],
 ) -> tuple[Report, tuple[RuleEvaluation, ...]]:
-    return _evaluate_contract(contract)
+    return _evaluate_contract(contract, include_trace=True)
