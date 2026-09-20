@@ -59,6 +59,7 @@ jobs:
           claim-contract validate examples/descriptive_summary/contract.yaml
           claim-contract validate examples/descriptive_summary/contract.yaml --json > /dev/null
           claim-contract validate examples/missing_uncertainty/contract.yaml
+          claim-contract trace examples/descriptive_summary/contract.yaml --json > rule-trace.json
           claim-contract graph prune --json > graph-prune.json
           claim-contract graph prune --fail-on-candidate
           claim-contract dag inspect examples/claim_dag/dag.yaml > /dev/null
@@ -111,6 +112,7 @@ jobs:
           .venv-smoke/bin/python -m pip check
           .venv-smoke/bin/claim-contract --version > version.txt
           .venv-smoke/bin/claim-contract validate examples/descriptive_summary/contract.yaml --json > report.json
+          .venv-smoke/bin/claim-contract trace examples/descriptive_summary/contract.yaml --json > rule-trace.json
           .venv-smoke/bin/claim-contract report verify report.json \
             --contract examples/descriptive_summary/contract.yaml > binding-check.txt
           .venv-smoke/bin/claim-contract graph prune --json > graph-report.json
@@ -143,6 +145,15 @@ jobs:
           assert binding["algorithm"] == "sha256"
           assert binding["canonicalization"] == "parsed-contract-v1"
           assert len(binding["contract_sha256"]) == 64
+
+          trace = json.loads(Path("rule-trace.json").read_text(encoding="utf-8"))
+          assert trace["type"] == "claim_contract.rule_trace"
+          assert trace["schema_version"] == "1.0"
+          assert trace["verdict"] == "READY"
+          assert trace["scientific_validation"] is False
+          assert trace["automatic_interpretation"] is False
+          assert trace["summary"]["triggered_count"] == 0
+          assert trace["rules"]
 
           binding_output = Path("binding-check.txt").read_text(encoding="utf-8")
           assert "Binding: MATCH" in binding_output
