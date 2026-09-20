@@ -241,6 +241,8 @@ claim-contract validate path/to/contract.yaml
 claim-contract validate path/to/contract.yaml --json
 claim-contract validate path/to/contract.yaml --format json
 claim-contract validate path/to/contract.yaml --warnings-as-errors
+claim-contract trace path/to/contract.yaml
+claim-contract trace path/to/contract.yaml --json
 claim-contract handoff chart path/to/contract.yaml
 claim-contract handoff chart path/to/contract.yaml --warnings-as-errors
 claim-contract profile show minimum-v0.1
@@ -256,6 +258,8 @@ claim-contract graph prune --json
 claim-contract dag inspect examples/claim_dag/dag.yaml
 claim-contract dag render examples/claim_dag/dag.yaml
 ```
+
+`trace` is read-only rule-path inspection: a successfully produced trace exits `0` even when its embedded verdict is `REVIEW` or `BLOCK`; malformed input exits `2`. Use `validate` when exit status should gate on the verdict. See [Rule trace inspection](docs/RULE_TRACE.md).
 
 The canonical command surface is `claim-contract ...`. The older
 `claim-contract-graph prune ...` and `claim-dag inspect|render ...` executables remain
@@ -278,7 +282,7 @@ A `REVIEW` or `BLOCK` chart handoff is still emitted when validation completed, 
 
 ## Machine-readable contract
 
-JSON validation reports use `claim_contract.report`; JSON input failures use `claim_contract.error`; profile inspection uses `claim_contract.profile_manifest`; profile drift inspection uses `claim_contract.profile_diff`; chart handoff uses `claim_contract.chart_handoff`; ledger list/show uses `claim_contract.ledger_inspection`. Each currently has its own schema family at `schema_version: "1.0"`.
+JSON validation reports use `claim_contract.report`; rule-path inspection uses `claim_contract.rule_trace`; JSON input failures use `claim_contract.error`; profile inspection uses `claim_contract.profile_manifest`; profile drift inspection uses `claim_contract.profile_diff`; chart handoff uses `claim_contract.chart_handoff`; ledger list/show uses `claim_contract.ledger_inspection`. Each currently has its own schema family at `schema_version: "1.0"`.
 
 Machine-readable validation/profile/handoff documents preserve the interpretation boundary with `scientific_validation: false`, the fixed scope notice, and a non-empty `not_evaluated` list where defined by their schemas. Profile diff additionally carries `automatic_compatibility_classification: false`; ledger inspection preserves the source ledger scope notice and explicitly carries `automatic_adjudication: false` and `mutates_ledger: false`.
 
@@ -290,6 +294,7 @@ Published schemas:
 - [`schemas/chart-handoff-v1.schema.json`](schemas/chart-handoff-v1.schema.json) — strict bounded context for downstream chart work
 - [`schemas/ledger-inspection-v1.schema.json`](schemas/ledger-inspection-v1.schema.json) — read-only machine-readable ledger inspection
 - [`schemas/report-v1.schema.json`](schemas/report-v1.schema.json)
+- [`schemas/rule-trace-v1.schema.json`](schemas/rule-trace-v1.schema.json) — deterministic per-rule applicability/outcome trace
 - [`schemas/error-v1.schema.json`](schemas/error-v1.schema.json)
 
 See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md) for output compatibility guarantees, [docs/PROFILE_DIFF.md](docs/PROFILE_DIFF.md) for profile-drift boundaries, [docs/CHART_HANDOFF.md](docs/CHART_HANDOFF.md) for the cross-tool boundary, [docs/LEDGER_INSPECTION.md](docs/LEDGER_INSPECTION.md) for the ledger inspection boundary, and [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md) for profile-manifest semantics. See [docs/CONTRACT_SCHEMA.md](docs/CONTRACT_SCHEMA.md) for input-schema scope and compatibility.
