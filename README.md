@@ -284,7 +284,7 @@ A `REVIEW` or `BLOCK` chart handoff is still emitted when validation completed, 
 
 JSON validation reports use `claim_contract.report`; rule-path inspection uses `claim_contract.rule_trace`; JSON input failures use `claim_contract.error`; profile inspection uses `claim_contract.profile_manifest`; profile drift inspection uses `claim_contract.profile_diff`; chart handoff uses `claim_contract.chart_handoff`; ledger list/show uses `claim_contract.ledger_inspection`. Each currently has its own schema family at `schema_version: "1.0"`.
 
-Machine-readable validation/profile/handoff documents preserve the interpretation boundary with `scientific_validation: false`, the fixed scope notice, and a non-empty `not_evaluated` list where defined by their schemas. Profile diff additionally carries `automatic_compatibility_classification: false`; ledger inspection preserves the source ledger scope notice and explicitly carries `automatic_adjudication: false` and `mutates_ledger: false`.
+Machine-readable validation/trace/profile/handoff documents preserve the interpretation boundary with `scientific_validation: false`, an explicit scope notice, and a non-empty `not_evaluated` list where defined by their schemas. Profile diff additionally carries `automatic_compatibility_classification: false`; ledger inspection preserves the source ledger scope notice and explicitly carries `automatic_adjudication: false` and `mutates_ledger: false`.
 
 Published schemas:
 
