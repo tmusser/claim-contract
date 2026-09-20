@@ -59,6 +59,12 @@ def test_ready_trace_explains_pass_and_not_applicable_rules() -> None:
     assert payload["automatic_interpretation"] is False
     assert payload["summary"]["triggered_count"] == 0
     assert payload["summary"]["finding_count"] == 0
+    assert (
+        payload["summary"]["triggered_count"]
+        + payload["summary"]["pass_count"]
+        + payload["summary"]["not_applicable_count"]
+        == payload["summary"]["rule_count"]
+    )
 
     by_id = _by_id(trace)
     assert by_id["CC001"].status == TRACE_PASS
@@ -161,4 +167,4 @@ def test_trace_cli_json_input_error_uses_existing_error_envelope(capsys, tmp_pat
     assert captured.err == ""
     payload = json.loads(captured.out)
     assert payload["type"] == "claim_contract.error"
-    assert "Input error:" in payload["message"]
+    assert "Input error:" in payload["error"]["message"]
