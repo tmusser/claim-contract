@@ -9,7 +9,7 @@ from .metadata import (
     TOOL_NAME,
     TOOL_VERSION,
 )
-from .models import NOT_EVALUATED, SCOPE_NOTICE, Finding
+from .models import NOT_EVALUATED, Finding
 from .profiles import get_profile_manifest
 from .validator import (
     TRACE_NOT_APPLICABLE,
@@ -100,8 +100,8 @@ class RuleTrace:
         }
 
 
-def _build_entry(evaluation: RuleEvaluation, profile_name: str) -> RuleTraceEntry:
-    rule = get_profile_manifest(profile_name).rule(evaluation.rule_id)
+def _build_entry(evaluation: RuleEvaluation, manifest) -> RuleTraceEntry:
+    rule = manifest.rule(evaluation.rule_id)
     return RuleTraceEntry(
         rule_id=rule.rule_id,
         severity=rule.severity.value,
@@ -117,6 +117,7 @@ def _build_entry(evaluation: RuleEvaluation, profile_name: str) -> RuleTraceEntr
 def build_rule_trace(contract: dict[str, Any]) -> RuleTrace:
     report, evaluations = validate_contract_with_trace(contract)
     profile_binding = report.resolved_profile_manifest_binding()
+    manifest = get_profile_manifest(report.profile)
 
     return RuleTrace(
         verdict=report.verdict.value,
@@ -134,7 +135,7 @@ def build_rule_trace(contract: dict[str, Any]) -> RuleTrace:
             else None
         ),
         rules=tuple(
-            _build_entry(evaluation, report.profile)
+            _build_entry(evaluation, manifest)
             for evaluation in evaluations
         ),
     )
