@@ -88,6 +88,7 @@ def test_trace_triggered_entries_exactly_match_validator_findings(path: Path) ->
     contract = load_contract(path)
     report = validate_contract(contract)
     trace = build_rule_trace(contract)
+    jsonschema.validate(trace.to_dict(), _schema())
 
     assert trace.verdict == report.verdict.value
 
