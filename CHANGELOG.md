@@ -4,6 +4,8 @@
 
 ### Added
 
+- `claim-contract trace <contract> [--json]` for deterministic per-rule inspection with `TRIGGERED`, `PASS`, and `NOT_APPLICABLE` states derived from the same validator execution path rather than a parallel rules engine.
+- Versioned `claim_contract.rule_trace` output and `schemas/rule-trace-v1.schema.json`, carrying exact contract/profile-manifest bindings, profile rule metadata, and embedded validator findings while preserving `scientific_validation: false` and `automatic_interpretation: false`.
 - Root `action.yml` composite GitHub Action for CI gating with a required contract path and optional `warnings-as-errors`, delegating directly to the existing CLI after setting up Python 3.12.
 - Optional `claim_contract.claim_dag` sidecar schema for explicit claim/assumption/evidence dependency graphs with `REQUIRES` / `SUPPORTED_BY` / `QUALIFIED_BY` edges, review-triage attention states, cycle rejection, and no numeric fragility score.
 - `claim-dag inspect` structural exposure/blast-radius triage plus `claim-dag render` Mermaid output, with a worked onboarding fixture and regression tests that keep graph exposure separate from scientific adjudication and `READY` / `REVIEW` / `BLOCK` semantics.
