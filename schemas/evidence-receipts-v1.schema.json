@@ -22,7 +22,7 @@
     "scope_notice": {
       "type": "string",
       "minLength": 1,
-      "pattern": "does not verify"
+      "pattern": "not verify"
     },
     "contract": {
       "type": "object",
