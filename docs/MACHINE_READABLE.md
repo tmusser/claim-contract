@@ -8,7 +8,7 @@ Consumers must preserve those fields when forwarding or summarizing a result.
 
 ## Output types
 
-Seven versioned output document types are currently defined:
+The following versioned output document types are defined here:
 
 | Type | Schema | Used for |
 | --- | --- | --- |
