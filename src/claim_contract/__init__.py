@@ -16,16 +16,26 @@ from .io import load_contract
 from .metadata import REPORT_SCHEMA_VERSION, TOOL_VERSION
 from .models import Finding, Report, Severity, Verdict
 from .profiles import ProfileManifest, RuleSpec, get_profile_manifest
+from .receipts import (
+    EvidenceReceipt,
+    EvidenceReceiptInspection,
+    ReceiptCoverage,
+    inspect_evidence_receipts,
+    load_evidence_receipts,
+)
 from .trace import RuleTrace, RuleTraceEntry, build_rule_trace
 from .validator import validate_contract
 
 __all__ = [
     "ChartHandoff",
     "ContractBinding",
+    "EvidenceReceipt",
+    "EvidenceReceiptInspection",
     "Finding",
     "ProfileManifest",
     "ProfileManifestBinding",
     "Report",
+    "ReceiptCoverage",
     "RuleSpec",
     "RuleTrace",
     "RuleTraceEntry",
@@ -39,7 +49,9 @@ __all__ = [
     "build_rule_trace",
     "format_claim_dag_text",
     "get_profile_manifest",
+    "inspect_evidence_receipts",
     "load_claim_dag",
+    "load_evidence_receipts",
     "load_contract",
     "render_claim_dag_mermaid",
     "validate_claim_dag",
