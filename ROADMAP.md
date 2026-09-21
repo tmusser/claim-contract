@@ -35,6 +35,7 @@ This roadmap records possible directions, not promises or release commitments.
 - Added a thin official GitHub Action that sets up Python and delegates contract gating to the existing CLI, preserving the same READY / REVIEW / BLOCK and `--warnings-as-errors` exit semantics.
 - Unified graph and DAG tooling under the primary `claim-contract` command tree while preserving the older executables as compatibility aliases.
 - Added deterministic per-rule trace inspection so agents and analysts can distinguish triggered rules, applicable passes, and non-applicable rules without changing validator verdict semantics.
+- Added optional evidence receipts so applicable declared evidence fields can point to contract-bound, commit-pinned repository refs without treating path existence as evidence verification or changing READY / REVIEW / BLOCK.
 
 ## Candidate directions
 
