@@ -11,7 +11,9 @@ import yaml
 
 from .binding import (
     ContractBinding,
+    ProfileManifestBinding,
     build_contract_binding,
+    build_profile_manifest_binding,
     contract_binding_from_dict,
 )
 from .metadata import (
@@ -22,6 +24,7 @@ from .metadata import (
     TOOL_NAME,
     TOOL_VERSION,
 )
+from .profiles import DEFAULT_PROFILE, get_profile_manifest
 from .trace import build_rule_trace
 from .validator import TRACE_NOT_APPLICABLE
 
@@ -74,6 +77,8 @@ class ReceiptCoverage:
 class EvidenceReceiptInspection:
     saved_binding: ContractBinding
     current_binding: ContractBinding
+    profile: str
+    profile_manifest_binding: ProfileManifestBinding
     repository_revision: str
     revision_resolves: bool
     coverage: tuple[ReceiptCoverage, ...]
@@ -115,6 +120,8 @@ class EvidenceReceiptInspection:
                 "binding_match": self.contract_binding_matches,
                 "saved_input_binding": self.saved_binding.to_dict(),
                 "current_input_binding": self.current_binding.to_dict(),
+                "profile": self.profile,
+                "profile_manifest_binding": self.profile_manifest_binding.to_dict(),
             },
             "snapshot": {
                 "repository_revision": self.repository_revision,
@@ -252,7 +259,7 @@ def _parse_receipts(payload: dict[str, Any]) -> tuple[ContractBinding, str, tupl
         raise ValueError("Evidence receipts must declare automatic_verification: false.")
 
     scope_notice = payload.get("scope_notice")
-    if not isinstance(scope_notice, str) or "does not verify" not in scope_notice.lower():
+    if not isinstance(scope_notice, str) or "not verify" not in scope_notice.lower():
         raise ValueError(
             "Evidence receipts scope_notice must explicitly state that receipts do not verify support."
         )
@@ -327,11 +334,12 @@ def inspect_evidence_receipts(
     ref_resolution: dict[str, bool] = {}
 
     for receipt in receipts:
-        present, _ = _field_value(contract, receipt.field)
-        if not present:
-            raise ValueError(
-                f"Evidence receipt field {receipt.field!r} does not exist in the supplied contract."
-            )
+        if saved_binding == current_binding:
+            present, _ = _field_value(contract, receipt.field)
+            if not present:
+                raise ValueError(
+                    f"Evidence receipt field {receipt.field!r} does not exist in the supplied contract."
+                )
         for ref in receipt.refs:
             if ref in ref_resolution:
                 continue
@@ -348,6 +356,10 @@ def inspect_evidence_receipts(
             if revision_resolves and not resolves:
                 missing_refs.append(ref)
 
+    profile = str(contract.get("profile", DEFAULT_PROFILE))
+    profile_manifest_binding = build_profile_manifest_binding(
+        get_profile_manifest(profile).to_dict()
+    )
     receipts_by_field = {receipt.field: receipt for receipt in receipts}
     applicable = _applicable_evidence_fields(contract)
     coverage: list[ReceiptCoverage] = []
@@ -387,6 +399,8 @@ def inspect_evidence_receipts(
     return EvidenceReceiptInspection(
         saved_binding=saved_binding,
         current_binding=current_binding,
+        profile=profile,
+        profile_manifest_binding=profile_manifest_binding,
         repository_revision=revision,
         revision_resolves=revision_resolves,
         coverage=tuple(coverage),
