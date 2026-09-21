@@ -150,6 +150,43 @@ jobs:
           .venv-smoke/bin/python -m pip install dist/*.whl
           .venv-smoke/bin/python -m pip check
           .venv-smoke/bin/claim-contract --version > version.txt
+          .venv-smoke/bin/python - <<'PY'
+          import subprocess
+          from pathlib import Path
+          import yaml
+
+          from claim_contract import build_contract_binding, load_contract
+
+          contract = load_contract("examples/descriptive_summary/contract.yaml")
+          revision = subprocess.check_output(
+              ["git", "rev-parse", "HEAD"],
+              text=True,
+          ).strip()
+          payload = {
+              "schema_version": "1.0",
+              "type": "claim_contract.evidence_receipts",
+              "scientific_validation": False,
+              "automatic_verification": False,
+              "scope_notice": (
+                  "These receipts record retained repository references only and do not verify "
+                  "that the referenced material proves or adequately supports a declaration."
+              ),
+              "contract": {
+                  "input_binding": build_contract_binding(contract).to_dict(),
+              },
+              "snapshot": {"repository_revision": revision},
+              "receipts": [
+                  {
+                      "field": "evidence.design",
+                      "refs": ["docs/RULE_TRACE.md"],
+                  }
+              ],
+          }
+          Path("receipt-sidecar.yaml").write_text(
+              yaml.safe_dump(payload, sort_keys=False),
+              encoding="utf-8",
+          )
+          PY
           .venv-smoke/bin/claim-contract validate examples/descriptive_summary/contract.yaml --json > report.json
           .venv-smoke/bin/claim-contract trace examples/descriptive_summary/contract.yaml --json > rule-trace.json
           .venv-smoke/bin/claim-contract receipts inspect examples/descriptive_summary/contract.yaml receipt-sidecar.yaml --json > receipt-inspection.json
