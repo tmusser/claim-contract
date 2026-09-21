@@ -136,6 +136,11 @@ def test_inspection_derives_applicable_evidence_fields_from_rule_trace() -> None
         "evidence.checks.treatment_assignment_validated"
     ]
     assert inspection.integrity_ok is True
+    assert inspection.profile == "minimum-v0.1"
+    assert len(inspection.profile_manifest_binding.profile_manifest_sha256) == 64
+    assert result["contract"]["profile_manifest_binding"]["canonicalization"] == (
+        "profile-manifest-semantics-v1"
+    )
     assert inspection.receipted_count == 2
     assert inspection.unreceipted_count == 3
 
@@ -238,6 +243,35 @@ def test_stale_contract_binding_refuses_to_attribute_coverage(
     assert [item["field"] for item in result["unused_receipts"]] == [
         "evidence.design"
     ]
+
+
+def test_stale_binding_with_removed_field_remains_binding_mismatch(
+    capsys, tmp_path: Path
+) -> None:
+    current = load_contract(CONTRACT)
+    older = deepcopy(current)
+    older["evidence"]["legacy_support"] = "retained"
+    payload = _payload(
+        older,
+        [{"field": "evidence.legacy_support", "refs": [GOOD_REF]}],
+    )
+    receipts_path = _write_payload(tmp_path, payload)
+
+    code = main(
+        [
+            "receipts",
+            "inspect",
+            str(CONTRACT),
+            str(receipts_path),
+            "--json",
+        ]
+    )
+    result = json.loads(capsys.readouterr().out)
+
+    assert code == 1
+    assert result["contract"]["binding_match"] is False
+    assert result["coverage"] == []
+    assert result["unused_receipts"][0]["field"] == "evidence.legacy_support"
 
 
 def test_unsafe_repository_ref_is_reported_without_dereferencing(
