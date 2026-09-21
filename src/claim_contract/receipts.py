@@ -251,6 +251,12 @@ def _parse_receipts(payload: dict[str, Any]) -> tuple[ContractBinding, str, tupl
     if payload.get("automatic_verification") is not False:
         raise ValueError("Evidence receipts must declare automatic_verification: false.")
 
+    scope_notice = payload.get("scope_notice")
+    if not isinstance(scope_notice, str) or "does not verify" not in scope_notice.lower():
+        raise ValueError(
+            "Evidence receipts scope_notice must explicitly state that receipts do not verify support."
+        )
+
     contract_meta = payload.get("contract")
     if not isinstance(contract_meta, dict):
         raise ValueError("Evidence receipts must contain contract metadata.")
