@@ -106,6 +106,7 @@ The envelope explicitly carries:
 - `automatic_verification: false`;
 - `changes_validation_verdict: false`;
 - saved/current contract bindings and their match state;
+- the semantic profile-manifest binding used to derive the applicable field set;
 - pinned-revision/ref resolution results;
 - receipt coverage counts and per-field rule IDs.
 
