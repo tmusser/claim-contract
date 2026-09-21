@@ -26,3 +26,9 @@ PROFILE_DIFF_SCHEMA_VERSION = "1.0"
 
 RULE_TRACE_TYPE = "claim_contract.rule_trace"
 RULE_TRACE_SCHEMA_VERSION = "1.0"
+
+EVIDENCE_RECEIPTS_TYPE = "claim_contract.evidence_receipts"
+EVIDENCE_RECEIPTS_SCHEMA_VERSION = "1.0"
+
+EVIDENCE_RECEIPT_INSPECTION_TYPE = "claim_contract.evidence_receipt_inspection"
+EVIDENCE_RECEIPT_INSPECTION_SCHEMA_VERSION = "1.0"
