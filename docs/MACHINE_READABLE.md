@@ -1,18 +1,19 @@
 # Machine-readable interoperability
 
-`claim-contract validate ... --json` emits exactly one JSON validation document to stdout. `claim-contract profile show ... --json` emits exactly one JSON profile-manifest document. `claim-contract handoff chart ...` emits exactly one JSON chart-handoff document. Successful `claim-contract ledger list/show ... --json` commands emit exactly one JSON ledger-inspection document.
+`claim-contract validate ... --json` emits exactly one JSON validation document to stdout. `claim-contract trace ... --json` emits exactly one JSON rule-trace document. `claim-contract profile show ... --json` emits exactly one JSON profile-manifest document. `claim-contract handoff chart ...` emits exactly one JSON chart-handoff document. Successful `claim-contract ledger list/show ... --json` commands emit exactly one JSON ledger-inspection document.
 
-The output is designed for agents, CI jobs, and other tools, but machine readability must not erase the interpretation boundary. Validation reports, input-error envelopes, profile manifests, and chart handoffs preserve `scientific_validation: false`, the fixed scope notice, and a non-empty `not_evaluated` list where defined by the schema. Ledger inspections preserve the source ledger scope notice plus an explicit `automatic_adjudication: false` / `mutates_ledger: false` boundary.
+The output is designed for agents, CI jobs, and other tools, but machine readability must not erase the interpretation boundary. Validation reports, rule traces, input-error envelopes, profile manifests, and chart handoffs preserve `scientific_validation: false`, an explicit scope notice, and a non-empty `not_evaluated` list where defined by the schema. Ledger inspections preserve the source ledger scope notice plus an explicit `automatic_adjudication: false` / `mutates_ledger: false` boundary.
 
 Consumers must preserve those fields when forwarding or summarizing a result.
 
 ## Output types
 
-Five versioned document types are currently defined:
+Six versioned document types are currently defined:
 
 | Type | Schema | Used for |
 | --- | --- | --- |
 | `claim_contract.report` | [`schemas/report-v1.schema.json`](../schemas/report-v1.schema.json) | A completed validation with a `READY`, `REVIEW`, or `BLOCK` verdict. |
+| `claim_contract.rule_trace` | [`schemas/rule-trace-v1.schema.json`](../schemas/rule-trace-v1.schema.json) | Deterministic per-rule applicability and outcome inspection for one validation path. |
 | `claim_contract.error` | [`schemas/error-v1.schema.json`](../schemas/error-v1.schema.json) | A contract that could not be loaded or validated as input. |
 | `claim_contract.profile_manifest` | [`schemas/profile-manifest-v1.schema.json`](../schemas/profile-manifest-v1.schema.json) | Versioned rule metadata for a validation profile. |
 | `claim_contract.chart_handoff` | [`schemas/chart-handoff-v1.schema.json`](../schemas/chart-handoff-v1.schema.json) | Strict bounded claim context for downstream chart work. |
@@ -70,6 +71,66 @@ All currently use `schema_version: "1.0"`, but each schema family evolves indepe
 ```
 
 The existing top-level `profile`, `verdict`, `claim_text`, `scientific_validation`, `scope_notice`, `not_evaluated`, and `findings` fields remain in v1 for backward compatibility.
+
+## Rule trace envelope
+
+`claim-contract trace contract.yaml --json` emits one `claim_contract.rule_trace`
+document. It carries the same parsed-contract and semantic profile-manifest bindings as a
+normal validation report, plus one entry for every rule in profile-manifest order.
+
+Each rule has exactly one mechanical status:
+
+- `TRIGGERED` — the normal validator emitted one or more findings with that rule ID;
+- `PASS` — the rule's implemented applicability predicate applied and emitted no finding;
+- `NOT_APPLICABLE` — the implemented applicability predicate did not apply.
+
+Triggered entries embed the exact normal validator findings for that rule. PASS and
+NOT_APPLICABLE entries carry no findings.
+
+The trace also includes each rule's manifest severity, consumed fields, descriptive trigger,
+and known boundary. Those fields explain the installed profile; they do not form a second
+rules engine.
+
+A successful trace exits `0` even when the embedded verdict is `REVIEW` or `BLOCK`.
+This is deliberate: trace is inspection, not gating. Malformed or unreadable input exits `2`.
+
+Representative shape:
+
+```json
+{
+  "schema_version": "1.0",
+  "type": "claim_contract.rule_trace",
+  "verdict": "READY",
+  "scientific_validation": false,
+  "automatic_interpretation": false,
+  "summary": {
+    "rule_count": 14,
+    "triggered_count": 0,
+    "pass_count": 3,
+    "not_applicable_count": 11,
+    "finding_count": 0
+  },
+  "rules": [
+    {
+      "id": "CC001",
+      "severity": "BLOCK",
+      "status": "PASS",
+      "consumed_fields": ["claim.text", "claim.type"],
+      "profile_trigger": "A required claim/evidence field is missing, or a basic required value is malformed.",
+      "known_boundary": "Checks declared completeness and simple supported values only; it does not verify the underlying evidence or provenance.",
+      "reason": "All required fields and basic supported values passed the implemented checks.",
+      "finding_count": 0,
+      "findings": []
+    }
+  ]
+}
+```
+
+`PASS` does not mean true, correct, statistically adequate, scientifically valid, or
+decision-worthy. It means only that an applicable implemented rule emitted no finding on the
+submitted declarations.
+
+See [RULE_TRACE.md](RULE_TRACE.md) for the execution and interpretation boundary.
 
 ## Contract input binding
 

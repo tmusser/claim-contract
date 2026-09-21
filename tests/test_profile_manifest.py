@@ -70,7 +70,7 @@ def test_profile_manifest_rule_ids_are_unique_and_complete() -> None:
 
 
 def test_validator_rule_ids_are_registered_in_manifest() -> None:
-    source = inspect.getsource(validator_module.validate_contract)
+    source = inspect.getsource(validator_module._evaluate_contract)
     executable_rule_ids = set(re.findall(r'"(CC[0-9]{3})"', source))
     manifest_rule_ids = {rule.rule_id for rule in _manifest().rules}
 

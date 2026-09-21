@@ -16,6 +16,7 @@ from .io import load_contract
 from .metadata import REPORT_SCHEMA_VERSION, TOOL_VERSION
 from .models import Finding, Report, Severity, Verdict
 from .profiles import ProfileManifest, RuleSpec, get_profile_manifest
+from .trace import RuleTrace, RuleTraceEntry, build_rule_trace
 from .validator import validate_contract
 
 __all__ = [
@@ -26,6 +27,8 @@ __all__ = [
     "ProfileManifestBinding",
     "Report",
     "RuleSpec",
+    "RuleTrace",
+    "RuleTraceEntry",
     "Severity",
     "Verdict",
     "REPORT_SCHEMA_VERSION",
@@ -33,6 +36,7 @@ __all__ = [
     "build_chart_handoff",
     "build_contract_binding",
     "build_profile_manifest_binding",
+    "build_rule_trace",
     "format_claim_dag_text",
     "get_profile_manifest",
     "load_claim_dag",

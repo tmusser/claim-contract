@@ -23,3 +23,6 @@ CONTRACT_DIFF_SCHEMA_VERSION = "1.0"
 
 PROFILE_DIFF_TYPE = "claim_contract.profile_diff"
 PROFILE_DIFF_SCHEMA_VERSION = "1.0"
+
+RULE_TRACE_TYPE = "claim_contract.rule_trace"
+RULE_TRACE_SCHEMA_VERSION = "1.0"
