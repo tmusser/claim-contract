@@ -44,12 +44,16 @@
       "required": [
         "binding_match",
         "saved_input_binding",
-        "current_input_binding"
+        "current_input_binding",
+        "profile",
+        "profile_manifest_binding"
       ],
       "properties": {
         "binding_match": {"type": "boolean"},
         "saved_input_binding": {"$ref": "#/$defs/inputBinding"},
-        "current_input_binding": {"$ref": "#/$defs/inputBinding"}
+        "current_input_binding": {"$ref": "#/$defs/inputBinding"},
+        "profile": {"type": "string", "minLength": 1},
+        "profile_manifest_binding": {"$ref": "#/$defs/profileBinding"}
       }
     },
     "snapshot": {
@@ -93,6 +97,19 @@
         "receipted_count": {"type": "integer", "minimum": 0},
         "unreceipted_count": {"type": "integer", "minimum": 0},
         "unused_receipt_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "profileBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "canonicalization", "profile_manifest_sha256"],
+      "properties": {
+        "algorithm": {"const": "sha256"},
+        "canonicalization": {"const": "profile-manifest-semantics-v1"},
+        "profile_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
       }
     },
     "coverage": {
