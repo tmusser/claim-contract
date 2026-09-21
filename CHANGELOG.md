@@ -4,6 +4,9 @@
 
 ### Added
 
+- Optional `claim_contract.evidence_receipts` sidecar for binding retained repository refs to declared `evidence.*` fields without changing validator semantics or claiming that refs prove the declarations.
+- `claim-contract receipts inspect <contract> <receipts> [--json]` plus versioned `claim_contract.evidence_receipt_inspection` output, deriving applicable receipt targets from the deterministic rule trace and separating informational coverage from contract/ref integrity failures.
+- Published `schemas/evidence-receipts-v1.schema.json` and `schemas/evidence-receipt-inspection-v1.schema.json` with explicit `scientific_validation: false`, `automatic_verification: false`, and `changes_validation_verdict: false` boundaries.
 - `claim-contract trace <contract> [--json]` for deterministic per-rule inspection with `TRIGGERED`, `PASS`, and `NOT_APPLICABLE` states derived from the same validator execution path rather than a parallel rules engine.
 - Versioned `claim_contract.rule_trace` output and `schemas/rule-trace-v1.schema.json`, carrying exact contract/profile-manifest bindings, profile rule metadata, and embedded validator findings while preserving `scientific_validation: false` and `automatic_interpretation: false`.
 - Root `action.yml` composite GitHub Action for CI gating with a required contract path and optional `warnings-as-errors`, delegating directly to the existing CLI after setting up Python 3.12.

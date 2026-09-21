@@ -30,6 +30,30 @@ Never translate `READY` into:
 - Missing evidence must remain missing.
 - Do not downgrade a claim type merely to obtain `READY` without showing the user the changed wording and analytical meaning.
 
+## Evidence receipt boundary
+
+Evidence receipts make support references inspectable; they do not verify evidence.
+
+Use:
+
+```bash
+claim-contract receipts inspect contract.yaml receipts.yaml --json
+```
+
+when an agent needs to check whether applicable declared `evidence.*` fields have retained,
+commit-pinned repository refs.
+
+- Never translate `RECEIPTED` into “verified,” “proven,” “validated,” or “supported.”
+- A resolving ref establishes path existence at the pinned revision only.
+- Do not infer that the referenced artifact contains the claimed calculation or that the calculation is correct.
+- Do not flip a contract check to `true` merely because a receipt exists.
+- `UNRECEIPTED` is a coverage gap, not a new `REVIEW` or `BLOCK` finding.
+- Receipt inspection never changes READY / REVIEW / BLOCK.
+- Preserve `scientific_validation: false`, `automatic_verification: false`, and `changes_validation_verdict: false` when forwarding the inspection envelope.
+- If the receipt sidecar's contract binding mismatches, do not attribute any recorded receipt coverage to the new contract.
+
+See [docs/EVIDENCE_RECEIPTS.md](docs/EVIDENCE_RECEIPTS.md).
+
 ## Do not hide REVIEW
 
 A `REVIEW` verdict means human judgment is still required. Do not summarize it as a pass.

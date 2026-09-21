@@ -28,7 +28,9 @@ The harness consumes declarations. It does not currently execute notebooks, insp
 
 A user or agent can incorrectly declare that a check was completed. The harness may then produce a cleaner result than the underlying work deserves.
 
-For that reason, outputs use the phrase **declared minimum contract** rather than “validated analysis.” The [`false_confidence_ready`](examples/adversarial/false_confidence_ready/) fixture deliberately returns `READY` while stating that its export and declared checks were not independently verified.
+For that reason, outputs use the phrase **declared minimum contract** rather than “validated analysis.” The [evidence-receipts sidecar](docs/EVIDENCE_RECEIPTS.md) can record commit-pinned repository refs for declarations consumed by applicable rules, but it still does not inspect or interpret those artifacts.
+
+Evidence receipts reduce one traceability gap; they do not convert declared evidence into verified evidence. A ref can resolve perfectly while pointing to irrelevant, incomplete, or incorrect work. The [`false_confidence_ready`](examples/adversarial/false_confidence_ready/) fixture deliberately returns `READY` while stating that its export and declared checks were not independently verified.
 
 ## Rules are incomplete and contestable
 

@@ -33,6 +33,11 @@ from .metadata import (
 from .models import Verdict
 from .profile_diff import ProfileDiff, build_profile_diff, load_profile_manifest
 from .profiles import ProfileManifest, get_profile_manifest
+from .receipts import (
+    format_evidence_receipt_inspection_text,
+    inspect_evidence_receipts,
+    load_evidence_receipts,
+)
 from .trace import build_rule_trace, format_rule_trace_text
 from .validator import validate_contract
 
@@ -101,6 +106,42 @@ def build_parser() -> argparse.ArgumentParser:
         help="Shortcut for --format json.",
     )
     trace.set_defaults(format="text")
+
+    receipts = subparsers.add_parser(
+        "receipts",
+        help="Inspect retained repository refs for declared evidence fields.",
+    )
+    receipts_commands = receipts.add_subparsers(
+        dest="receipts_command",
+        required=True,
+    )
+    receipts_inspect = receipts_commands.add_parser(
+        "inspect",
+        help="Inspect evidence-receipt coverage and pinned-ref integrity.",
+    )
+    receipts_inspect.add_argument(
+        "contract",
+        help="Path to the YAML/JSON contract. Stdin is not supported for receipt inspection.",
+    )
+    receipts_inspect.add_argument(
+        "receipts",
+        help="Path to a YAML/JSON evidence-receipts sidecar.",
+    )
+    receipts_output = receipts_inspect.add_mutually_exclusive_group()
+    receipts_output.add_argument(
+        "--format",
+        choices=("text", "json"),
+        dest="format",
+        help="Output format.",
+    )
+    receipts_output.add_argument(
+        "--json",
+        action="store_const",
+        const="json",
+        dest="format",
+        help="Shortcut for --format json.",
+    )
+    receipts_inspect.set_defaults(format="text")
 
     contract = subparsers.add_parser(
         "contract",
@@ -319,6 +360,37 @@ def _run_rule_trace(contract_path: str, output_format: str) -> int:
     # Trace is an inspection command, not a verdict gate. A successfully produced
     # trace exits 0 even when the underlying validator verdict is REVIEW or BLOCK.
     return 0
+
+
+def _run_receipts_inspect(
+    contract_path: str,
+    receipts_path: str,
+    output_format: str,
+) -> int:
+    try:
+        contract = load_contract(contract_path)
+        receipts_payload = load_evidence_receipts(receipts_path)
+        inspection = inspect_evidence_receipts(
+            contract,
+            receipts_payload,
+            contract_path=contract_path,
+        )
+    except (FileNotFoundError, ValueError, TypeError) as exc:
+        message = f"Input error: {exc}"
+        if output_format == "json":
+            print(format_json_error(message))
+        else:
+            print(message, file=sys.stderr)
+        return 2
+
+    if output_format == "json":
+        print(json.dumps(inspection.to_dict(), indent=2, sort_keys=True))
+    else:
+        print(format_evidence_receipt_inspection_text(inspection))
+
+    # Missing receipts are informational coverage gaps. Exit 1 is reserved for
+    # receipt-integrity failures such as binding drift or unresolved pinned refs.
+    return 0 if inspection.integrity_ok else 1
 
 
 def _format_contract_value(value: object) -> str:
@@ -700,6 +772,15 @@ def _run_report_verify(
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    if args.command == "receipts":
+        if args.receipts_command == "inspect":
+            return _run_receipts_inspect(
+                args.contract,
+                args.receipts,
+                args.format,
+            )
+        raise AssertionError(f"Unhandled receipts command: {args.receipts_command}")
 
     if args.command == "trace":
         return _run_rule_trace(args.contract, args.format)
