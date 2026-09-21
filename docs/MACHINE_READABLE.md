@@ -1,19 +1,20 @@
 # Machine-readable interoperability
 
-`claim-contract validate ... --json` emits exactly one JSON validation document to stdout. `claim-contract trace ... --json` emits exactly one JSON rule-trace document. `claim-contract profile show ... --json` emits exactly one JSON profile-manifest document. `claim-contract handoff chart ...` emits exactly one JSON chart-handoff document. Successful `claim-contract ledger list/show ... --json` commands emit exactly one JSON ledger-inspection document.
+`claim-contract validate ... --json` emits exactly one JSON validation document to stdout. `claim-contract trace ... --json` emits exactly one JSON rule-trace document. `claim-contract receipts inspect ... --json` emits exactly one JSON evidence-receipt-inspection document. `claim-contract profile show ... --json` emits exactly one JSON profile-manifest document. `claim-contract handoff chart ...` emits exactly one JSON chart-handoff document. Successful `claim-contract ledger list/show ... --json` commands emit exactly one JSON ledger-inspection document.
 
-The output is designed for agents, CI jobs, and other tools, but machine readability must not erase the interpretation boundary. Validation reports, rule traces, input-error envelopes, profile manifests, and chart handoffs preserve `scientific_validation: false`, an explicit scope notice, and a non-empty `not_evaluated` list where defined by the schema. Ledger inspections preserve the source ledger scope notice plus an explicit `automatic_adjudication: false` / `mutates_ledger: false` boundary.
+The output is designed for agents, CI jobs, and other tools, but machine readability must not erase the interpretation boundary. Validation reports, rule traces, evidence-receipt inspections, input-error envelopes, profile manifests, and chart handoffs preserve `scientific_validation: false`, an explicit scope notice, and a non-empty `not_evaluated` list where defined by the schema. Ledger inspections preserve the source ledger scope notice plus an explicit `automatic_adjudication: false` / `mutates_ledger: false` boundary.
 
 Consumers must preserve those fields when forwarding or summarizing a result.
 
 ## Output types
 
-Six versioned document types are currently defined:
+Seven versioned output document types are currently defined:
 
 | Type | Schema | Used for |
 | --- | --- | --- |
 | `claim_contract.report` | [`schemas/report-v1.schema.json`](../schemas/report-v1.schema.json) | A completed validation with a `READY`, `REVIEW`, or `BLOCK` verdict. |
 | `claim_contract.rule_trace` | [`schemas/rule-trace-v1.schema.json`](../schemas/rule-trace-v1.schema.json) | Deterministic per-rule applicability and outcome inspection for one validation path. |
+| `claim_contract.evidence_receipt_inspection` | [`schemas/evidence-receipt-inspection-v1.schema.json`](../schemas/evidence-receipt-inspection-v1.schema.json) | Contract-bound receipt coverage plus pinned repository-ref integrity. |
 | `claim_contract.error` | [`schemas/error-v1.schema.json`](../schemas/error-v1.schema.json) | A contract that could not be loaded or validated as input. |
 | `claim_contract.profile_manifest` | [`schemas/profile-manifest-v1.schema.json`](../schemas/profile-manifest-v1.schema.json) | Versioned rule metadata for a validation profile. |
 | `claim_contract.chart_handoff` | [`schemas/chart-handoff-v1.schema.json`](../schemas/chart-handoff-v1.schema.json) | Strict bounded claim context for downstream chart work. |
@@ -131,6 +132,42 @@ decision-worthy. It means only that an applicable implemented rule emitted no fi
 submitted declarations.
 
 See [RULE_TRACE.md](RULE_TRACE.md) for the execution and interpretation boundary.
+
+## Evidence receipt inspection
+
+`claim-contract receipts inspect contract.yaml receipts.yaml --json` emits one
+`claim_contract.evidence_receipt_inspection` document.
+
+The user-authored sidecar input uses
+[`schemas/evidence-receipts-v1.schema.json`](../schemas/evidence-receipts-v1.schema.json)
+and binds itself to the exact parsed contract plus a full Git commit SHA.
+
+Inspection separates:
+
+- **coverage** — which applicable declared `evidence.*` fields have recorded refs;
+- **integrity** — whether the contract binding matches and the pinned revision/refs resolve.
+
+Coverage derives its target fields from the deterministic rule trace: only evidence fields
+consumed by rules in `PASS` or `TRIGGERED` state are considered, and only when the field is
+actually declared in the supplied contract.
+
+Coverage states are `RECEIPTED` and `UNRECEIPTED`. Missing receipts are informational and
+do not change the validation verdict or cause a nonzero exit.
+
+Receipt-integrity failures do cause exit `1`: contract binding drift, unavailable pinned
+revision, unsafe repository-relative refs, or refs missing at the pinned revision.
+
+The output always carries:
+
+- `scientific_validation: false`;
+- `automatic_verification: false`;
+- `changes_validation_verdict: false`.
+
+A resolved receipt establishes only that a recorded path exists at the pinned revision. The
+inspector does not open, interpret, or determine whether the referenced artifact actually
+supports the declaration.
+
+See [EVIDENCE_RECEIPTS.md](EVIDENCE_RECEIPTS.md) for the sidecar and interpretation boundary.
 
 ## Contract input binding
 
