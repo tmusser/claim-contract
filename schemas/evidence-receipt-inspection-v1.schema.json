@@ -99,19 +99,6 @@
         "unused_receipt_count": {"type": "integer", "minimum": 0}
       }
     },
-    "profileBinding": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["algorithm", "canonicalization", "profile_manifest_sha256"],
-      "properties": {
-        "algorithm": {"const": "sha256"},
-        "canonicalization": {"const": "profile-manifest-semantics-v1"},
-        "profile_manifest_sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        }
-      }
-    },
     "coverage": {
       "type": "array",
       "items": {"$ref": "#/$defs/coverage"}
@@ -130,6 +117,19 @@
         "algorithm": {"const": "sha256"},
         "canonicalization": {"const": "parsed-contract-v1"},
         "contract_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "profileBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "canonicalization", "profile_manifest_sha256"],
+      "properties": {
+        "algorithm": {"const": "sha256"},
+        "canonicalization": {"const": "profile-manifest-semantics-v1"},
+        "profile_manifest_sha256": {
           "type": "string",
           "pattern": "^[0-9a-f]{64}$"
         }
