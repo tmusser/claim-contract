@@ -590,6 +590,33 @@ h1 {
   gap: 8px;
 }
 
+.relationship-card {
+  padding: 10px 12px;
+  border: 1px solid #e0e4e0;
+  border-radius: 11px;
+  background: #fafbf9;
+}
+
+.relationship-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #5d6a62;
+  font-size: 11px;
+}
+
+.relationship-line code {
+  color: #365f49;
+  font-weight: 700;
+}
+
+.relationship-card p {
+  margin: 7px 0 0;
+  color: #778078;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .source-card,
 .data-source-card {
   padding: 11px 12px;
