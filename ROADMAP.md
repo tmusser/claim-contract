@@ -36,6 +36,7 @@ This roadmap records possible directions, not promises or release commitments.
 - Unified graph and DAG tooling under the primary `claim-contract` command tree while preserving the older executables as compatibility aliases.
 - Added deterministic per-rule trace inspection so agents and analysts can distinguish triggered rules, applicable passes, and non-applicable rules without changing validator verdict semantics.
 - Added optional evidence receipts so applicable declared evidence fields can point to contract-bound, commit-pinned repository refs without treating path existence as evidence verification or changing READY / REVIEW / BLOCK.
+- Added an optional read-only React claim map backed by an explicit static export of ledger + graph + optional file/database/query provenance, without adding a web server, SQL execution, lineage inference, or adjudication semantics.
 
 ## Candidate directions
 
