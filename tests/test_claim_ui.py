@@ -88,6 +88,7 @@ def test_optional_sidecar_adds_file_and_database_query_lineage(tmp_path: Path) -
         [
             {
                 "claim_id": "CCL-001",
+                "note": "Explicit lineage retained for claim-map inspection.",
                 "source_files": [
                     {
                         "ref": "analysis/ccl001.md",
@@ -130,6 +131,9 @@ def test_optional_sidecar_adds_file_and_database_query_lineage(tmp_path: Path) -
     assert lineage["table"] == "funnel_events"
     assert lineage["query"]["ref"] == "queries/ccl001.sql"
     assert lineage["query"]["text"].startswith("SELECT segment")
+    assert ccl001["provenance_note"] == (
+        "Explicit lineage retained for claim-map inspection."
+    )
 
 
 def test_provenance_rejects_malformed_claim_id(tmp_path: Path) -> None:
