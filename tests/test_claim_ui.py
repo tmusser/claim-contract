@@ -132,6 +132,22 @@ def test_optional_sidecar_adds_file_and_database_query_lineage(tmp_path: Path) -
     assert lineage["query"]["text"].startswith("SELECT segment")
 
 
+def test_provenance_rejects_malformed_claim_id(tmp_path: Path) -> None:
+    provenance_path = _write_provenance(
+        tmp_path,
+        [
+            {
+                "claim_id": "claim-1",
+                "source_files": [],
+                "data_sources": [],
+            }
+        ],
+    )
+
+    with pytest.raises(ValueError, match="must match CCL-###"):
+        load_claim_provenance(provenance_path)
+
+
 def test_provenance_rejects_unknown_claim_id(tmp_path: Path) -> None:
     provenance_path = _write_provenance(
         tmp_path,
