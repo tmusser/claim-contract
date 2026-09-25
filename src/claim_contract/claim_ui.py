@@ -189,6 +189,7 @@ def build_claim_ui_bundle(
                 "logged_at": recorded_at,
                 "generated_at": ledger_provenance.get("generated_at"),
                 "record_ref": record_ref,
+                "provenance_note": explicit.get("note"),
                 "context_snapshot": deepcopy(context_snapshot),
                 "source_files": source_files,
                 "data_sources": data_sources,
