@@ -385,6 +385,13 @@ function ClaimInspector({
         <p>{claim.decision_impact}</p>
       </section>
 
+      {claim.provenance_note ? (
+        <section className="detail-section">
+          <h3>Provenance note</h3>
+          <p>{claim.provenance_note}</p>
+        </section>
+      ) : null}
+
       <section className="detail-section">
         <div className="section-heading-row">
           <h3>Relationships</h3>
