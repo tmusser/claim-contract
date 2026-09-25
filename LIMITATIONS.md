@@ -76,3 +76,13 @@ Inappropriate uses include:
 ## Human responsibility
 
 The person or team sharing the claim remains responsible for the analysis and its consequences. `claim-contract` does not transfer accountability to software.
+
+
+## Claim map UI
+
+The optional claim map UI is a visualization of declared repository metadata, not a new evidence
+engine. A displayed file, table, or query reference does not prove that the referenced source
+supports the claim, and the exporter does not execute SQL or inspect database contents.
+
+Inline query text is copied into browser-readable static JSON. Sensitive SQL should therefore
+remain outside the bundle and be represented by an explicit query reference and optional digest.
