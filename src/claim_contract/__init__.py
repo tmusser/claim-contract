@@ -4,6 +4,11 @@ from .binding import (
     build_contract_binding,
     build_profile_manifest_binding,
 )
+from .claim_ui import (
+    build_claim_ui_bundle,
+    load_claim_provenance,
+    write_claim_ui_bundle,
+)
 from .claim_dag import (
     analyze_claim_dag,
     format_claim_dag_text,
@@ -44,6 +49,7 @@ __all__ = [
     "REPORT_SCHEMA_VERSION",
     "analyze_claim_dag",
     "build_chart_handoff",
+    "build_claim_ui_bundle",
     "build_contract_binding",
     "build_profile_manifest_binding",
     "build_rule_trace",
@@ -51,11 +57,13 @@ __all__ = [
     "get_profile_manifest",
     "inspect_evidence_receipts",
     "load_claim_dag",
+    "load_claim_provenance",
     "load_evidence_receipts",
     "load_contract",
     "render_claim_dag_mermaid",
     "validate_claim_dag",
     "validate_contract",
+    "write_claim_ui_bundle",
 ]
 
 __version__ = TOOL_VERSION

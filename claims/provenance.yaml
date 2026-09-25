@@ -1,0 +1,11 @@
+schema_version: "1.0"
+type: claim_contract.claim_provenance
+scope_notice: "Claim provenance records declared source and data-lineage metadata only. It does not verify that a file, table, or query supports, proves, or generated the claim."
+
+# Optional enrichment only. Existing ledger provenance (recorded_at, record_ref,
+# origin_refs, context_snapshot refs, and evidence refs) is exported automatically.
+#
+# Add entries here when a claim has explicit file or database/query lineage that is
+# not already represented by the ledger. Do not infer lineage from filenames, SQL,
+# or repository history.
+claims: []

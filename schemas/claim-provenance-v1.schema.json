@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/blob/main/schemas/claim-provenance-v1.schema.json",
+  "title": "claim-contract optional claim provenance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "type", "scope_notice", "claims"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "type": {"const": "claim_contract.claim_provenance"},
+    "scope_notice": {
+      "const": "Claim provenance records declared source and data-lineage metadata only. It does not verify that a file, table, or query supports, proves, or generated the claim."
+    },
+    "claims": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/claimProvenance"}
+    }
+  },
+  "$defs": {
+    "claimProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_id", "source_files", "data_sources"],
+      "properties": {
+        "claim_id": {
+          "type": "string",
+          "pattern": "^CCL-[0-9]{3}$"
+        },
+        "source_files": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/sourceFile"}
+        },
+        "data_sources": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/dataSource"}
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref"],
+      "properties": {
+        "ref": {"type": "string", "minLength": 1},
+        "role": {"type": "string", "minLength": 1},
+        "note": {"type": "string", "minLength": 1}
+      }
+    },
+    "dataSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "table", "query"],
+      "properties": {
+        "system": {"type": "string", "minLength": 1},
+        "catalog": {"type": "string", "minLength": 1},
+        "database": {"type": "string", "minLength": 1},
+        "schema": {"type": "string", "minLength": 1},
+        "table": {"type": "string", "minLength": 1},
+        "query": {"$ref": "#/$defs/query"},
+        "note": {"type": "string", "minLength": 1}
+      }
+    },
+    "query": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ref": {"type": "string", "minLength": 1},
+        "text": {"type": "string", "minLength": 1},
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "anyOf": [
+        {"required": ["ref"]},
+        {"required": ["text"]}
+      ]
+    }
+  }
+}

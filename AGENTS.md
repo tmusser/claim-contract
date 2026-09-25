@@ -163,6 +163,28 @@ When using it:
 
 See [`skills/claim-foil/EXAMPLE.md`](skills/claim-foil/EXAMPLE.md) for a worked example against the existing onboarding conversion fixture.
 
+## Claim map UI boundary
+
+The optional React claim map is a read-only inspection surface over declared ledger, graph, and provenance metadata.
+
+Use:
+
+```bash
+claim-contract ui export
+```
+
+to generate the static browser bundle.
+
+- Do not treat graph position, connectivity, or visual prominence as evidence that a claim is true, supported, important, or prioritized.
+- Do not infer database lineage from SQL, filenames, table names, or repository history. Add it only when explicitly declared in `claims/provenance.yaml`.
+- Do not execute query refs or raw SQL merely to populate the UI.
+- Do not put credentials, secrets, sensitive literals, or data rows into `query.text`; the generated bundle is browser-readable static JSON.
+- Prefer a query ref plus optional SHA-256 when exact SQL should remain outside the browser bundle.
+- Preserve `read_only: true`, `scientific_validation: false`, and `automatic_adjudication: false` when forwarding a UI bundle.
+- The UI must not mutate `claims/ledger.yaml`, `claims/graph.yaml`, or `claims/provenance.yaml`.
+
+See [docs/CLAIM_UI.md](docs/CLAIM_UI.md).
+
 ## Open claim ledger
 
 The repository-level [`claims/ledger.yaml`](claims/ledger.yaml) is a separate evidence backlog for product and research claims that have not been earned yet.

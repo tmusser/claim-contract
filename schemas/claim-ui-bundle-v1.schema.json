@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/blob/main/schemas/claim-ui-bundle-v1.schema.json",
+  "title": "claim-contract claim map UI bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "type",
+    "scientific_validation",
+    "automatic_adjudication",
+    "read_only",
+    "scope_notice",
+    "generated_from",
+    "graph",
+    "claims"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "type": {"const": "claim_contract.claim_ui_bundle"},
+    "scientific_validation": {"const": false},
+    "automatic_adjudication": {"const": false},
+    "read_only": {"const": true},
+    "scope_notice": {
+      "const": "The claim map UI visualizes declared graph, ledger, and provenance metadata only. It does not verify evidence, execute queries, adjudicate claims, or mutate source artifacts."
+    },
+    "generated_from": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ledger", "graph", "provenance"],
+      "properties": {
+        "ledger": {"type": "string", "minLength": 1},
+        "graph": {"type": "string", "minLength": 1},
+        "provenance": {"type": ["string", "null"]}
+      }
+    },
+    "graph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope_notice", "roots", "edges"],
+      "properties": {
+        "scope_notice": {"type": "string", "minLength": 1},
+        "roots": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^CCL-[0-9]{3}$"}
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to", "rationale"],
+            "properties": {
+              "from": {"type": "string", "pattern": "^CCL-[0-9]{3}$"},
+              "to": {"type": "string", "pattern": "^CCL-[0-9]{3}$"},
+              "rationale": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/claim"}
+    }
+  },
+  "$defs": {
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "classification",
+        "is_root",
+        "claim",
+        "scope",
+        "decision_impact",
+        "logged_at",
+        "generated_at",
+        "record_ref",
+        "provenance_note",
+        "context_snapshot",
+        "source_files",
+        "data_sources",
+        "judgment"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^CCL-[0-9]{3}$"},
+        "status": {"type": "string", "minLength": 1},
+        "classification": {
+          "enum": ["ROOT", "CONNECTED", "PRUNE_CANDIDATE", "RETIRED"]
+        },
+        "is_root": {"type": "boolean"},
+        "claim": {"type": "string", "minLength": 1},
+        "scope": {"type": "string", "minLength": 1},
+        "decision_impact": {"type": "string", "minLength": 1},
+        "logged_at": {"type": "string", "format": "date-time"},
+        "generated_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "record_ref": {"type": "string", "minLength": 1},
+        "provenance_note": {"type": ["string", "null"], "minLength": 1},
+        "context_snapshot": {"type": "object"},
+        "source_files": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/sourceFile"}
+        },
+        "data_sources": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/dataSource"}
+        },
+        "judgment": {"type": "object"}
+      }
+    },
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "roles"],
+      "properties": {
+        "ref": {"type": "string", "minLength": 1},
+        "roles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "note": {"type": ["string", "null"]}
+      }
+    },
+    "dataSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "table", "query"],
+      "properties": {
+        "system": {"type": "string", "minLength": 1},
+        "catalog": {"type": "string", "minLength": 1},
+        "database": {"type": "string", "minLength": 1},
+        "schema": {"type": "string", "minLength": 1},
+        "table": {"type": "string", "minLength": 1},
+        "query": {"$ref": "#/$defs/query"},
+        "note": {"type": "string", "minLength": 1}
+      }
+    },
+    "query": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ref": {"type": "string", "minLength": 1},
+        "text": {"type": "string", "minLength": 1},
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "anyOf": [
+        {"required": ["ref"]},
+        {"required": ["text"]}
+      ]
+    }
+  }
+}

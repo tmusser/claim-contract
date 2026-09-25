@@ -14,6 +14,13 @@ from .binding import (
 )
 from .contract_diff import ContractDiff, build_contract_diff
 from .claim_graph import add_graph_subparser, run_prune_command
+from .claim_ui import (
+    DEFAULT_GRAPH_PATH as DEFAULT_UI_GRAPH_PATH,
+    DEFAULT_LEDGER_PATH as DEFAULT_UI_LEDGER_PATH,
+    DEFAULT_PROVENANCE_PATH,
+    DEFAULT_UI_BUNDLE_PATH,
+    write_claim_ui_bundle,
+)
 from .dag_cli import add_dag_subparser, run_dag_command
 from .formatters import format_json, format_json_error, format_text
 from .handoff import build_chart_handoff, handoff_exit_code
@@ -310,6 +317,39 @@ def build_parser() -> argparse.ArgumentParser:
         help="Shortcut for --format json.",
     )
     ledger_show.set_defaults(format="text")
+
+    ui = subparsers.add_parser(
+        "ui",
+        help="Export read-only data for the optional React claim map.",
+    )
+    ui_commands = ui.add_subparsers(dest="ui_command", required=True)
+    ui_export = ui_commands.add_parser(
+        "export",
+        help="Fuse ledger, graph, and optional provenance into the UI JSON bundle.",
+    )
+    ui_export.add_argument(
+        "--ledger",
+        default=DEFAULT_UI_LEDGER_PATH,
+        help=f"Ledger path (default: {DEFAULT_UI_LEDGER_PATH}).",
+    )
+    ui_export.add_argument(
+        "--graph",
+        default=DEFAULT_UI_GRAPH_PATH,
+        help=f"Claim graph path (default: {DEFAULT_UI_GRAPH_PATH}).",
+    )
+    ui_export.add_argument(
+        "--provenance",
+        default=None,
+        help=(
+            "Optional provenance sidecar path. When omitted, "
+            f"{DEFAULT_PROVENANCE_PATH} is used if it exists."
+        ),
+    )
+    ui_export.add_argument(
+        "--out",
+        default=DEFAULT_UI_BUNDLE_PATH,
+        help=f"Output JSON path (default: {DEFAULT_UI_BUNDLE_PATH}).",
+    )
 
     report = subparsers.add_parser(
         "report",
@@ -653,6 +693,35 @@ def _run_ledger_verify(path: str) -> int:
     return 1 if failed else 0
 
 
+def _run_ui_export(
+    ledger_path: str,
+    graph_path: str,
+    provenance_path: str | None,
+    output_path: str,
+) -> int:
+    resolved_provenance = provenance_path
+    if resolved_provenance is None and Path(DEFAULT_PROVENANCE_PATH).exists():
+        resolved_provenance = DEFAULT_PROVENANCE_PATH
+
+    try:
+        bundle = write_claim_ui_bundle(
+            output_path,
+            ledger_path=ledger_path,
+            graph_path=graph_path,
+            provenance_path=resolved_provenance,
+        )
+    except (FileNotFoundError, ValueError, TypeError) as exc:
+        print(f"Input error: {exc}", file=sys.stderr)
+        return 2
+
+    print(f"Wrote claim map bundle: {output_path}")
+    print(f"Claims: {len(bundle['claims'])}")
+    print(f"Edges: {len(bundle['graph']['edges'])}")
+    print("Read only: true")
+    print("Scientific validation: false")
+    return 0
+
+
 def _load_report_payload(path: str) -> dict[str, object]:
     report_path = Path(path)
     if report_path.suffix.lower() != ".json":
@@ -820,6 +889,15 @@ def main(argv: list[str] | None = None) -> int:
                 claim_id=args.claim_id,
             )
         raise AssertionError(f"Unhandled ledger command: {args.ledger_command}")
+    if args.command == "ui":
+        if args.ui_command == "export":
+            return _run_ui_export(
+                args.ledger,
+                args.graph,
+                args.provenance,
+                args.out,
+            )
+        raise AssertionError(f"Unhandled ui command: {args.ui_command}")
     if args.command == "report":
         return _run_report_verify(
             args.report,

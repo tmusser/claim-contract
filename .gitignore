@@ -7,3 +7,6 @@ build/
 dist/
 *.egg-info/
 .coverage
+ui/node_modules/
+ui/dist/
+ui/public/claim-map.json

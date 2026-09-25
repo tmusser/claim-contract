@@ -169,6 +169,34 @@ supports the declaration.
 
 See [EVIDENCE_RECEIPTS.md](EVIDENCE_RECEIPTS.md) for the sidecar and interpretation boundary.
 
+## Claim map UI bundle
+
+`claim-contract ui export` writes one static `claim_contract.claim_ui_bundle` document for
+the optional React frontend.
+
+The bundle is assembled from recorded repository artifacts:
+
+- the claim ledger for claim text, status, scope, recorded time, record ref, snapshots, and evidence refs;
+- the claim graph for roots, edges, and structural classification;
+- the optional `claim_contract.claim_provenance` sidecar for explicit file/database/query lineage.
+
+The bundle always declares:
+
+- `scientific_validation: false`;
+- `automatic_adjudication: false`;
+- `read_only: true`.
+
+The exporter does not execute queries, inspect database contents, infer lineage from SQL, or
+change ledger/graph state. Query text is copied only when explicitly declared in the provenance
+sidecar.
+
+Published schemas:
+
+- [`schemas/claim-provenance-v1.schema.json`](../schemas/claim-provenance-v1.schema.json)
+- [`schemas/claim-ui-bundle-v1.schema.json`](../schemas/claim-ui-bundle-v1.schema.json)
+
+See [CLAIM_UI.md](CLAIM_UI.md) for the browser/privacy boundary.
+
 ## Contract input binding
 
 Generated reports are bound to the complete parsed contract content that produced the verdict. The binding uses SHA-256 over a deterministic `parsed-contract-v1` canonicalization.

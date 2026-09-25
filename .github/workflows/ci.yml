@@ -101,6 +101,7 @@ jobs:
           claim-contract receipts inspect examples/descriptive_summary/contract.yaml receipt-sidecar.yaml --json > receipt-inspection.json
           claim-contract graph prune --json > graph-prune.json
           claim-contract graph prune --fail-on-candidate
+          claim-contract ui export --out claim-map.json
           claim-contract dag inspect examples/claim_dag/dag.yaml > /dev/null
           claim-contract-graph prune --json > /dev/null
           claim-dag inspect examples/claim_dag/dag.yaml > /dev/null
@@ -193,6 +194,7 @@ jobs:
           .venv-smoke/bin/claim-contract report verify report.json \
             --contract examples/descriptive_summary/contract.yaml > binding-check.txt
           .venv-smoke/bin/claim-contract graph prune --json > graph-report.json
+          .venv-smoke/bin/claim-contract ui export --out installed-claim-map.json
           .venv-smoke/bin/claim-contract dag inspect examples/claim_dag/dag.yaml > dag-report.txt
           .venv-smoke/bin/claim-contract-graph prune --json > /dev/null
           .venv-smoke/bin/claim-dag inspect examples/claim_dag/dag.yaml > /dev/null
@@ -254,7 +256,76 @@ jobs:
           assert graph["automatic_retirement"] is False
           assert graph["mutates_ledger"] is False
           assert graph["counts"]["prune_candidates"] == 0
+
+          claim_map = json.loads(Path("installed-claim-map.json").read_text(encoding="utf-8"))
+          assert claim_map["type"] == "claim_contract.claim_ui_bundle"
+          assert claim_map["schema_version"] == "1.0"
+          assert claim_map["scientific_validation"] is False
+          assert claim_map["automatic_adjudication"] is False
+          assert claim_map["read_only"] is True
+          assert len(claim_map["claims"]) == 3
+          assert {claim["id"] for claim in claim_map["claims"]} == {
+              "CCL-001",
+              "CCL-002",
+              "CCL-003",
+          }
           PY
+
+  ui-build:
+    name: React claim map build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install claim-contract
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .
+
+      - name: Export static claim map bundle
+        run: |
+          claim-contract ui export
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("ui/public/claim-map.json").read_text(encoding="utf-8")
+          )
+          assert payload["type"] == "claim_contract.claim_ui_bundle"
+          assert payload["read_only"] is True
+          assert payload["scientific_validation"] is False
+          assert payload["automatic_adjudication"] is False
+          assert len(payload["claims"]) == 3
+          PY
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install UI dependencies
+        working-directory: ui
+        run: npm install --no-audit --no-fund
+
+      - name: Type-check and build React UI
+        working-directory: ui
+        run: npm run build
+
+      - name: Verify static frontend output
+        run: |
+          test -f ui/dist/index.html
+          test -f ui/dist/assets/$(ls ui/dist/assets | head -n 1)
 
   action-smoke:
     name: GitHub Action smoke

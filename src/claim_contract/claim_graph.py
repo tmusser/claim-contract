@@ -103,6 +103,11 @@ class ClaimGraphPruneReport:
         }
 
 
+def load_claim_graph(path: str | Path = DEFAULT_GRAPH_PATH) -> dict[str, Any]:
+    """Load and structurally validate the declared claim graph document."""
+    return _load_graph(Path(path))
+
+
 def _load_graph(path: Path) -> dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Claim graph file not found: {path}")
