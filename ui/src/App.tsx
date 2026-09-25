@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { edgePath, layoutClaimGraph, nodeHeight, nodeWidth } from "./layout";
 import type {
   ClaimGraphEdge,
@@ -174,7 +175,7 @@ function App() {
           selectedId={selectedId}
           onSelect={setSelectedId}
         />
-        <ClaimInspector claim={selectedClaim} />
+        <ClaimInspector claim={selectedClaim} edges={bundle.graph.edges} />
       </section>
 
       <footer className="footer">
@@ -322,7 +323,13 @@ function ClaimGraph({
   );
 }
 
-function ClaimInspector({ claim }: { claim: ClaimNode | null }) {
+function ClaimInspector({
+  claim,
+  edges,
+}: {
+  claim: ClaimNode | null;
+  edges: ClaimGraphEdge[];
+}) {
   if (!claim) {
     return (
       <aside className="inspector empty-inspector">
@@ -376,6 +383,42 @@ function ClaimInspector({ claim }: { claim: ClaimNode | null }) {
       <section className="detail-section">
         <h3>Decision impact</h3>
         <p>{claim.decision_impact}</p>
+      </section>
+
+      <section className="detail-section">
+        <div className="section-heading-row">
+          <h3>Relationships</h3>
+          <span className="count-badge">
+            {edges.filter(
+              (edge) => edge.from === claim.id || edge.to === claim.id,
+            ).length}
+          </span>
+        </div>
+        {edges.some(
+          (edge) => edge.from === claim.id || edge.to === claim.id,
+        ) ? (
+          <div className="source-list">
+            {edges
+              .filter(
+                (edge) => edge.from === claim.id || edge.to === claim.id,
+              )
+              .map((edge) => (
+                <div
+                  className="relationship-card"
+                  key={`${edge.from}->${edge.to}`}
+                >
+                  <div className="relationship-line">
+                    <code>{edge.from}</code>
+                    <span>→</span>
+                    <code>{edge.to}</code>
+                  </div>
+                  <p>{edge.rationale}</p>
+                </div>
+              ))}
+          </div>
+        ) : (
+          <EmptyMini>No declared graph edges for this claim.</EmptyMini>
+        )}
       </section>
 
       <section className="detail-section">
@@ -532,7 +575,7 @@ function Metric({ value, label }: { value: number; label: string }) {
   );
 }
 
-function EmptyMini({ children }: { children: React.ReactNode }) {
+function EmptyMini({ children }: { children: ReactNode }) {
   return <div className="empty-mini">{children}</div>;
 }
 
