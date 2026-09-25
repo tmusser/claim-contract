@@ -339,8 +339,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ui_export.add_argument(
         "--provenance",
-        default=DEFAULT_PROVENANCE_PATH,
-        help=f"Optional provenance sidecar path (default: {DEFAULT_PROVENANCE_PATH}).",
+        default=None,
+        help=(
+            "Optional provenance sidecar path. When omitted, "
+            f"{DEFAULT_PROVENANCE_PATH} is used if it exists."
+        ),
     )
     ui_export.add_argument(
         "--out",
@@ -693,15 +696,19 @@ def _run_ledger_verify(path: str) -> int:
 def _run_ui_export(
     ledger_path: str,
     graph_path: str,
-    provenance_path: str,
+    provenance_path: str | None,
     output_path: str,
 ) -> int:
+    resolved_provenance = provenance_path
+    if resolved_provenance is None and Path(DEFAULT_PROVENANCE_PATH).exists():
+        resolved_provenance = DEFAULT_PROVENANCE_PATH
+
     try:
         bundle = write_claim_ui_bundle(
             output_path,
             ledger_path=ledger_path,
             graph_path=graph_path,
-            provenance_path=provenance_path,
+            provenance_path=resolved_provenance,
         )
     except (FileNotFoundError, ValueError, TypeError) as exc:
         print(f"Input error: {exc}", file=sys.stderr)
