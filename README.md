@@ -96,6 +96,30 @@ claim-contract ledger show CCL-002 --json
 
 These commands expose recorded ledger state only. They do **not** evaluate free-text `support_if` / `refute_if`, infer a status, or mutate the ledger. See [docs/LEDGER_INSPECTION.md](docs/LEDGER_INSPECTION.md).
 
+## Optional claim map UI
+
+The repository includes an optional read-only React frontend for exploring the claim graph and
+claim provenance without turning the UI into another validator.
+
+```bash
+claim-contract ui export
+cd ui
+npm install
+npm run dev
+```
+
+The graph view links each claim to its recorded ledger metadata: claim text, status, scope,
+`provenance.recorded_at`, record reference, creation snapshot, and repository evidence refs.
+An optional [`claims/provenance.yaml`](claims/provenance.yaml) sidecar can add explicit source
+files and database lineage such as Athena database/table plus the query ref, query digest, or
+deliberately included query text.
+
+The exporter is read-only. It does not execute SQL, discover lineage, inspect database contents,
+adjudicate a claim, or change READY / REVIEW / BLOCK. Raw query text becomes part of the static
+browser bundle, so sensitive SQL should be represented by ref/hash instead.
+
+See [docs/CLAIM_UI.md](docs/CLAIM_UI.md) for the provenance contract and privacy boundary.
+
 ## Verdict gallery
 
 | Example | Expected verdict | What it demonstrates |
@@ -257,6 +281,7 @@ claim-contract ledger show CCL-002
 claim-contract ledger show CCL-002 --json
 claim-contract ledger verify claims/ledger.yaml
 claim-contract graph prune --json
+claim-contract ui export
 claim-contract dag inspect examples/claim_dag/dag.yaml
 claim-contract dag render examples/claim_dag/dag.yaml
 ```
@@ -284,9 +309,11 @@ A `REVIEW` or `BLOCK` chart handoff is still emitted when validation completed, 
 
 `ledger list` / `show` exit `0` for successful inspection and `2` for ledger-input errors. They never use exit `1` because they do not adjudicate claims. `ledger verify` remains a separate read-only provenance check.
 
+`ui export` exits `0` after writing a read-only static bundle and `2` for malformed ledger, graph, provenance, or output inputs. It does not execute validation or adjudication.
+
 ## Machine-readable contract
 
-JSON validation reports use `claim_contract.report`; rule-path inspection uses `claim_contract.rule_trace`; receipt inspection uses `claim_contract.evidence_receipt_inspection`; JSON input failures use `claim_contract.error`; profile inspection uses `claim_contract.profile_manifest`; profile drift inspection uses `claim_contract.profile_diff`; chart handoff uses `claim_contract.chart_handoff`; ledger list/show uses `claim_contract.ledger_inspection`. Each currently has its own schema family at `schema_version: "1.0"`.
+JSON validation reports use `claim_contract.report`; rule-path inspection uses `claim_contract.rule_trace`; receipt inspection uses `claim_contract.evidence_receipt_inspection`; JSON input failures use `claim_contract.error`; profile inspection uses `claim_contract.profile_manifest`; profile drift inspection uses `claim_contract.profile_diff`; chart handoff uses `claim_contract.chart_handoff`; ledger list/show uses `claim_contract.ledger_inspection`; the optional React map consumes `claim_contract.claim_ui_bundle`. Each currently has its own schema family at `schema_version: "1.0"`.
 
 Machine-readable validation/trace/receipt/profile/handoff documents preserve the interpretation boundary with `scientific_validation: false`, an explicit scope notice, and a non-empty `not_evaluated` list where defined by their schemas. Profile diff additionally carries `automatic_compatibility_classification: false`; ledger inspection preserves the source ledger scope notice and explicitly carries `automatic_adjudication: false` and `mutates_ledger: false`.
 
@@ -297,13 +324,15 @@ Published schemas:
 - [`schemas/profile-diff-v1.schema.json`](schemas/profile-diff-v1.schema.json) — mechanical drift between saved profile manifests
 - [`schemas/chart-handoff-v1.schema.json`](schemas/chart-handoff-v1.schema.json) — strict bounded context for downstream chart work
 - [`schemas/ledger-inspection-v1.schema.json`](schemas/ledger-inspection-v1.schema.json) — read-only machine-readable ledger inspection
+- [`schemas/claim-provenance-v1.schema.json`](schemas/claim-provenance-v1.schema.json) — optional declared file/database/query lineage for claim-map inspection
+- [`schemas/claim-ui-bundle-v1.schema.json`](schemas/claim-ui-bundle-v1.schema.json) — static read-only data bundle consumed by the React claim map
 - [`schemas/report-v1.schema.json`](schemas/report-v1.schema.json)
 - [`schemas/rule-trace-v1.schema.json`](schemas/rule-trace-v1.schema.json) — deterministic per-rule applicability/outcome trace
 - [`schemas/evidence-receipts-v1.schema.json`](schemas/evidence-receipts-v1.schema.json) — optional contract-bound receipt sidecar input
 - [`schemas/evidence-receipt-inspection-v1.schema.json`](schemas/evidence-receipt-inspection-v1.schema.json) — receipt coverage and pinned-ref integrity inspection
 - [`schemas/error-v1.schema.json`](schemas/error-v1.schema.json)
 
-See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md) for output compatibility guarantees, [docs/EVIDENCE_RECEIPTS.md](docs/EVIDENCE_RECEIPTS.md) for the receipt boundary, [docs/PROFILE_DIFF.md](docs/PROFILE_DIFF.md) for profile-drift boundaries, [docs/CHART_HANDOFF.md](docs/CHART_HANDOFF.md) for the cross-tool boundary, [docs/LEDGER_INSPECTION.md](docs/LEDGER_INSPECTION.md) for the ledger inspection boundary, and [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md) for profile-manifest semantics. See [docs/CONTRACT_SCHEMA.md](docs/CONTRACT_SCHEMA.md) for input-schema scope and compatibility.
+See [docs/MACHINE_READABLE.md](docs/MACHINE_READABLE.md) for output compatibility guarantees, [docs/CLAIM_UI.md](docs/CLAIM_UI.md) for the optional React claim-map boundary, [docs/EVIDENCE_RECEIPTS.md](docs/EVIDENCE_RECEIPTS.md) for the receipt boundary, [docs/PROFILE_DIFF.md](docs/PROFILE_DIFF.md) for profile-drift boundaries, [docs/CHART_HANDOFF.md](docs/CHART_HANDOFF.md) for the cross-tool boundary, [docs/LEDGER_INSPECTION.md](docs/LEDGER_INSPECTION.md) for the ledger inspection boundary, and [docs/PROFILE_MANIFEST.md](docs/PROFILE_MANIFEST.md) for profile-manifest semantics. See [docs/CONTRACT_SCHEMA.md](docs/CONTRACT_SCHEMA.md) for input-schema scope and compatibility.
 
 ## Python API
 
