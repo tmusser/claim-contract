@@ -130,13 +130,33 @@
     },
     "dataSource": {
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
       "required": ["system", "table", "query"],
       "properties": {
         "system": {"type": "string", "minLength": 1},
+        "catalog": {"type": "string", "minLength": 1},
+        "database": {"type": "string", "minLength": 1},
+        "schema": {"type": "string", "minLength": 1},
         "table": {"type": "string", "minLength": 1},
-        "query": {"type": "object"}
+        "query": {"$ref": "#/$defs/query"},
+        "note": {"type": "string", "minLength": 1}
       }
+    },
+    "query": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ref": {"type": "string", "minLength": 1},
+        "text": {"type": "string", "minLength": 1},
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "anyOf": [
+        {"required": ["ref"]},
+        {"required": ["text"]}
+      ]
     }
   }
 }
