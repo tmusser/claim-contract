@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -75,6 +76,10 @@ def load_claim_provenance(path: str | Path) -> dict[str, Any]:
         if not isinstance(claim_id, str) or not claim_id.strip():
             raise ValueError(f"Claim provenance entry {index} requires claim_id.")
         claim_id = claim_id.strip()
+        if re.fullmatch(r"CCL-[0-9]{3}", claim_id) is None:
+            raise ValueError(
+                f"Claim provenance entry {index} claim_id must match CCL-###."
+            )
         if claim_id in seen:
             raise ValueError(f"Claim provenance contains duplicate claim_id: {claim_id}")
         seen.add(claim_id)
@@ -106,7 +111,7 @@ def build_claim_ui_bundle(
     *,
     ledger_path: str | Path = DEFAULT_LEDGER_PATH,
     graph_path: str | Path = DEFAULT_GRAPH_PATH,
-    provenance_path: str | Path | None = DEFAULT_PROVENANCE_PATH,
+    provenance_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Fuse ledger, graph, and optional explicit lineage into a read-only UI bundle."""
 
@@ -217,7 +222,7 @@ def write_claim_ui_bundle(
     *,
     ledger_path: str | Path = DEFAULT_LEDGER_PATH,
     graph_path: str | Path = DEFAULT_GRAPH_PATH,
-    provenance_path: str | Path | None = DEFAULT_PROVENANCE_PATH,
+    provenance_path: str | Path | None = None,
 ) -> dict[str, Any]:
     bundle = build_claim_ui_bundle(
         ledger_path=ledger_path,
