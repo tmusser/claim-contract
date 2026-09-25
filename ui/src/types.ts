@@ -51,6 +51,7 @@ export interface ClaimNode {
   logged_at: string;
   generated_at: string | null;
   record_ref: string;
+  provenance_note: string | null;
   context_snapshot: {
     repository_revision?: string;
     refs?: string[];
