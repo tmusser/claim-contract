@@ -4,6 +4,10 @@
 
 ### Added
 
+- Optional React/Vite claim-map frontend for browsing declared claim-graph relationships and inspecting ledger provenance in a read-only side panel.
+- `claim-contract ui export` for fusing `claims/ledger.yaml`, `claims/graph.yaml`, and optional `claims/provenance.yaml` into a versioned static `claim_contract.claim_ui_bundle` without executing queries or mutating source artifacts.
+- Optional `claim_contract.claim_provenance` sidecar for explicit source-file and database/table/query lineage that remains separate from ledger v1.2 adjudication semantics.
+- Published claim-provenance and claim-UI-bundle schemas plus Python and frontend build coverage.
 - Optional `claim_contract.evidence_receipts` sidecar for binding retained repository refs to declared `evidence.*` fields without changing validator semantics or claiming that refs prove the declarations.
 - `claim-contract receipts inspect <contract> <receipts> [--json]` plus versioned `claim_contract.evidence_receipt_inspection` output, deriving applicable receipt targets from the deterministic rule trace and separating informational coverage from contract/ref integrity failures.
 - Published `schemas/evidence-receipts-v1.schema.json` and `schemas/evidence-receipt-inspection-v1.schema.json` with explicit `scientific_validation: false`, `automatic_verification: false`, and `changes_validation_verdict: false` boundaries.
