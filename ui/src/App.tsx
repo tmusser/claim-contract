@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { edgePath, layoutClaimGraph, nodeHeight, nodeWidth } from "./layout";
 import type {
@@ -20,12 +20,15 @@ const statusOrder = [
   "RETIRED",
 ];
 
+type ProvenanceFilter = "ALL" | "FILES" | "DATA" | "MISSING";
+
 function App() {
   const [bundle, setBundle] = useState<ClaimUiBundle | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("ALL");
+  const [provenance, setProvenance] = useState<ProvenanceFilter>("ALL");
 
   useEffect(() => {
     let cancelled = false;
@@ -59,16 +62,28 @@ function App() {
   const visibleClaims = useMemo(() => {
     if (!bundle) return [];
     const needle = query.trim().toLowerCase();
+
     return bundle.claims.filter((claim) => {
       const statusMatch = status === "ALL" || claim.status === status;
-      const textMatch =
-        !needle ||
-        claim.id.toLowerCase().includes(needle) ||
-        claim.claim.toLowerCase().includes(needle) ||
-        claim.scope.toLowerCase().includes(needle);
-      return statusMatch && textMatch;
+      const provenanceMatch =
+        provenance === "ALL" ||
+        (provenance === "FILES" && claim.source_files.length > 0) ||
+        (provenance === "DATA" && claim.data_sources.length > 0) ||
+        (provenance === "MISSING" &&
+          claim.source_files.length === 0 &&
+          claim.data_sources.length === 0);
+
+      if (!statusMatch || !provenanceMatch) {
+        return false;
+      }
+
+      if (!needle) {
+        return true;
+      }
+
+      return claimSearchText(claim).includes(needle);
     });
-  }, [bundle, query, status]);
+  }, [bundle, provenance, query, status]);
 
   const visibleIds = useMemo(
     () => new Set(visibleClaims.map((claim) => claim.id)),
@@ -94,6 +109,17 @@ function App() {
     }
   }, [visibleClaims, visibleIds, selectedId]);
 
+  const clearFilters = () => {
+    setQuery("");
+    setStatus("ALL");
+    setProvenance("ALL");
+  };
+
+  const navigateToClaim = (claimId: string) => {
+    clearFilters();
+    setSelectedId(claimId);
+  };
+
   if (loadError) {
     return <EmptyState error={loadError} />;
   }
@@ -110,6 +136,10 @@ function App() {
   const statuses = statusOrder.filter((candidate) =>
     bundle.claims.some((claim) => claim.status === candidate),
   );
+  const activeFilterCount =
+    Number(query.trim().length > 0) +
+    Number(status !== "ALL") +
+    Number(provenance !== "ALL");
 
   return (
     <main className="app-shell">
@@ -125,6 +155,7 @@ function App() {
             database/query lineage without changing ledger or graph state.
           </p>
         </div>
+
         <div className="topbar-stats" aria-label="Claim map counts">
           <Metric value={bundle.claims.length} label="claims" />
           <Metric value={bundle.graph.edges.length} label="edges" />
@@ -134,36 +165,77 @@ function App() {
 
       <div className="boundary-banner">
         <span className="boundary-dot" />
-        <strong>Interpretation boundary.</strong> {bundle.scope_notice}
+        <div>
+          <strong>Interpretation boundary.</strong> {bundle.scope_notice}
+        </div>
       </div>
 
       <section className="toolbar">
         <label className="search-field">
-          <span>Search</span>
+          <span>Search claims and provenance</span>
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Claim ID, wording, or scope…"
+            placeholder="Claim ID, wording, file, table, or query ref…"
           />
         </label>
-        <div className="status-filter" aria-label="Filter by claim status">
-          <button
-            className={status === "ALL" ? "filter-button active" : "filter-button"}
-            onClick={() => setStatus("ALL")}
-          >
-            All
-          </button>
-          {statuses.map((candidate) => (
-            <button
-              key={candidate}
-              className={
-                status === candidate ? "filter-button active" : "filter-button"
-              }
-              onClick={() => setStatus(candidate)}
+
+        <div className="toolbar-filters">
+          <FilterGroup label="Status">
+            <FilterButton
+              active={status === "ALL"}
+              onClick={() => setStatus("ALL")}
             >
-              {humanize(candidate)}
+              All
+            </FilterButton>
+            {statuses.map((candidate) => (
+              <FilterButton
+                key={candidate}
+                active={status === candidate}
+                onClick={() => setStatus(candidate)}
+              >
+                {humanize(candidate)}
+              </FilterButton>
+            ))}
+          </FilterGroup>
+
+          <FilterGroup label="Provenance">
+            <FilterButton
+              active={provenance === "ALL"}
+              onClick={() => setProvenance("ALL")}
+            >
+              Any
+            </FilterButton>
+            <FilterButton
+              active={provenance === "FILES"}
+              onClick={() => setProvenance("FILES")}
+            >
+              Files
+            </FilterButton>
+            <FilterButton
+              active={provenance === "DATA"}
+              onClick={() => setProvenance("DATA")}
+            >
+              Data
+            </FilterButton>
+            <FilterButton
+              active={provenance === "MISSING"}
+              onClick={() => setProvenance("MISSING")}
+            >
+              Missing
+            </FilterButton>
+          </FilterGroup>
+        </div>
+
+        <div className="toolbar-summary">
+          <span>
+            <strong>{visibleClaims.length}</strong> of {bundle.claims.length} claims
+          </span>
+          {activeFilterCount > 0 ? (
+            <button className="clear-button" onClick={clearFilters}>
+              Clear {activeFilterCount} filter{activeFilterCount === 1 ? "" : "s"}
             </button>
-          ))}
+          ) : null}
         </div>
       </section>
 
@@ -174,8 +246,13 @@ function App() {
           roots={bundle.graph.roots}
           selectedId={selectedId}
           onSelect={setSelectedId}
+          onClearFilters={clearFilters}
         />
-        <ClaimInspector claim={selectedClaim} edges={bundle.graph.edges} />
+        <ClaimInspector
+          claim={selectedClaim}
+          edges={bundle.graph.edges}
+          onNavigateClaim={navigateToClaim}
+        />
       </section>
 
       <footer className="footer">
@@ -201,22 +278,78 @@ function ClaimGraph({
   roots,
   selectedId,
   onSelect,
+  onClearFilters,
 }: {
   claims: ClaimNode[];
   edges: ClaimGraphEdge[];
   roots: string[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onClearFilters: () => void;
 }) {
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const [zoom, setZoom] = useState(1);
+
   const layout = useMemo(
     () => layoutClaimGraph(claims, edges, roots),
     [claims, edges, roots],
   );
 
+  const relatedIds = useMemo(() => {
+    const related = new Set<string>();
+    if (!selectedId) return related;
+    for (const edge of edges) {
+      if (edge.from === selectedId) related.add(edge.to);
+      if (edge.to === selectedId) related.add(edge.from);
+    }
+    return related;
+  }, [edges, selectedId]);
+
+  const zoomTo = (next: number) => {
+    setZoom(clamp(next, 0.55, 1.45));
+  };
+
+  const fitGraph = () => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const availableWidth = Math.max(viewport.clientWidth - 48, 200);
+    const availableHeight = Math.max(viewport.clientHeight - 48, 200);
+    zoomTo(
+      Math.min(
+        availableWidth / Math.max(layout.width, 1),
+        availableHeight / Math.max(layout.height, 1),
+        1.2,
+      ),
+    );
+    viewport.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+  };
+
+  const centerSelected = () => {
+    if (!selectedId) return;
+    const viewport = viewportRef.current;
+    const position = layout.positions[selectedId];
+    if (!viewport || !position) return;
+
+    const centerX = (position.x + nodeWidth / 2) * zoom;
+    const centerY = (position.y + nodeHeight / 2) * zoom;
+    viewport.scrollTo({
+      left: Math.max(0, centerX - viewport.clientWidth / 2),
+      top: Math.max(0, centerY - viewport.clientHeight / 2),
+      behavior: "smooth",
+    });
+  };
+
   if (claims.length === 0) {
     return (
       <div className="graph-panel graph-empty">
-        <p>No claims match the current filter.</p>
+        <div className="empty-graph-card">
+          <span className="panel-kicker">No matches</span>
+          <h2>No claims match the current view.</h2>
+          <p>Clear the filters to return to the full claim graph.</p>
+          <button className="primary-button" onClick={onClearFilters}>
+            Show all claims
+          </button>
+        </div>
       </div>
     );
   }
@@ -228,95 +361,168 @@ function ClaimGraph({
           <span className="panel-kicker">Declared relevance</span>
           <h2>Claim graph</h2>
         </div>
-        <div className="graph-legend">
-          <span><i className="legend-dot root" /> root</span>
-          <span><i className="legend-dot open" /> open</span>
-          <span><i className="legend-dot retired" /> retired</span>
+
+        <div className="graph-heading-actions">
+          <div className="graph-legend">
+            <span><i className="legend-dot root" /> root</span>
+            <span><i className="legend-dot open" /> open</span>
+            <span><i className="legend-dot retired" /> retired</span>
+          </div>
+          <div className="graph-controls" aria-label="Graph view controls">
+            <button
+              className="icon-button"
+              onClick={() => zoomTo(zoom - 0.1)}
+              aria-label="Zoom out"
+              title="Zoom out"
+            >
+              −
+            </button>
+            <span className="zoom-label">{Math.round(zoom * 100)}%</span>
+            <button
+              className="icon-button"
+              onClick={() => zoomTo(zoom + 0.1)}
+              aria-label="Zoom in"
+              title="Zoom in"
+            >
+              +
+            </button>
+            <button className="view-button" onClick={fitGraph}>
+              Fit
+            </button>
+            <button
+              className="view-button"
+              onClick={centerSelected}
+              disabled={!selectedId}
+            >
+              Center
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="graph-scroll">
+      <div className="graph-scroll" ref={viewportRef}>
         <div
-          className="graph-canvas"
-          style={{ width: layout.width, height: layout.height }}
+          className="graph-stage"
+          style={{
+            width: layout.width * zoom,
+            height: layout.height * zoom,
+          }}
         >
-          <svg
-            className="edge-layer"
-            width={layout.width}
-            height={layout.height}
-            aria-hidden="true"
+          <div
+            className="graph-canvas"
+            style={{
+              width: layout.width,
+              height: layout.height,
+              transform: `scale(${zoom})`,
+            }}
           >
-            <defs>
-              <marker
-                id="arrow"
-                markerWidth="8"
-                markerHeight="8"
-                refX="7"
-                refY="4"
-                orient="auto"
-                markerUnits="strokeWidth"
-              >
-                <path d="M0,0 L8,4 L0,8 z" className="arrow-head" />
-              </marker>
-            </defs>
-            {edges.map((edge) => {
-              const source = layout.positions[edge.from];
-              const target = layout.positions[edge.to];
-              if (!source || !target) return null;
-              return (
-                <path
-                  key={`${edge.from}->${edge.to}`}
-                  d={edgePath(source, target)}
-                  className="graph-edge"
-                  markerEnd="url(#arrow)"
+            <svg
+              className="edge-layer"
+              width={layout.width}
+              height={layout.height}
+              aria-hidden="true"
+            >
+              <defs>
+                <marker
+                  id="arrow"
+                  markerWidth="8"
+                  markerHeight="8"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                  markerUnits="strokeWidth"
                 >
-                  <title>{edge.rationale}</title>
-                </path>
+                  <path d="M0,0 L8,4 L0,8 z" className="arrow-head" />
+                </marker>
+                <marker
+                  id="arrow-active"
+                  markerWidth="8"
+                  markerHeight="8"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                  markerUnits="strokeWidth"
+                >
+                  <path d="M0,0 L8,4 L0,8 z" className="arrow-head-active" />
+                </marker>
+              </defs>
+
+              {edges.map((edge) => {
+                const source = layout.positions[edge.from];
+                const target = layout.positions[edge.to];
+                if (!source || !target) return null;
+                const active =
+                  selectedId === edge.from || selectedId === edge.to;
+
+                return (
+                  <path
+                    key={`${edge.from}->${edge.to}`}
+                    d={edgePath(source, target)}
+                    className={active ? "graph-edge active" : "graph-edge"}
+                    markerEnd={active ? "url(#arrow-active)" : "url(#arrow)"}
+                  >
+                    <title>{edge.rationale}</title>
+                  </path>
+                );
+              })}
+            </svg>
+
+            {claims.map((claim) => {
+              const position = layout.positions[claim.id];
+              if (!position) return null;
+
+              const selected = selectedId === claim.id;
+              const related = relatedIds.has(claim.id);
+              const dimmed =
+                selectedId !== null &&
+                relatedIds.size > 0 &&
+                !selected &&
+                !related;
+
+              return (
+                <button
+                  key={claim.id}
+                  data-claim-id={claim.id}
+                  className={[
+                    "claim-node",
+                    claim.is_root ? "root-node" : "",
+                    claim.status === "RETIRED" ? "retired-node" : "",
+                    selected ? "selected" : "",
+                    related ? "related" : "",
+                    dimmed ? "dimmed" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  style={{
+                    left: position.x,
+                    top: position.y,
+                    width: nodeWidth,
+                    height: nodeHeight,
+                  }}
+                  onClick={() => onSelect(claim.id)}
+                >
+                  <div className="node-topline">
+                    <span className="node-id">{claim.id}</span>
+                    <span
+                      className={`status-dot status-${claim.status.toLowerCase()}`}
+                    />
+                  </div>
+                  <div className="node-claim">{claim.claim}</div>
+                  <div className="node-meta">
+                    <span>{humanize(claim.status)}</span>
+                    <span>·</span>
+                    <span>{claim.source_files.length} refs</span>
+                    {claim.data_sources.length > 0 ? (
+                      <>
+                        <span>·</span>
+                        <span>{claim.data_sources.length} data</span>
+                      </>
+                    ) : null}
+                  </div>
+                </button>
               );
             })}
-          </svg>
-
-          {claims.map((claim) => {
-            const position = layout.positions[claim.id];
-            if (!position) return null;
-            return (
-              <button
-                key={claim.id}
-                className={[
-                  "claim-node",
-                  claim.is_root ? "root-node" : "",
-                  claim.status === "RETIRED" ? "retired-node" : "",
-                  selectedId === claim.id ? "selected" : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-                style={{
-                  left: position.x,
-                  top: position.y,
-                  width: nodeWidth,
-                  height: nodeHeight,
-                }}
-                onClick={() => onSelect(claim.id)}
-              >
-                <div className="node-topline">
-                  <span className="node-id">{claim.id}</span>
-                  <span className={`status-dot status-${claim.status.toLowerCase()}`} />
-                </div>
-                <div className="node-claim">{claim.claim}</div>
-                <div className="node-meta">
-                  <span>{humanize(claim.status)}</span>
-                  <span>·</span>
-                  <span>{claim.source_files.length} refs</span>
-                  {claim.data_sources.length > 0 ? (
-                    <>
-                      <span>·</span>
-                      <span>{claim.data_sources.length} data</span>
-                    </>
-                  ) : null}
-                </div>
-              </button>
-            );
-          })}
+          </div>
         </div>
       </div>
     </div>
@@ -326,9 +532,11 @@ function ClaimGraph({
 function ClaimInspector({
   claim,
   edges,
+  onNavigateClaim,
 }: {
   claim: ClaimNode | null;
   edges: ClaimGraphEdge[];
+  onNavigateClaim: (id: string) => void;
 }) {
   if (!claim) {
     return (
@@ -337,6 +545,10 @@ function ClaimInspector({
       </aside>
     );
   }
+
+  const relationships = edges.filter(
+    (edge) => edge.from === claim.id || edge.to === claim.id,
+  );
 
   return (
     <aside className="inspector">
@@ -353,8 +565,11 @@ function ClaimInspector({
         {claim.is_root ? <span className="root-badge">root</span> : null}
       </div>
 
-      <section className="detail-section">
-        <h3>Claim</h3>
+      <section className="detail-section claim-section">
+        <div className="section-heading-row">
+          <h3>Claim</h3>
+          <CopyButton value={claim.claim} label="Copy claim" compact />
+        </div>
         <p className="claim-full">{claim.claim}</p>
       </section>
 
@@ -375,53 +590,73 @@ function ClaimInspector({
         />
       </div>
 
-      <section className="detail-section">
-        <h3>Scope</h3>
-        <p>{claim.scope}</p>
+      <section className="provenance-summary">
+        <ProvenanceMetric
+          value={claim.source_files.length}
+          label="source files"
+          tone={claim.source_files.length > 0 ? "present" : "missing"}
+        />
+        <ProvenanceMetric
+          value={claim.data_sources.length}
+          label="data sources"
+          tone={claim.data_sources.length > 0 ? "present" : "neutral"}
+        />
+        <ProvenanceMetric
+          value={relationships.length}
+          label="relationships"
+          tone={relationships.length > 0 ? "present" : "neutral"}
+        />
       </section>
 
-      <section className="detail-section">
-        <h3>Decision impact</h3>
-        <p>{claim.decision_impact}</p>
-      </section>
-
-      {claim.provenance_note ? (
-        <section className="detail-section">
-          <h3>Provenance note</h3>
-          <p>{claim.provenance_note}</p>
-        </section>
-      ) : null}
+      <details className="detail-disclosure" open>
+        <summary>Analytical context</summary>
+        <div className="disclosure-body">
+          <div className="compact-detail">
+            <span>Scope</span>
+            <p>{claim.scope}</p>
+          </div>
+          <div className="compact-detail">
+            <span>Decision impact</span>
+            <p>{claim.decision_impact}</p>
+          </div>
+          {claim.provenance_note ? (
+            <div className="compact-detail">
+              <span>Provenance note</span>
+              <p>{claim.provenance_note}</p>
+            </div>
+          ) : null}
+        </div>
+      </details>
 
       <section className="detail-section">
         <div className="section-heading-row">
           <h3>Relationships</h3>
-          <span className="count-badge">
-            {edges.filter(
-              (edge) => edge.from === claim.id || edge.to === claim.id,
-            ).length}
-          </span>
+          <span className="count-badge">{relationships.length}</span>
         </div>
-        {edges.some(
-          (edge) => edge.from === claim.id || edge.to === claim.id,
-        ) ? (
+
+        {relationships.length > 0 ? (
           <div className="source-list">
-            {edges
-              .filter(
-                (edge) => edge.from === claim.id || edge.to === claim.id,
-              )
-              .map((edge) => (
-                <div
-                  className="relationship-card"
+            {relationships.map((edge) => {
+              const counterpart =
+                edge.from === claim.id ? edge.to : edge.from;
+              const direction =
+                edge.from === claim.id ? "points to" : "receives from";
+
+              return (
+                <button
+                  className="relationship-card relationship-button"
                   key={`${edge.from}->${edge.to}`}
+                  onClick={() => onNavigateClaim(counterpart)}
                 >
                   <div className="relationship-line">
-                    <code>{edge.from}</code>
-                    <span>→</span>
-                    <code>{edge.to}</code>
+                    <span>{direction}</span>
+                    <code>{counterpart}</code>
+                    <span className="relationship-arrow">→</span>
                   </div>
                   <p>{edge.rationale}</p>
-                </div>
-              ))}
+                </button>
+              );
+            })}
           </div>
         ) : (
           <EmptyMini>No declared graph edges for this claim.</EmptyMini>
@@ -433,6 +668,7 @@ function ClaimInspector({
           <h3>Source files</h3>
           <span className="count-badge">{claim.source_files.length}</span>
         </div>
+
         {claim.source_files.length > 0 ? (
           <div className="source-list">
             {claim.source_files.map((source) => (
@@ -449,6 +685,7 @@ function ClaimInspector({
           <h3>Database lineage</h3>
           <span className="count-badge">{claim.data_sources.length}</span>
         </div>
+
         {claim.data_sources.length > 0 ? (
           <div className="source-list">
             {claim.data_sources.map((source, index) => (
@@ -466,14 +703,22 @@ function ClaimInspector({
       </section>
 
       <section className="detail-section provenance-footer">
-        <h3>Ledger record</h3>
-        <ReferenceLink value={claim.record_ref} />
+        <div className="section-heading-row">
+          <h3>Ledger record</h3>
+          <CopyButton value={claim.record_ref} label="Copy record ref" compact />
+        </div>
+        <ReferenceValue value={claim.record_ref} />
         {claim.context_snapshot.repository_revision ? (
           <div className="revision-row">
-            snapshot{" "}
+            <span>snapshot</span>
             <code>
               {String(claim.context_snapshot.repository_revision).slice(0, 12)}
             </code>
+            <CopyButton
+              value={String(claim.context_snapshot.repository_revision)}
+              label="Copy revision"
+              compact
+            />
           </div>
         ) : null}
       </section>
@@ -484,7 +729,10 @@ function ClaimInspector({
 function SourceFileCard({ source }: { source: SourceFile }) {
   return (
     <div className="source-card">
-      <ReferenceLink value={source.ref} />
+      <div className="source-card-topline">
+        <ReferenceValue value={source.ref} />
+        <CopyButton value={source.ref} label="Copy ref" compact />
+      </div>
       <div className="role-row">
         {source.roles.map((role) => (
           <span className="role-pill" key={role}>
@@ -511,18 +759,32 @@ function DataSourceCard({ source }: { source: DataSource }) {
     <div className="data-source-card">
       <div className="data-source-topline">
         <span className="system-pill">{source.system}</span>
-        <code>{qualified || source.table}</code>
+        <div className="qualified-table">
+          <code>{qualified || source.table}</code>
+          <CopyButton
+            value={qualified || source.table}
+            label="Copy table"
+            compact
+          />
+        </div>
       </div>
+
       {source.query.ref ? (
-        <div className="query-ref">
-          query ref · <ReferenceLink value={source.query.ref} />
+        <div className="query-meta-row">
+          <span>query ref</span>
+          <ReferenceValue value={source.query.ref} />
+          <CopyButton value={source.query.ref} label="Copy query ref" compact />
         </div>
       ) : null}
+
       {source.query.sha256 ? (
-        <div className="query-hash">
-          sha256 · <code>{source.query.sha256.slice(0, 16)}…</code>
+        <div className="query-meta-row">
+          <span>sha256</span>
+          <code>{source.query.sha256.slice(0, 16)}…</code>
+          <CopyButton value={source.query.sha256} label="Copy hash" compact />
         </div>
       ) : null}
+
       {source.query.text ? <QueryBlock text={source.query.text} /> : null}
       {source.note ? <p className="source-note">{source.note}</p> : null}
     </div>
@@ -530,30 +792,18 @@ function DataSourceCard({ source }: { source: DataSource }) {
 }
 
 function QueryBlock({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1200);
-    } catch {
-      setCopied(false);
-    }
-  };
-
   return (
     <div className="query-block">
       <div className="query-block-head">
         <span>SQL / query text</span>
-        <button onClick={copy}>{copied ? "copied" : "copy"}</button>
+        <CopyButton value={text} label="Copy SQL" compact dark />
       </div>
       <pre>{text}</pre>
     </div>
   );
 }
 
-function ReferenceLink({ value }: { value: string }) {
+function ReferenceValue({ value }: { value: string }) {
   if (/^https?:\/\//i.test(value)) {
     return (
       <a className="reference-link" href={value} target="_blank" rel="noreferrer">
@@ -562,6 +812,98 @@ function ReferenceLink({ value }: { value: string }) {
     );
   }
   return <code className="reference-code">{value}</code>;
+}
+
+function CopyButton({
+  value,
+  label,
+  compact = false,
+  dark = false,
+}: {
+  value: string;
+  label: string;
+  compact?: boolean;
+  dark?: boolean;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1200);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  return (
+    <button
+      className={[
+        "copy-button",
+        compact ? "compact" : "",
+        dark ? "dark" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      onClick={copy}
+      title={label}
+      aria-label={label}
+    >
+      {copied ? "Copied" : "Copy"}
+    </button>
+  );
+}
+
+function ProvenanceMetric({
+  value,
+  label,
+  tone,
+}: {
+  value: number;
+  label: string;
+  tone: "present" | "missing" | "neutral";
+}) {
+  return (
+    <div className={`provenance-metric ${tone}`}>
+      <strong>{value}</strong>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function FilterGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="filter-group">
+      <span className="filter-label">{label}</span>
+      <div className="filter-buttons">{children}</div>
+    </div>
+  );
+}
+
+function FilterButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      className={active ? "filter-button active" : "filter-button"}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
 }
 
 function DetailCell({ label, value }: { label: string; value: string }) {
@@ -602,6 +944,30 @@ function EmptyState({ error }: { error: string }) {
   );
 }
 
+function claimSearchText(claim: ClaimNode): string {
+  const fileRefs = claim.source_files.map((source) => source.ref);
+  const dataRefs = claim.data_sources.flatMap((source) => [
+    source.system,
+    source.catalog ?? "",
+    source.database ?? "",
+    source.schema ?? "",
+    source.table,
+    source.query.ref ?? "",
+  ]);
+
+  return [
+    claim.id,
+    claim.claim,
+    claim.scope,
+    claim.decision_impact,
+    claim.record_ref,
+    ...fileRefs,
+    ...dataRefs,
+  ]
+    .join(" ")
+    .toLowerCase();
+}
+
 function humanize(value: string): string {
   return value
     .toLowerCase()
@@ -620,6 +986,10 @@ function formatDate(value: string): string {
     hour: "numeric",
     minute: "2-digit",
   }).format(date);
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }
 
 export default App;
