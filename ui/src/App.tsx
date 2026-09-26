@@ -341,6 +341,35 @@ function ClaimGraph({
     });
   };
 
+  useEffect(() => {
+    if (!selectedId) return;
+    const viewport = viewportRef.current;
+    const position = layout.positions[selectedId];
+    if (!viewport || !position) return;
+
+    const left = position.x * zoom;
+    const right = (position.x + nodeWidth) * zoom;
+    const top = position.y * zoom;
+    const bottom = (position.y + nodeHeight) * zoom;
+    const margin = 36;
+
+    const outside =
+      left < viewport.scrollLeft + margin ||
+      right > viewport.scrollLeft + viewport.clientWidth - margin ||
+      top < viewport.scrollTop + margin ||
+      bottom > viewport.scrollTop + viewport.clientHeight - margin;
+
+    if (outside) {
+      const centerX = (position.x + nodeWidth / 2) * zoom;
+      const centerY = (position.y + nodeHeight / 2) * zoom;
+      viewport.scrollTo({
+        left: Math.max(0, centerX - viewport.clientWidth / 2),
+        top: Math.max(0, centerY - viewport.clientHeight / 2),
+        behavior: "smooth",
+      });
+    }
+  }, [layout.positions, selectedId, zoom]);
+
   if (claims.length === 0) {
     return (
       <div className="graph-panel graph-empty">
