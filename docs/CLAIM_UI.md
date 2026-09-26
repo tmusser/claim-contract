@@ -14,6 +14,21 @@ It visualizes:
 
 The UI is an inspection surface only. It does **not** validate evidence, run SQL, inspect a database, adjudicate the ledger, or mutate any source file.
 
+## Navigation and inspection
+
+The frontend is intentionally richer than a static graph while remaining read-only.
+
+- Search covers claim IDs/text/scope/decision impact plus declared file refs, source notes, database identifiers, query refs, and query text already present in the static bundle.
+- Status filters operate on the recorded ledger status only.
+- Provenance filters distinguish claims with file refs, claims with declared database/query lineage, and claims with neither.
+- Selecting a claim highlights its immediate graph neighbors and incident edges; it does not reinterpret graph semantics.
+- Relationship cards use the already-declared edge rationale and can navigate directly to the counterpart claim.
+- Zoom, fit, and center controls change only the browser viewport.
+- Copy controls copy already-exported text such as refs, revisions, table identifiers, hashes, or SQL; they do not resolve or execute those values.
+- Responsive layouts collapse the graph and inspector to a single column on narrower screens.
+
+Filtering, highlighting, zoom, copying, and navigation never write to the ledger, graph, provenance sidecar, or exported bundle.
+
 ## Run locally
 
 From the repository root:

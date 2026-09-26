@@ -2,6 +2,21 @@
 
 Optional read-only React/Vite frontend for the repository claim graph.
 
+## Workspace features
+
+The frontend is designed for claim archaeology rather than editing:
+
+- search across claim wording, scope, file refs, database/table names, query refs, and declared query text;
+- filter by ledger status or provenance presence;
+- zoom, fit, and center the graph without a graph-framework dependency;
+- highlight the selected claim's immediate graph neighborhood;
+- jump to related claims from edge-rationale cards;
+- copy claim text, repository refs, table identifiers, query refs/hashes, revisions, and declared SQL;
+- collapse analytical context while keeping provenance cards visible;
+- move to a single-column graph + inspector layout on smaller screens.
+
+All interactions remain browser-local and read-only.
+
 From the repository root:
 
 ```bash
