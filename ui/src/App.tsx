@@ -98,7 +98,9 @@ function App() {
   }, [bundle, visibleIds]);
 
   const selectedClaim =
-    bundle?.claims.find((claim) => claim.id === selectedId) ?? null;
+    selectedId && visibleIds.has(selectedId)
+      ? bundle?.claims.find((claim) => claim.id === selectedId) ?? null
+      : null;
 
   useEffect(() => {
     if (
@@ -953,6 +955,8 @@ function claimSearchText(claim: ClaimNode): string {
     source.schema ?? "",
     source.table,
     source.query.ref ?? "",
+    source.query.text ?? "",
+    source.note ?? "",
   ]);
 
   return [
@@ -962,6 +966,7 @@ function claimSearchText(claim: ClaimNode): string {
     claim.decision_impact,
     claim.record_ref,
     ...fileRefs,
+    ...claim.source_files.map((source) => source.note ?? ""),
     ...dataRefs,
   ]
     .join(" ")
