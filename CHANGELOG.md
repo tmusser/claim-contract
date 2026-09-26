@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Claim-map navigation now supports zoom, fit, center-on-selection, immediate-neighbor highlighting, clickable relationship traversal, provenance-aware search/filtering, copy affordances for refs/tables/hashes/SQL, denser inspector grouping, and responsive single-column layouts without changing the exported bundle schema.
+
 ### Added
 
 - Optional React/Vite claim-map frontend for browsing declared claim-graph relationships and inspecting ledger provenance in a read-only side panel.
