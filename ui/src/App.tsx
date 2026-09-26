@@ -229,7 +229,7 @@ function App() {
           </FilterGroup>
         </div>
 
-        <div className="toolbar-summary">
+        <div className="toolbar-summary" aria-live="polite">
           <span>
             <strong>{visibleClaims.length}</strong> of {bundle.claims.length} claims
           </span>
@@ -502,6 +502,8 @@ function ClaimGraph({
                     height: nodeHeight,
                   }}
                   onClick={() => onSelect(claim.id)}
+                  aria-pressed={selected}
+                  aria-label={`Select ${claim.id}: ${claim.claim}`}
                 >
                   <div className="node-topline">
                     <span className="node-id">{claim.id}</span>
@@ -649,6 +651,7 @@ function ClaimInspector({
                   className="relationship-card relationship-button"
                   key={`${edge.from}->${edge.to}`}
                   onClick={() => onNavigateClaim(counterpart)}
+                  aria-label={`Open related claim ${counterpart}`}
                 >
                   <div className="relationship-line">
                     <span>{direction}</span>
@@ -902,6 +905,7 @@ function FilterButton({
     <button
       className={active ? "filter-button active" : "filter-button"}
       onClick={onClick}
+      aria-pressed={active}
     >
       {children}
     </button>
