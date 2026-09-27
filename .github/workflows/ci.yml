@@ -318,6 +318,12 @@ jobs:
         working-directory: ui
         run: npm install --no-audit --no-fund
 
+      - name: Run frontend runtime-contract tests
+        working-directory: ui
+        run: |
+          npm test
+          npm run validate:bundle
+
       - name: Type-check and build React UI
         working-directory: ui
         run: npm run build
