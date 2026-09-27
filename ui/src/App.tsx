@@ -5,7 +5,6 @@ import { edgePath, layoutClaimGraph, nodeHeight, nodeWidth } from "./layout";
 import type {
   ClaimGraphEdge,
   ClaimNode,
-  ClaimUiBundle,
   DataSource,
   SourceFile,
 } from "./types";
