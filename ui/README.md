@@ -17,6 +17,26 @@ The frontend is designed for claim archaeology rather than editing:
 
 All interactions remain browser-local and read-only.
 
+## Runtime hardening
+
+The browser does not trust JSON merely because TypeScript describes it.
+
+Every loaded bundle passes through the dependency-free `src/bundle.js` runtime parser before React state is populated. The parser checks the v1 browser contract plus UI-critical cross-references such as unique claim IDs, known edge endpoints, and consistency between `graph.roots`, `is_root`, and `ROOT` classification.
+
+Malformed JSON or contract failures render a recoverable error state instead of entering graph/search/layout code. In-flight fetches are aborted on teardown/retry, and a React error boundary catches unexpected post-load rendering failures.
+
+Run the dependency-free checks with:
+
+```bash
+npm test
+npm run validate:bundle
+npm run build
+```
+
+`npm run validate:bundle` validates the generated `public/claim-map.json` using the same parser imported by the browser.
+
+These checks validate UI input integrity only. They do not verify evidence or adjudicate claims.
+
 From the repository root:
 
 ```bash
