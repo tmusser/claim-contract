@@ -1166,6 +1166,12 @@ h1 {
   line-height: 1.6;
 }
 
+.recovery-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
 .command-card {
   display: grid;
   gap: 8px;
