@@ -29,6 +29,28 @@ The frontend is intentionally richer than a static graph while remaining read-on
 
 Filtering, highlighting, zoom, copying, and navigation never write to the ledger, graph, provenance sidecar, or exported bundle.
 
+## Runtime bundle firewall
+
+The frontend treats the exported JSON as untrusted input even when it was produced by claim-contract.
+
+Before a payload enters React state, the browser parser checks the `claim_contract.claim_ui_bundle` v1 shape used by the UI, including:
+
+- fixed bundle identity and scope flags such as `read_only: true`, `scientific_validation: false`, and `automatic_adjudication: false`;
+- required top-level, graph, claim, source-file, data-source, and query fields;
+- supported v1 fields only;
+- claim-ID and SHA-256 shapes;
+- non-empty required strings and parseable date-time values;
+- unique claim IDs and graph roots;
+- known graph-edge endpoints and no self-edges;
+- agreement between `graph.roots`, claim `is_root`, and `ROOT` classification;
+- explicit query ref/text requirements for database lineage.
+
+The runtime parser is an interface-integrity guard, **not** scientific validation. Passing it means only that the browser received a coherent bundle it knows how to display.
+
+Load failures are retryable and use `AbortController` so stale requests do not update an abandoned UI. A React error boundary separately catches unexpected render failures after a bundle has passed parsing.
+
+The Node-native frontend tests exercise malformed-bundle cases without a test-framework dependency. CI also runs the exact browser parser against the real JSON emitted by `claim-contract ui export`, then type-checks and builds the React app.
+
 ## Run locally
 
 From the repository root:
