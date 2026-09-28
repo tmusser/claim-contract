@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.mjs",
+    "validate:bundle": "node scripts/validate-bundle.mjs public/claim-map.json"
   },
   "dependencies": {
     "react": "18.3.1",

@@ -181,6 +181,8 @@ to generate the static browser bundle.
 - Do not put credentials, secrets, sensitive literals, or data rows into `query.text`; the generated bundle is browser-readable static JSON.
 - Prefer a query ref plus optional SHA-256 when exact SQL should remain outside the browser bundle.
 - Preserve `read_only: true`, `scientific_validation: false`, and `automatic_adjudication: false` when forwarding a UI bundle.
+- Route browser-loaded bundle data through `ui/src/bundle.js`; do not replace runtime parsing with a TypeScript cast or trust a custom `VITE_CLAIM_BUNDLE_URL` by default.
+- When the UI bundle v1 contract changes, update the browser parser and its Node-native malformed-bundle tests in the same change so frontend assumptions cannot silently drift from the export contract.
 - The UI must not mutate `claims/ledger.yaml`, `claims/graph.yaml`, or `claims/provenance.yaml`.
 
 See [docs/CLAIM_UI.md](docs/CLAIM_UI.md).

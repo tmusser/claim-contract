@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { parseClaimUiBundle } from "./bundle";
 import { edgePath, layoutClaimGraph, nodeHeight, nodeWidth } from "./layout";
 import type {
   ClaimGraphEdge,
@@ -25,39 +26,52 @@ type ProvenanceFilter = "ALL" | "FILES" | "DATA" | "MISSING";
 function App() {
   const [bundle, setBundle] = useState<ClaimUiBundle | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("ALL");
   const [provenance, setProvenance] = useState<ProvenanceFilter>("ALL");
 
   useEffect(() => {
-    let cancelled = false;
-    fetch(bundleUrl)
+    const controller = new AbortController();
+    setLoadError(null);
+    setBundle(null);
+
+    fetch(bundleUrl, {
+      signal: controller.signal,
+      headers: { Accept: "application/json" },
+    })
       .then(async (response) => {
         if (!response.ok) {
           throw new Error(
             `Could not load ${bundleUrl} (HTTP ${response.status}). Run claim-contract ui export first.`,
           );
         }
-        return (await response.json()) as ClaimUiBundle;
+
+        let raw: unknown;
+        try {
+          raw = await response.json();
+        } catch {
+          throw new Error(
+            `Could not parse ${bundleUrl} as JSON. Re-export the claim map bundle.`,
+          );
+        }
+
+        return parseClaimUiBundle(raw);
       })
       .then((payload) => {
-        if (cancelled) return;
-        if (payload.type !== "claim_contract.claim_ui_bundle") {
-          throw new Error("The loaded JSON is not a claim-contract UI bundle.");
-        }
         setBundle(payload);
         setSelectedId(payload.claims[0]?.id ?? null);
       })
       .catch((error: unknown) => {
-        if (cancelled) return;
+        if (controller.signal.aborted) return;
         setLoadError(error instanceof Error ? error.message : String(error));
       });
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
-  }, []);
+  }, [loadAttempt]);
 
   const visibleClaims = useMemo(() => {
     if (!bundle) return [];
@@ -123,7 +137,12 @@ function App() {
   };
 
   if (loadError) {
-    return <EmptyState error={loadError} />;
+    return (
+      <EmptyState
+        error={loadError}
+        onRetry={() => setLoadAttempt((attempt) => attempt + 1)}
+      />
+    );
   }
 
   if (!bundle) {
@@ -963,13 +982,24 @@ function EmptyMini({ children }: { children: ReactNode }) {
   return <div className="empty-mini">{children}</div>;
 }
 
-function EmptyState({ error }: { error: string }) {
+function EmptyState({
+  error,
+  onRetry,
+}: {
+  error: string;
+  onRetry: () => void;
+}) {
   return (
     <main className="empty-state">
       <div className="empty-card">
         <div className="eyebrow">claim-contract / optional UI</div>
         <h1>Claim map data is missing.</h1>
         <p>{error}</p>
+        <div className="recovery-actions">
+          <button className="primary-button" onClick={onRetry}>
+            Retry bundle load
+          </button>
+        </div>
         <div className="command-card">
           <code>claim-contract ui export</code>
           <code>cd ui &amp;&amp; npm install &amp;&amp; npm run dev</code>
