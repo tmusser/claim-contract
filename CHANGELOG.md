@@ -4,7 +4,7 @@
 
 ### Changed
 
-- Hardened the React claim map with dependency-free runtime bundle validation, graph/claim cross-reference checks, abortable/retryable loading, a render error boundary, Node-native malformed-bundle regression tests, and CI validation of the actual Python-exported browser bundle.
+- Hardened the React claim map with dependency-free runtime bundle validation, graph/claim cross-reference checks, abortable/retryable loading, a render error boundary, Node-native malformed-bundle regression tests, CI validation of the actual Python-exported browser bundle, and application chrome that surfaces bundle/schema/read-only state plus explicit ledger/graph/provenance sources without adding UI authority.
 - Claim-map navigation now supports zoom, fit, center-on-selection, immediate-neighbor highlighting, clickable relationship traversal, provenance-aware search/filtering, copy affordances for refs/tables/hashes/SQL, denser inspector grouping, and responsive single-column layouts without changing the exported bundle schema.
 
 ### Added

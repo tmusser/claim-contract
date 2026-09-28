@@ -162,27 +162,77 @@ function App() {
     Number(status !== "ALL") +
     Number(provenance !== "ALL");
 
+  const latestLoggedAt = latestClaimTimestamp(bundle.claims);
+  const provenanceSource = bundle.generated_from.provenance;
+  const sourceCount = 2 + Number(Boolean(provenanceSource));
+
   return (
     <main className="app-shell">
-      <header className="topbar">
-        <div>
-          <div className="eyebrow">claim-contract / optional UI</div>
-          <div className="brand-row">
-            <h1>Claim map</h1>
-            <span className="read-only-pill">read only</span>
+      <div className="app-frame">
+        <nav className="chrome-bar" aria-label="Claim map workspace">
+          <div className="chrome-brand">
+            <div className="product-mark" aria-hidden="true">
+              <span>CC</span>
+            </div>
+            <div className="chrome-crumbs">
+              <span className="chrome-product">claim-contract</span>
+              <span className="chrome-separator">/</span>
+              <strong>claim map</strong>
+            </div>
           </div>
-          <p className="topbar-copy">
-            Trace claim relationships, repository sources, logged time, and declared
-            database/query lineage without changing ledger or graph state.
-          </p>
-        </div>
 
-        <div className="topbar-stats" aria-label="Claim map counts">
-          <Metric value={bundle.claims.length} label="claims" />
-          <Metric value={bundle.graph.edges.length} label="edges" />
-          <Metric value={bundle.graph.roots.length} label="roots" />
-        </div>
-      </header>
+          <div className="chrome-state">
+            <span className="chrome-chip validated">
+              <i className="chrome-dot" />
+              validated bundle
+            </span>
+            <span className="chrome-chip">schema {bundle.schema_version}</span>
+            <span className="chrome-chip read-only">read only</span>
+          </div>
+        </nav>
+
+        <header className="topbar">
+          <div>
+            <div className="eyebrow">claim provenance workspace</div>
+            <div className="brand-row">
+              <h1>Claim map</h1>
+              <span className="surface-pill">graph + provenance</span>
+            </div>
+            <p className="topbar-copy">
+              Trace claim relationships, repository sources, logged time, and declared
+              database/query lineage without changing ledger or graph state.
+            </p>
+          </div>
+
+          <div className="topbar-stats" aria-label="Claim map counts">
+            <Metric value={bundle.claims.length} label="claims" />
+            <Metric value={bundle.graph.edges.length} label="edges" />
+            <Metric value={bundle.graph.roots.length} label="roots" />
+          </div>
+        </header>
+
+        <section className="source-rail" aria-label="Workspace sources">
+          <SourceChrome
+            label="Ledger"
+            value={bundle.generated_from.ledger}
+            kind="primary"
+          />
+          <SourceChrome
+            label="Graph"
+            value={bundle.generated_from.graph}
+            kind="primary"
+          />
+          <SourceChrome
+            label="Provenance"
+            value={provenanceSource ?? "not declared"}
+            kind={provenanceSource ? "primary" : "muted"}
+          />
+          <div className="source-rail-meta">
+            <span>{sourceCount} source artifact{sourceCount === 1 ? "" : "s"}</span>
+            <span className="rail-divider">·</span>
+            <span>latest claim {latestLoggedAt}</span>
+          </div>
+        </section>
 
       <div className="boundary-banner">
         <span className="boundary-dot" />
@@ -276,19 +326,21 @@ function App() {
         />
       </section>
 
-      <footer className="footer">
-        <span>
-          Source bundle: <code>{bundle.generated_from.ledger}</code> +{" "}
-          <code>{bundle.generated_from.graph}</code>
-          {bundle.generated_from.provenance ? (
-            <>
-              {" "}
-              + <code>{bundle.generated_from.provenance}</code>
-            </>
-          ) : null}
-        </span>
-        <span>scientific validation: false · automatic adjudication: false</span>
+      <footer className="status-bar">
+        <div className="status-bar-left">
+          <span className="status-indicator">
+            <i className="status-light" />
+            bundle contract verified
+          </span>
+          <span>schema {bundle.schema_version}</span>
+          <span>{visibleClaims.length} visible</span>
+        </div>
+        <div className="status-bar-right">
+          <span>scientific validation: false</span>
+          <span>automatic adjudication: false</span>
+        </div>
       </footer>
+      </div>
     </main>
   );
 }
@@ -409,7 +461,10 @@ function ClaimGraph({
       <div className="graph-panel-heading">
         <div>
           <span className="panel-kicker">Declared relevance</span>
-          <h2>Claim graph</h2>
+          <div className="panel-title-row">
+            <h2>Claim graph</h2>
+            <span className="panel-count">{claims.length} visible</span>
+          </div>
         </div>
 
         <div className="graph-heading-actions">
@@ -606,7 +661,7 @@ function ClaimInspector({
     <aside className="inspector">
       <div className="inspector-header">
         <div>
-          <div className="eyebrow">selected claim</div>
+          <div className="eyebrow inspector-path">inspector / selected claim</div>
           <div className="inspector-title-row">
             <h2>{claim.id}</h2>
             <span className={`status-pill status-pill-${claim.status.toLowerCase()}`}>
@@ -960,6 +1015,23 @@ function FilterButton({
   );
 }
 
+function SourceChrome({
+  label,
+  value,
+  kind,
+}: {
+  label: string;
+  value: string;
+  kind: "primary" | "muted";
+}) {
+  return (
+    <div className={`source-chrome ${kind}`} title={value}>
+      <span>{label}</span>
+      <code>{compactSource(value)}</code>
+    </div>
+  );
+}
+
 function DetailCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="detail-cell">
@@ -1034,6 +1106,29 @@ function claimSearchText(claim: ClaimNode): string {
   ]
     .join(" ")
     .toLowerCase();
+}
+
+function compactSource(value: string): string {
+  if (value === "not declared") return value;
+  const normalized = value.replace(/\\/g, "/");
+  const parts = normalized.split("/").filter(Boolean);
+  if (parts.length <= 2) return normalized;
+  return `…/${parts.slice(-2).join("/")}`;
+}
+
+function latestClaimTimestamp(claims: ClaimNode[]): string {
+  const latest = claims
+    .map((claim) => new Date(claim.logged_at))
+    .filter((date) => !Number.isNaN(date.getTime()))
+    .sort((left, right) => right.getTime() - left.getTime())[0];
+
+  if (!latest) return "time unknown";
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(latest);
 }
 
 function humanize(value: string): string {
