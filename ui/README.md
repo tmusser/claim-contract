@@ -17,6 +17,19 @@ The frontend is designed for claim archaeology rather than editing:
 
 All interactions remain browser-local and read-only.
 
+## Application chrome
+
+The workspace shell surfaces contract state rather than adding decorative dashboard semantics:
+
+- a compact claim-contract / claim-map breadcrumb and product mark;
+- validated-bundle, schema-version, and read-only status chips;
+- a source rail for the exact ledger, graph, and optional provenance artifacts named by the bundle;
+- graph-panel visible-count chrome;
+- inspector path framing;
+- a bottom status bar that repeats bundle-integrity and non-adjudication boundaries.
+
+The “validated bundle” treatment means only that the browser runtime parser accepted the UI bundle contract. It does **not** mean that the underlying claims or evidence were scientifically validated.
+
 ## Runtime hardening
 
 The browser does not trust JSON merely because TypeScript describes it.
