@@ -29,6 +29,19 @@ The frontend is intentionally richer than a static graph while remaining read-on
 
 Filtering, highlighting, zoom, copying, and navigation never write to the ledger, graph, provenance sidecar, or exported bundle.
 
+## Workspace chrome
+
+The React shell intentionally exposes provenance/contract state in the interface:
+
+- the masthead identifies the product and claim-map surface;
+- status chips show that the bundle passed the browser parser, which schema version was loaded, and that the surface is read-only;
+- the source rail names the exact ledger, graph, and optional provenance artifacts declared by `generated_from`;
+- the rail also shows the most recent recorded claim date as orientation only;
+- the graph panel reports how many claims are visible after filtering;
+- the status bar repeats the UI's non-scientific-validation and non-adjudication boundaries.
+
+This chrome is derived only from the already-exported bundle. It does not inspect repository state, infer freshness, attest to evidence quality, or promote a claim's status. “Validated bundle” means interface-contract integrity only.
+
 ## Runtime bundle firewall
 
 The frontend treats the exported JSON as untrusted input even when it was produced by claim-contract.
