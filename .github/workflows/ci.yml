@@ -324,6 +324,14 @@ jobs:
           npm test
           npm run validate:bundle
 
+      - name: Run frontend runtime-contract tests
+        working-directory: ui
+        run: npm test
+
+      - name: Validate exported bundle with browser parser
+        working-directory: ui
+        run: npm run validate:bundle
+
       - name: Type-check and build React UI
         working-directory: ui
         run: npm run build
