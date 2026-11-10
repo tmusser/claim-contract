@@ -165,7 +165,7 @@ function App() {
     ) {
       setSelectedId(visibleClaims[0].id);
       // A filter-driven fallback is not a user navigation: replace, do not push.
-      if (readClaimFragment(window.location.hash)) {
+      if (!window.location.hash || readClaimFragment(window.location.hash)) {
         window.history.replaceState(
           null,
           "",
