@@ -7,6 +7,7 @@ Optional read-only React/Vite frontend for the repository claim graph.
 The frontend is designed for claim archaeology rather than editing:
 
 - search across claim wording, scope, file refs, database/table names, query refs, and declared query text;
+- open, bookmark, and copy direct links to a selected claim using the static `#claim=CCL-###` fragment;
 - filter by ledger status or provenance presence;
 - zoom, fit, and center the graph without a graph-framework dependency;
 - highlight the selected claim's immediate graph neighborhood;
@@ -16,6 +17,12 @@ The frontend is designed for claim archaeology rather than editing:
 - move to a single-column graph + inspector layout on smaller screens.
 
 All interactions remain browser-local and read-only.
+
+## Claim deep links
+
+Select a graph node or follow a relationship to update the URL fragment; use **Copy link** beside the inspector claim ID to share that precise claim. A link such as `https://example.org/claim-map/#claim=CCL-002` works on static hosting without a router. Browser Back/Forward restores the selected claim and clears filters that could hide it. When filters automatically select another visible claim, the URL is replaced rather than adding a history entry.
+
+A malformed or unknown `#claim=` target displays a notice and falls back to the first claim in the validated bundle. Unrelated URL fragments are not interpreted as claim links. Claim links identify a UI selection only; they carry no endorsement, evidence verification, or adjudication.
 
 ## Application chrome
 

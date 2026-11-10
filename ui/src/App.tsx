@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { parseClaimUiBundle } from "./bundle";
+import { claimDeepLink, findLinkedClaimId, readClaimFragment } from "./claimLink";
 import { edgePath, layoutClaimGraph, nodeHeight, nodeWidth } from "./layout";
 import type {
   ClaimGraphEdge,
@@ -28,6 +29,7 @@ function App() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [linkNotice, setLinkNotice] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("ALL");
   const [provenance, setProvenance] = useState<ProvenanceFilter>("ALL");
@@ -60,8 +62,17 @@ function App() {
         return parseClaimUiBundle(raw);
       })
       .then((payload) => {
+        const linkedId = findLinkedClaimId(
+          window.location.hash,
+          payload.claims.map((claim) => claim.id),
+        );
+        setLinkNotice(
+          window.location.hash.startsWith("#claim=") && !linkedId
+            ? "This claim link does not match a claim in the loaded bundle. Showing the first claim."
+            : null,
+        );
+        setSelectedId(linkedId ?? payload.claims[0]?.id ?? null);
         setBundle(payload);
-        setSelectedId(payload.claims[0]?.id ?? null);
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
@@ -72,6 +83,37 @@ function App() {
       controller.abort();
     };
   }, [loadAttempt]);
+
+  // Back/forward and pasted fragments navigate only among validated bundle claims.
+  // Unrelated page anchors are left alone.
+  useEffect(() => {
+    if (!bundle) return;
+    const syncFromLocation = () => {
+      const hash = window.location.hash;
+      if (hash && !hash.startsWith("#claim=")) return;
+
+      const linkedId = findLinkedClaimId(
+        hash,
+        bundle.claims.map((claim) => claim.id),
+      );
+      setLinkNotice(
+        hash.startsWith("#claim=") && !linkedId
+          ? "This claim link does not match a claim in the loaded bundle. Showing the first claim."
+          : null,
+      );
+      setQuery("");
+      setStatus("ALL");
+      setProvenance("ALL");
+      setSelectedId(linkedId ?? bundle.claims[0]?.id ?? null);
+    };
+
+    window.addEventListener("popstate", syncFromLocation);
+    window.addEventListener("hashchange", syncFromLocation);
+    return () => {
+      window.removeEventListener("popstate", syncFromLocation);
+      window.removeEventListener("hashchange", syncFromLocation);
+    };
+  }, [bundle]);
 
   const visibleClaims = useMemo(() => {
     if (!bundle) return [];
@@ -122,6 +164,14 @@ function App() {
       (!selectedId || !visibleIds.has(selectedId))
     ) {
       setSelectedId(visibleClaims[0].id);
+      // A filter-driven fallback is not a user navigation: replace, do not push.
+      if (!window.location.hash || readClaimFragment(window.location.hash)) {
+        window.history.replaceState(
+          null,
+          "",
+          claimDeepLink(window.location.href, visibleClaims[0].id),
+        );
+      }
     }
   }, [visibleClaims, visibleIds, selectedId]);
 
@@ -131,9 +181,18 @@ function App() {
     setProvenance("ALL");
   };
 
+  const selectClaim = (claimId: string) => {
+    const nextUrl = claimDeepLink(window.location.href, claimId);
+    if (nextUrl !== window.location.href) {
+      window.history.pushState(null, "", nextUrl);
+    }
+    setLinkNotice(null);
+    setSelectedId(claimId);
+  };
+
   const navigateToClaim = (claimId: string) => {
     clearFilters();
-    setSelectedId(claimId);
+    selectClaim(claimId);
   };
 
   if (loadError) {
@@ -241,6 +300,10 @@ function App() {
         </div>
       </div>
 
+      {linkNotice ? (
+        <p className="link-notice" role="status">{linkNotice}</p>
+      ) : null}
+
       <section className="toolbar">
         <label className="search-field">
           <span>Search claims and provenance</span>
@@ -316,7 +379,7 @@ function App() {
           edges={visibleEdges}
           roots={bundle.graph.roots}
           selectedId={selectedId}
-          onSelect={setSelectedId}
+          onSelect={selectClaim}
           onClearFilters={clearFilters}
         />
         <ClaimInspector
@@ -669,7 +732,14 @@ function ClaimInspector({
             </span>
           </div>
         </div>
-        {claim.is_root ? <span className="root-badge">root</span> : null}
+        <div className="inspector-actions">
+          {claim.is_root ? <span className="root-badge">root</span> : null}
+          <CopyButton
+            value={claimDeepLink(window.location.href, claim.id)}
+            label={`Copy direct link to ${claim.id}`}
+            text="Copy link"
+          />
+        </div>
       </div>
 
       <section className="detail-section claim-section">
@@ -927,11 +997,13 @@ function CopyButton({
   label,
   compact = false,
   dark = false,
+  text = "Copy",
 }: {
   value: string;
   label: string;
   compact?: boolean;
   dark?: boolean;
+  text?: string;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -958,7 +1030,7 @@ function CopyButton({
       title={label}
       aria-label={label}
     >
-      {copied ? "Copied" : "Copy"}
+      {copied ? "Copied" : text}
     </button>
   );
 }

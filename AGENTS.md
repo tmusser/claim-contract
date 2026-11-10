@@ -183,6 +183,7 @@ to generate the static browser bundle.
 - Preserve `read_only: true`, `scientific_validation: false`, and `automatic_adjudication: false` when forwarding a UI bundle.
 - Route browser-loaded bundle data through `ui/src/bundle.js`; do not replace runtime parsing with a TypeScript cast or trust a custom `VITE_CLAIM_BUNDLE_URL` by default.
 - When the UI bundle v1 contract changes, update the browser parser and its Node-native malformed-bundle tests in the same change so frontend assumptions cannot silently drift from the export contract.
+- A `#claim=CCL-###` URL fragment selects a claim only within the loaded, validated UI bundle. It is not a revision-pinned evidence ref, a report binding, or an adjudication result; stale/unknown claim links fall back visibly.
 - The UI must not mutate `claims/ledger.yaml`, `claims/graph.yaml`, or `claims/provenance.yaml`.
 
 See [docs/CLAIM_UI.md](docs/CLAIM_UI.md).
