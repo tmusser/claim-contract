@@ -378,7 +378,17 @@ The repository also ships [`skills/claim-foil/SKILL.md`](skills/claim-foil/SKILL
 
 See the [worked onboarding example](skills/claim-foil/EXAMPLE.md).
 
+### Optional `claim-implicit` skill
+
+[`skills/claim-implicit/SKILL.md`](skills/claim-implicit/SKILL.md) inventories the **unstated, decision-relevant propositions** an operator may need to examine before accepting an analytical interpretation or an explicitly proposed action.
+
+It separates the source claim and declarations from packet-local `IMPLICIT_CANDIDATE` statements; each candidate has a concrete input trigger, a consequence if false, an unknown, an inspectable check, and a suggested operator choice. The skill deliberately rejects generic caveats, unrequested business decisions, and unsupported extrapolations. It is an **agent reasoning guide**, not a CLI command, automatic parser, claim ledger entry, or a new verdict.
+
+See the [source-anchored onboarding inventory](skills/claim-implicit/EXAMPLE.md). Unlike `claim-foil` (competing explanations), `claim-implicit` makes hidden **warrants and conditional decision bridges** visible for the operator to accept, investigate, or discard.
+
 ## Relationship to chart-contract
+
+`claim-implicit` surfaces **unstated warrants and decision assumptions for operator review**.
 
 `claim-foil` stress-tests **alternative interpretations before validation**.
 
@@ -390,7 +400,8 @@ The bounded chart handoff preserves the exact claim, analytical scope, caveats, 
 
 ```text
 analysis
-  → claim-foil
+  → optional claim-implicit inventory (human triage)
+  → optional claim-foil
   → claim-contract
   → bounded chart handoff
   → chart authoring

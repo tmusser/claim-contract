@@ -10,6 +10,7 @@
 
 ### Added
 
+- Optional `claim-implicit` operator skill and grounded onboarding example for enumerating unstated, source-anchored warrants and decision-bridging propositions with concrete checks; packet-local suggestions do not create ledger entries, DAG edges, or verdicts.
 - Optional React/Vite claim-map frontend for browsing declared claim-graph relationships and inspecting ledger provenance in a read-only side panel.
 - `claim-contract ui export` for fusing `claims/ledger.yaml`, `claims/graph.yaml`, and optional `claims/provenance.yaml` into a versioned static `claim_contract.claim_ui_bundle` without executing queries or mutating source artifacts.
 - Optional `claim_contract.claim_provenance` sidecar for explicit source-file and database/table/query lineage that remains separate from ledger v1.2 adjudication semantics.
