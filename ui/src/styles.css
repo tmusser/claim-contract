@@ -882,6 +882,7 @@ h1 {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
   padding: 17px 18px 14px;
   border-bottom: 1px solid #e6e8e5;
   background: rgba(255, 255, 255, 0.96);
@@ -894,6 +895,23 @@ h1 {
 
 .inspector-path {
   color: #758079;
+}
+
+.inspector-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.link-notice {
+  margin: 0;
+  padding: 10px 24px;
+  border-bottom: 1px solid #e6e8e5;
+  color: #78521c;
+  background: #fff8ec;
+  font-size: 12px;
 }
 
 .status-pill {
