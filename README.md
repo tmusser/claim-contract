@@ -294,6 +294,8 @@ claim-contract dag render examples/claim_dag/dag.yaml
 
 `packet check` checks local inline links and images relative to the Markdown packet and parses linked JSON files. Run it after copying or moving a packet. It exits `0` when the targets resolve and linked JSON parses, `1` for a missing or absolute target or unparseable JSON, and `2` for a packet input error. Link integrity only. This does not validate any claim, contract, or evidence.
 
+For Claude-to-Codex packet authoring, use the [persistent output delegation recipe](docs/PACKET_DELEGATION.md). The caller chooses a writable packet directory inside its project before launch, and the child writes the Markdown, declared contracts, and validator outputs directly there while using a read-only tool checkout.
+
 The canonical command surface is `claim-contract ...`. The older
 `claim-contract-graph prune ...` and `claim-dag inspect|render ...` executables remain
 available as backwards-compatible aliases and use the same parser/runner implementation.

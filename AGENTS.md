@@ -185,6 +185,17 @@ Keep each review packet beside, or link it to, the contracts and validator outpu
 Run `claim-contract packet check path/to/packet.md` after every copy or move.
 A pass means only that the links resolve, with a syntax check for linked JSON files.
 
+When delegating packet authoring, the calling agent must choose a persistent
+output directory in its project and make that directory writable in the child's
+environment before launch. The child writes the packet, declared contracts, and
+unaltered validator stdout directly there. Keep the tool checkout and review
+inputs read-only. Check links at the final destination before reporting completion.
+If the child cannot access that destination, report the blocked path or missing
+mount before authoring.
+
+See [the caller launch recipe](docs/PACKET_DELEGATION.md) for Claude-to-Codex
+delegation, required paths, validator output capture, and completion checks.
+
 Link integrity only. This does not validate any claim, contract, or evidence.
 
 ## Claim map UI boundary

@@ -10,6 +10,8 @@
 
 ### Added
 
+- Caller-side Claude-to-Codex packet delegation recipe with an explicit persistent output directory, read-only input paths, direct validator output capture, and final-destination link checks.
+
 - `claim-contract packet check` for checking relative Markdown packet links and linked JSON syntax in text or JSON output.
 
 - Optional `claim-implicit` operator skill and grounded onboarding example for enumerating unstated, source-anchored warrants and decision-bridging propositions with concrete checks; packet-local suggestions do not create ledger entries, DAG edges, or verdicts.
