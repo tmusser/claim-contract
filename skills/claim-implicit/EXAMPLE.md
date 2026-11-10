@@ -23,7 +23,7 @@ The goal is to make the most consequential unstated **propositions** visible wit
 
 ### IC-01 — WARRANT: Attribution
 
-- **IMPLICIT_CANDIDATE:** The redesign, rather than another difference between the before and after periods, accounts for the claimed change in seven-day activation.
+- **IMPLICIT_CANDIDATE:** Other concurrent changes or secular trends do not materially account for the pre/post activation difference attributed to the redesign.
 - **Trigger:** The exact phrase “redesign improved” and `claim.type: causal` paired with `evidence.design: observational_before_after`.
 - **Why it matters / if false:** The causal interpretation would be unwarranted. A descriptive period difference might still be reportable, but would be a **different claim** requiring its own validation.
 - **What is declared or observed:** A relative estimate of `0.08` is declared; `identifying_assumptions_documented: false` and `treatment_assignment_validated: false` are also declared. No causal verification was supplied.
