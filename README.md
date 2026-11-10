@@ -269,6 +269,8 @@ claim-contract trace path/to/contract.yaml
 claim-contract trace path/to/contract.yaml --json
 claim-contract receipts inspect path/to/contract.yaml path/to/receipts.yaml
 claim-contract receipts inspect path/to/contract.yaml path/to/receipts.yaml --json
+claim-contract packet check path/to/packet.md
+claim-contract packet check path/to/packet.md --json
 claim-contract handoff chart path/to/contract.yaml
 claim-contract handoff chart path/to/contract.yaml --warnings-as-errors
 claim-contract profile show minimum-v0.1
@@ -289,6 +291,8 @@ claim-contract dag render examples/claim_dag/dag.yaml
 `trace` is read-only rule-path inspection: a successfully produced trace exits `0` even when its embedded verdict is `REVIEW` or `BLOCK`; malformed input exits `2`. Use `validate` when exit status should gate on the verdict. See [Rule trace inspection](docs/RULE_TRACE.md).
 
 `receipts inspect` reports retained repository refs for applicable declared evidence fields. Unreceipted fields are informational and do not change the validation verdict. Contract-binding drift or broken pinned refs make receipt integrity invalid and exit `1`; malformed receipt input exits `2`. A resolved receipt does not verify the declaration it points at. See [Evidence receipts](docs/EVIDENCE_RECEIPTS.md).
+
+`packet check` checks local inline links and images relative to the Markdown packet and parses linked JSON files. Run it after copying or moving a packet. It exits `0` when the targets resolve and linked JSON parses, `1` for a missing or absolute target or unparseable JSON, and `2` for a packet input error. Link integrity only. This does not validate any claim, contract, or evidence.
 
 The canonical command surface is `claim-contract ...`. The older
 `claim-contract-graph prune ...` and `claim-dag inspect|render ...` executables remain

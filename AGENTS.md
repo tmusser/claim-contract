@@ -179,6 +179,14 @@ When using it:
 
 See [the onboarding example](skills/claim-implicit/EXAMPLE.md). This does not change `minimum-v0.1` behavior.
 
+## Packet link boundary
+
+Keep each review packet beside, or link it to, the contracts and validator outputs it cites.
+Run `claim-contract packet check path/to/packet.md` after every copy or move.
+A pass means only that the links resolve, with a syntax check for linked JSON files.
+
+Link integrity only. This does not validate any claim, contract, or evidence.
+
 ## Claim map UI boundary
 
 The optional React claim map is a read-only inspection surface over declared ledger, graph, and provenance metadata.
