@@ -171,6 +171,7 @@ Important boundaries:
 - a `CHALLENGED` assumptions-ledger entry does not automatically mutate a DAG;
 - a DAG `WATCH` node does not mutate an assumptions ledger;
 - a DAG cannot produce or reinterpret `READY`, `REVIEW`, or `BLOCK`;
+- a `claim-implicit` packet does not automatically create a DAG `REQUIRES` edge; the author must explicitly declare any adopted prerequisite;
 - a mechanically unexposed DAG does not mean the claims are robust;
 - a deep DAG does not mean the analysis is bad;
 - a shallow DAG does not mean the analysis is good.
