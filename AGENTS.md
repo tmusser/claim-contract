@@ -163,6 +163,22 @@ When using it:
 
 See [`skills/claim-foil/EXAMPLE.md`](skills/claim-foil/EXAMPLE.md) for a worked example against the existing onboarding conversion fixture.
 
+## Claim-implicit boundary
+
+The optional [`claim-implicit`](skills/claim-implicit/SKILL.md) skill is an operator-facing inventory of **candidate** unstated propositions, not an assertion that those propositions are true or automatically entailed.
+
+When using it:
+
+- quote the supplied explicit claim and any explicitly proposed decision without strengthening their meaning;
+- retain `IMPLICIT_CANDIDATE`, `DECLARED`, `OBSERVED`, and `UNKNOWN` as distinct categories, with locators for source-triggered statements;
+- include only candidates whose failure could materially change the supplied interpretation or decision, and give each a concrete check;
+- do not invent operator recommendations, future scope extensions, completed checks, causal proof, or statistical significance;
+- treat `IC-##` IDs as packet-local, not ledger `CCL-###` IDs;
+- never write a candidate into a ledger, DAG, graph, assumptions ledger, or contract without explicit adoption and that artifact's normal process;
+- do not treat zero retained candidates as evidence that an analysis passed review or as a `READY` verdict.
+
+See [the onboarding example](skills/claim-implicit/EXAMPLE.md). This does not change `minimum-v0.1` behavior.
+
 ## Claim map UI boundary
 
 The optional React claim map is a read-only inspection surface over declared ledger, graph, and provenance metadata.
