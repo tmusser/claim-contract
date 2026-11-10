@@ -4,6 +4,7 @@ import argparse
 import json
 import sys
 from collections.abc import Mapping
+from dataclasses import asdict
 from pathlib import Path
 
 from .binding import (
@@ -38,6 +39,7 @@ from .metadata import (
     TOOL_VERSION,
 )
 from .models import Verdict
+from .packet_links import PACKET_SCOPE_NOTICE, check_packet_links
 from .profile_diff import ProfileDiff, build_profile_diff, load_profile_manifest
 from .profiles import ProfileManifest, get_profile_manifest
 from .receipts import (
@@ -113,6 +115,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="Shortcut for --format json.",
     )
     trace.set_defaults(format="text")
+
+    packet = subparsers.add_parser("packet", help="Inspect Markdown review packets.")
+    packet_commands = packet.add_subparsers(dest="packet_command", required=True)
+    packet_check = packet_commands.add_parser("check", help="Check packet link integrity.")
+    packet_check.add_argument("markdown", help="Path to the Markdown packet.")
+    packet_output = packet_check.add_mutually_exclusive_group()
+    packet_output.add_argument("--format", choices=("text", "json"), help="Output format.")
+    packet_output.add_argument(
+        "--json",
+        action="store_const",
+        const="json",
+        dest="format",
+        help="Shortcut for --format json.",
+    )
+    packet_check.set_defaults(format="text")
 
     receipts = subparsers.add_parser(
         "receipts",
@@ -400,6 +417,35 @@ def _run_rule_trace(contract_path: str, output_format: str) -> int:
     # Trace is an inspection command, not a verdict gate. A successfully produced
     # trace exits 0 even when the underlying validator verdict is REVIEW or BLOCK.
     return 0
+
+
+def _run_packet_check(markdown_path: str, output_format: str) -> int:
+    payload = {
+        "schema_version": "1.0",
+        "type": "claim_contract.packet_link_check",
+        "tool": {"name": TOOL_NAME, "version": TOOL_VERSION},
+        "scope_notice": PACKET_SCOPE_NOTICE,
+    }
+    try:
+        failures = check_packet_links(Path(markdown_path))
+    except (OSError, ValueError) as exc:
+        message = f"Input error: {exc}"
+        if output_format == "json":
+            payload["error"] = {"message": message}
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            print(message, file=sys.stderr)
+            print(PACKET_SCOPE_NOTICE, file=sys.stderr)
+        return 2
+
+    if output_format == "json":
+        payload["failures"] = [asdict(failure) for failure in failures]
+        print(json.dumps(payload, indent=2, sort_keys=True))
+    else:
+        print(PACKET_SCOPE_NOTICE)
+        for failure in failures:
+            print(f"Line {failure.line}: {failure.target} ({failure.reason})")
+    return 1 if failures else 0
 
 
 def _run_receipts_inspect(
@@ -841,6 +887,9 @@ def _run_report_verify(
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    if args.command == "packet" and args.packet_command == "check":
+        return _run_packet_check(args.markdown, args.format)
 
     if args.command == "receipts":
         if args.receipts_command == "inspect":
