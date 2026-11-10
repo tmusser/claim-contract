@@ -26,8 +26,17 @@ The frontend is intentionally richer than a static graph while remaining read-on
 - Zoom, fit, and center controls change only the browser viewport.
 - Copy controls copy already-exported text such as refs, revisions, table identifiers, hashes, or SQL; they do not resolve or execute those values.
 - Responsive layouts collapse the graph and inspector to a single column on narrower screens.
+- Claim deep links (`#claim=CCL-###`) select an exact claim in the already-validated bundle without a client-side router.
 
 Filtering, highlighting, zoom, copying, and navigation never write to the ledger, graph, provenance sidecar, or exported bundle.
+
+## Claim links and browser history
+
+The inspector's **Copy link** action shares a URL with the exact selected claim ID in its fragment, for example `https://example.org/claim-map/#claim=CCL-002`. The link preserves the site's path and query string, so static subpath deployments keep working.
+
+Clicking a graph node or relationship updates the fragment and adds a browser history entry. Back/Forward, or loading a claim link directly, restores the selected claim and clears active filters so it remains visible. A filter-driven selection fallback **replaces** the current claim fragment, avoiding a new history entry for an automatic UI change. URLs with no claim fragment select the first claim; unrelated fragments are ignored.
+
+A malformed or unknown claim fragment cannot cause the UI to fabricate a claim. Instead, the UI shows a notice and selects the first claim in the validated bundle. Claim links are local navigation state, **not** durable identifiers of the bundle's revision and not proof of the claim, source, or scientific validity. If the bundle changes, a previously valid link may become stale.
 
 ## Workspace chrome
 
