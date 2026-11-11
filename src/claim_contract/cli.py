@@ -199,6 +199,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Shortcut for --format json.",
     )
     contract_diff.set_defaults(format="text")
+    contract_diff.add_argument(
+        "--fail-on-change",
+        action="store_true",
+        help="Exit 1 when parsed contract fields differ, regardless of verdicts.",
+    )
 
     handoff = subparsers.add_parser(
         "handoff",
@@ -506,7 +511,12 @@ def _format_contract_diff_text(diff: ContractDiff) -> str:
     return "\n".join(lines)
 
 
-def _run_contract_diff(before_path: str, after_path: str, output_format: str) -> int:
+def _run_contract_diff(
+    before_path: str,
+    after_path: str,
+    output_format: str,
+    fail_on_change: bool = False,
+) -> int:
     if before_path == "-" and after_path == "-":
         message = "Input error: only one side of contract diff may read from stdin."
         if output_format == "json":
@@ -531,7 +541,7 @@ def _run_contract_diff(before_path: str, after_path: str, output_format: str) ->
         print(json.dumps(diff.to_dict(), indent=2, sort_keys=True))
     else:
         print(_format_contract_diff_text(diff))
-    return 0
+    return 1 if fail_on_change and diff.changed else 0
 
 
 def _format_profile_text(manifest: ProfileManifest) -> str:
@@ -912,7 +922,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "contract":
         if args.contract_command == "diff":
-            return _run_contract_diff(args.before, args.after, args.format)
+            return _run_contract_diff(
+                args.before, args.after, args.format, args.fail_on_change
+            )
         raise AssertionError(f"Unhandled contract command: {args.contract_command}")
     if args.command == "handoff":
         return _run_chart_handoff(args.contract, args.warnings_as_errors)

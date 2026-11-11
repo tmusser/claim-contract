@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from .binding import build_contract_binding
 from .metadata import (
     CONTRACT_DIFF_SCHEMA_VERSION,
     CONTRACT_DIFF_TYPE,
@@ -113,21 +114,9 @@ def _collect_changes(before: Any, after: Any, path: str) -> list[ContractChange]
                 changes.extend(_collect_changes(before_value, after_value, child_path))
         return changes
 
-    if isinstance(before, list) and isinstance(after, list):
-        if before == after:
-            return []
-        return [
-            ContractChange(
-                path=path,
-                change_type="changed",
-                before_present=True,
-                after_present=True,
-                before=before,
-                after=after,
-            )
-        ]
-
-    if before == after:
+    # Use the same parsed identity as report bindings, including inside lists.
+    # Python equality alone would hide edits such as false -> 0 or true -> 1.
+    if build_contract_binding({"value": before}) == build_contract_binding({"value": after}):
         return []
 
     return [

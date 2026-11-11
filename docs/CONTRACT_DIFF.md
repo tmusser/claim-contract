@@ -5,13 +5,24 @@
 ```bash
 claim-contract contract diff before.yaml after.yaml
 claim-contract contract diff before.yaml after.yaml --json
+claim-contract contract diff baseline.yaml returned.yaml --fail-on-change --json
 ```
 
-The command is an inspection surface. A successful comparison exits `0` even if either contract validates as `BLOCK`; malformed or unreadable input exits `2`.
+By default, a successful comparison exits `0` even if either contract validates
+as `BLOCK` or fields differ. With `--fail-on-change`, changed parsed declarations
+exit `1`, including when both verdicts are identical. An unchanged contract exits
+`0`. Input errors exit `2`. Text and JSON diffs are emitted for completed
+comparisons, including on exit `1`.
+
+Use the flag to check returned contracts against a retained review baseline.
+The caller still checks proposal reasons, sources, and acceptance decisions.
+See [Review baseline](REVIEW_BASELINE.md).
 
 ## What is compared
 
 The diff runs after YAML/JSON parsing, so source formatting and mapping key order are not changes. Nested mapping fields are reported using dotted paths such as `claim.text` or `evidence.checks.composition_stability_assessed`.
+
+Comparison uses the parsed identity conventions of report bindings, so booleans and numbers remain distinct, including inside lists.
 
 Lists are treated as one declared field. If a caveat list changes, the diff reports the before/after list rather than attempting to infer item identity or semantic equivalence.
 

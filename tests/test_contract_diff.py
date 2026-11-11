@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import json
 from copy import deepcopy
+from io import StringIO
 from pathlib import Path
 
+import pytest
 import yaml
 
 from claim_contract.cli import main
 from claim_contract.contract_diff import build_contract_diff
 from claim_contract.io import load_contract
+from claim_contract.validator import validate_contract
 
 ROOT = Path(__file__).parents[1]
 READY_CONTRACT = ROOT / "examples/descriptive_summary/contract.yaml"
@@ -134,3 +137,133 @@ def test_cli_contract_diff_yaml_formatting_is_not_a_change(capsys, tmp_path: Pat
     payload = json.loads(capsys.readouterr().out)
     assert payload["contract_changed"] is False
     assert payload["change_count"] == 0
+
+
+@pytest.fixture
+def review_baseline() -> dict:
+    # Deliberately incomplete synthetic declarations keep both verdicts BLOCK.
+    return {
+        "version": "0.1",
+        "profile": "minimum-v0.1",
+        "claim": {"text": "The rate is still higher in group B.", "type": "comparison"},
+        "evidence": {"checks": {"missingness_assessed": False}},
+    }
+
+
+@pytest.mark.parametrize(
+    ("path", "proposed_value"),
+    [
+        ("claim.text", "The rate is higher in group B."),
+        ("claim.type", "descriptive"),
+        ("claim.population", "Synthetic population inferred by a reviewer"),
+        ("claim.population", None),
+        ("evidence.checks.missingness_assessed", True),
+        ("evidence.checks.missingness_assessed", 0),
+    ],
+)
+@pytest.mark.parametrize("output_format", ["text", "json"])
+def test_cli_contract_diff_gates_review_edits(
+    review_baseline, tmp_path, capsys, path, proposed_value, output_format
+) -> None:
+    proposed = deepcopy(review_baseline)
+    parent, field = path.rsplit(".", 1)
+    target = proposed
+    for part in parent.split("."):
+        target = target[part]
+    target[field] = proposed_value
+    before = tmp_path / "baseline.json"
+    after = tmp_path / "returned.json"
+    before.write_text(json.dumps(review_baseline), encoding="utf-8")
+    after.write_text(json.dumps(proposed), encoding="utf-8")
+
+    code = main([
+        "contract", "diff", str(before), str(after),
+        "--fail-on-change", "--format", output_format,
+    ])
+
+    assert code == 1
+    output = capsys.readouterr().out
+    if output_format == "json":
+        payload = json.loads(output)
+        assert payload["verdict_transition"] == {
+            "before": "BLOCK", "after": "BLOCK", "changed": False,
+        }
+        assert payload["scientific_validation"] is False
+        assert payload["automatic_interpretation"] is False
+        assert payload["scope_notice"]
+        change, = payload["changes"]
+        assert change["path"] == path
+        assert change["after"] == proposed_value
+        assert change["before_present"] is (field != "population")
+    else:
+        assert "Verdict: BLOCK -> BLOCK" in output
+        assert path in output
+    assert json.loads(before.read_text()) == review_baseline
+    assert json.loads(after.read_text()) == proposed
+
+
+def test_contract_diff_catches_reclassification_that_removes_multiplicity(review_baseline) -> None:
+    proposed = deepcopy(review_baseline)
+    proposed["claim"]["type"] = "descriptive"
+
+    before_report = validate_contract(review_baseline)
+    after_report = validate_contract(proposed)
+    assert "CC205" in {finding.rule_id for finding in before_report.findings}
+    assert "CC205" not in {finding.rule_id for finding in after_report.findings}
+    diff = build_contract_diff(review_baseline, proposed)
+    assert diff.before_verdict == diff.after_verdict == "BLOCK"
+    assert [change.path for change in diff.changes] == ["claim.type"]
+
+
+def test_contract_diff_preserves_types_inside_lists(review_baseline) -> None:
+    before = deepcopy(review_baseline)
+    after = deepcopy(review_baseline)
+    before["review_metadata"] = [{"declared": True}]
+    after["review_metadata"] = [{"declared": 1}]
+
+    diff = build_contract_diff(before, after)
+
+    assert diff.changed
+    assert [change.path for change in diff.changes] == ["review_metadata"]
+
+
+def test_cli_contract_diff_gate_accepts_reformatted_block(review_baseline, tmp_path, capsys) -> None:
+    before = tmp_path / "baseline.json"
+    after = tmp_path / "returned.yaml"
+    before.write_text(json.dumps(review_baseline), encoding="utf-8")
+    after.write_text(yaml.safe_dump(review_baseline, sort_keys=True), encoding="utf-8")
+
+    assert main([
+        "contract", "diff", str(before), str(after), "--fail-on-change", "--json",
+    ]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["verdict_transition"]["before"] == "BLOCK"
+    assert payload["changes"] == []
+
+
+def test_cli_contract_diff_gate_supports_stdin(review_baseline, tmp_path, capsys, monkeypatch) -> None:
+    before = tmp_path / "baseline.json"
+    before.write_text(json.dumps(review_baseline), encoding="utf-8")
+    proposed = deepcopy(review_baseline)
+    del proposed["claim"]["text"]
+    monkeypatch.setattr("sys.stdin", StringIO(json.dumps(proposed)))
+
+    assert main([
+        "contract", "diff", str(before), "-", "--fail-on-change", "--json",
+    ]) == 1
+    change, = json.loads(capsys.readouterr().out)["changes"]
+    assert change["path"] == "claim.text"
+    assert change["after_present"] is False
+
+
+@pytest.mark.parametrize("options", [[], ["--json"]])
+def test_cli_contract_diff_gate_missing_input(tmp_path, capsys, options) -> None:
+    assert main([
+        "contract", "diff", str(tmp_path / "missing.json"),
+        str(tmp_path / "also-missing.json"), "--fail-on-change", *options,
+    ]) == 2
+    captured = capsys.readouterr()
+    if options:
+        assert json.loads(captured.out)["error"]["code"] == "INPUT_ERROR"
+    else:
+        assert "Input error" in captured.err

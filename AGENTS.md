@@ -30,6 +30,33 @@ Never translate `READY` into:
 - Missing evidence must remain missing.
 - Do not downgrade a claim type merely to obtain `READY` without showing the user the changed wording and analytical meaning.
 
+## Review baseline boundary
+
+Before delegating a review, retain the supplied contracts and source text in a
+caller-controlled, read-only baseline outside the child's writable output.
+Preserve exact claim text, type, population, metric definitions, checks, and
+unknowns. Keep a contract inventory and actual source and validator revisions.
+
+- Compare returned contracts against that baseline with
+  `claim-contract contract diff baseline.yaml returned.yaml --fail-on-change --json`.
+  Check the inventory too. Exit one requires inspection even when verdicts match.
+- Place proposed edits in separate files with a field-level diff, reason, source
+  locator or UNKNOWN, and an explicit user acceptance decision before adoption.
+  A reviewer cannot approve its own proposal or infer a declaration from context.
+- Explain the analytical meaning and disappearing findings when proposing a type
+  change. Never overwrite the original baseline to make an edit disappear.
+- Run deterministic validation first and surface shared declaration gaps.
+  Start with two or three selected claims before expanding an expensive review.
+- Retain verbatim wording checks, denominator and definition inspections, and
+  uncovered-sentence inventories. Attribute findings to the checks that produced
+  them. Group missing declarations separately from declared failures and observed
+  analytical issues, while retaining the full validator reports.
+- Preserve every unknown until supplied evidence or an executed check supports
+  changing it. Equal BLOCK verdicts do not imply equal analytical quality.
+
+See [the review baseline workflow](docs/REVIEW_BASELINE.md) for proposal records,
+version retention, and caller completion checks.
+
 ## Evidence receipt boundary
 
 Evidence receipts make support references inspectable; they do not verify evidence.
