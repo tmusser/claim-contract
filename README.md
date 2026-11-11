@@ -269,6 +269,7 @@ claim-contract trace path/to/contract.yaml
 claim-contract trace path/to/contract.yaml --json
 claim-contract receipts inspect path/to/contract.yaml path/to/receipts.yaml
 claim-contract receipts inspect path/to/contract.yaml path/to/receipts.yaml --json
+claim-contract contract diff baseline.yaml returned.yaml --fail-on-change --json
 claim-contract packet check path/to/packet.md
 claim-contract packet check path/to/packet.md --json
 claim-contract handoff chart path/to/contract.yaml
@@ -295,6 +296,8 @@ claim-contract dag render examples/claim_dag/dag.yaml
 `packet check` checks local inline links and images relative to the Markdown packet and parses linked JSON files. Run it after copying or moving a packet. It exits `0` when the targets resolve and linked JSON parses, `1` for a missing or absolute target or unparseable JSON, and `2` for a packet input error. Link integrity only. This does not validate any claim, contract, or evidence.
 
 For Claude-to-Codex packet authoring, use the [persistent output delegation recipe](docs/PACKET_DELEGATION.md). The caller chooses a writable packet directory inside its project before launch, and the child writes the Markdown, declared contracts, and validator outputs directly there while using a read-only tool checkout.
+
+`contract diff --fail-on-change` exits `1` for any detected parsed field change, even when both verdicts are BLOCK, and emits the full diff. Unchanged declarations exit `0`; input errors exit `2`. The [review baseline workflow](docs/REVIEW_BASELINE.md) retains supplied declarations, requires reasons and sources for proposals, and assigns acceptance to the caller. It also covers deterministic preflight, focused reviews, and separate reporting of declaration gaps and observed analytical issues.
 
 The canonical command surface is `claim-contract ...`. The older
 `claim-contract-graph prune ...` and `claim-dag inspect|render ...` executables remain

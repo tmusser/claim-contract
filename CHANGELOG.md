@@ -4,11 +4,16 @@
 
 ### Changed
 
+- Contract diffs use parsed report-binding identity for scalar and list values, preserving boolean-versus-number changes that Python equality previously hid.
+
 - Added static-host-friendly claim deep links, copy-link inspection, browser history navigation, and visible stale-link fallback. These navigate within the validated UI bundle without changing claim meaning or evidence authority.
 - Hardened the React claim map with dependency-free runtime bundle validation, graph/claim cross-reference checks, abortable/retryable loading, a render error boundary, Node-native malformed-bundle regression tests, CI validation of the actual Python-exported browser bundle, and application chrome that surfaces bundle/schema/read-only state plus explicit ledger/graph/provenance sources without adding UI authority.
 - Claim-map navigation now supports zoom, fit, center-on-selection, immediate-neighbor highlighting, clickable relationship traversal, provenance-aware search/filtering, copy affordances for refs/tables/hashes/SQL, denser inspector grouping, and responsive single-column layouts without changing the exported bundle schema.
 
 ### Added
+
+- Opt-in `contract diff --fail-on-change` gate for returned-contract drift, with full text/JSON diffs even when verdicts match.
+- Review baseline and proposal workflow for retained declarations, explicit acceptance, deterministic preflight, targeted inspections, and source/tool revision records in delegated packets.
 
 - Caller-side Claude-to-Codex packet delegation recipe with an explicit persistent output directory, read-only input paths, direct validator output capture, and final-destination link checks.
 
