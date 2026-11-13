@@ -35,21 +35,26 @@ Never translate `READY` into:
 Before delegating a review, retain the supplied contracts and source text in a
 caller-controlled, read-only baseline outside the child's writable output.
 Preserve exact claim text, type, population, metric definitions, checks, and
-unknowns. Keep a contract inventory and actual source and validator revisions.
+unknowns. Keep the full and selected contract inventories and actual source and
+validator revisions.
 
 - Compare returned contracts against that baseline with
   `claim-contract contract diff baseline.yaml returned.yaml --fail-on-change --json`.
-  Check the inventory too. Exit one requires inspection even when verdicts match.
+  Check the selected inventory too. Exit one requires inspection even when verdicts match.
 - Place proposed edits in separate files with a field-level diff, reason, source
   locator or UNKNOWN, and an explicit user acceptance decision before adoption.
   A reviewer cannot approve its own proposal or infer a declaration from context.
 - Explain the analytical meaning and disappearing findings when proposing a type
   change. Never overwrite the original baseline to make an edit disappear.
 - Run deterministic validation first and surface shared declaration gaps.
-  Start with two or three selected claims before expanding an expensive review.
-- Retain verbatim wording checks, denominator and definition inspections, and
-  uncovered-sentence inventories. Attribute findings to the checks that produced
-  them. Group missing declarations separately from declared failures and observed
+  Let the caller select scope, focus, and effort targets through `TASK_FILE`.
+  Two or three claims are a suggested pilot; an explicit assignment takes
+  precedence. Record effective controls and completed, blocked, or not-requested
+  checks in the review log. See [caller controls](docs/REVIEW_TASK.md).
+- By default, retain wording checks, denominator and definition inspections, and
+  uncovered-sentence inventories. Honor explicit inspection focus while preserving
+  baseline diffs, raw validator reports, report bindings, and link checks.
+  Attribute findings to the checks that produced them. Group missing declarations separately from declared failures and observed
   analytical issues, while retaining the full validator reports.
 - Preserve every unknown until supplied evidence or an executed check supports
   changing it. Equal BLOCK verdicts do not imply equal analytical quality.

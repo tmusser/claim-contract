@@ -7,8 +7,10 @@ an explicit acceptance decision before it becomes an active declaration.
 
 ## Retain the inputs
 
-Choose two or three claims for an initial review. Include different concerns,
-such as a denominator definition, a comparison, and wording or coverage.
+The caller selects the claims and inspections using the
+[task controls](REVIEW_TASK.md). Two or three claims with different concerns are
+a suggested initial review. A caller can explicitly request a broader, narrower,
+or delta review. Retain the selected contract inventory with that assignment.
 
 1. Save the exact supplied source text with its locator and revision or file hash.
 2. Copy the supplied contracts into a caller-controlled baseline directory. Keep
@@ -17,8 +19,9 @@ such as a denominator definition, a comparison, and wording or coverage.
    explicitly supplied declarations. Leave inferred fields absent and have the
    caller establish that initial baseline before delegation.
 3. Give the child read-only access to the baseline directory, outside its writable
-   packet directory. Keep a caller-retained inventory of contract names so an
-   omitted or extra returned contract is visible.
+   packet directory. Keep the full baseline inventory and the selected contract
+   inventory so an omitted or extra returned contract is visible within the
+   requested scope.
 4. Record the actual source revision, baseline revision or hashes, validator
    revision, tool version, and profile in the review log. If a checkout is dirty
    or has no revision, retain the relevant snapshot or file hashes and say so.
@@ -30,8 +33,8 @@ Record the validator's separate revision explicitly.
 
 ## Run a deterministic preflight
 
-Run the existing validator on the baseline before launching a broad review. Save
-the emitted JSON, stderr, and exit status using the
+Run the existing validator on the selected baseline contracts before substantive
+review. Save the emitted JSON, stderr, and exit status using the
 [packet output capture recipe](PACKET_DELEGATION.md#validator-invocation-inside-the-child).
 Use `trace` when the applicability of a finding needs explanation.
 
@@ -64,7 +67,9 @@ and claims affected by changed sources or rules on subsequent passes.
 
 ## Preserve the useful inspections
 
-For each selected claim, retain a compact record of these checks.
+For each selected claim, retain a compact record of the checks requested by the
+caller. The default inspection menu is below. An explicit focus selection can
+narrow it; record excluded checks as not requested.
 
 - Compare the quoted claim with its source text verbatim, including qualifiers.
   Record the source locator and any exact wording difference.
@@ -81,7 +86,8 @@ denominator error separately from a missing denominator declaration.
 ## Detect drift before accepting the packet
 
 Compare every returned contract against the caller-retained baseline. Compare
-the inventories as well so missing or extra files cannot bypass a per-file check.
+the selected and returned inventories so missing or extra files within scope
+cannot bypass a per-file check.
 Run from the packet directory, with `BASELINE_DIR` pointing to the protected
 baseline. The following name is synthetic.
 
@@ -134,8 +140,8 @@ checked.
 
 ## Completion boundary
 
-The caller checks the inventory, returned-contract diffs, proposal records, report
-bindings, and packet links at the persistent destination. Use
+The caller checks the selected inventory, returned-contract diffs, proposal records,
+report bindings, and packet links at the persistent destination. Use
 `claim-contract report verify` for saved report-to-contract binding checks.
 The changed-contract exit gate detects drift. The caller enforces proposal
 coverage and acceptance decisions.

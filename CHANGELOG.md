@@ -12,6 +12,8 @@
 
 ### Added
 
+- Caller task template and controls for targeted/full/delta reviews, source scope, priorities, inspection focus, proposal mode, effort targets, and output detail. Delegation retains the exact assignment and distinguishes completed, blocked, and not-requested work.
+
 - Opt-in `contract diff --fail-on-change` gate for returned-contract drift, with full text/JSON diffs even when verdicts match.
 - Review baseline and proposal workflow for retained declarations, explicit acceptance, deterministic preflight, targeted inspections, and source/tool revision records in delegated packets.
 

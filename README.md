@@ -299,6 +299,8 @@ For Claude-to-Codex packet authoring, use the [persistent output delegation reci
 
 `contract diff --fail-on-change` exits `1` for any detected parsed field change, even when both verdicts are BLOCK, and emits the full diff. Unchanged declarations exit `0`; input errors exit `2`. The [review baseline workflow](docs/REVIEW_BASELINE.md) retains supplied declarations, requires reasons and sources for proposals, and assigns acceptance to the caller. It also covers deterministic preflight, focused reviews, and separate reporting of declaration gaps and observed analytical issues.
 
+The [caller task controls](docs/REVIEW_TASK.md) and [ready-to-edit task template](templates/review-task.yaml) let a calling agent select contracts, source scope, inspection focus, prioritized questions, proposal mode, effort targets, and report detail. The receiver records its effective assignment and returns answers with completed or blocked work. Effort targets are prompt guidance; hard limits belong in the caller's runtime.
+
 The canonical command surface is `claim-contract ...`. The older
 `claim-contract-graph prune ...` and `claim-dag inspect|render ...` executables remain
 available as backwards-compatible aliases and use the same parser/runner implementation.
