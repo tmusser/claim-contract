@@ -1,0 +1,30 @@
+# Copy this file to TASK_FILE and replace the synthetic paths and questions.
+# These are receiver instructions. Effort targets require runtime support for hard limits.
+objective: "Determine whether the selected metric labels match their declared definitions."
+questions:
+  - "Does each label describe the numerator and denominator actually used?"
+  - "Which missing input would most directly resolve the remaining uncertainty?"
+
+scope:
+  mode: targeted
+  contracts:
+    - C01.yaml
+    - C02.yaml
+  source_locators:
+    - "metric-notes.md#definitions"
+  previous_review: null
+  change_context: []
+
+focus:
+  - denominator
+  - wording
+proposal_mode: findings_only
+missing_inputs: continue_available
+
+effort:
+  minutes_target: 15
+  tokens_target: null
+
+output:
+  detail: concise
+  max_summary_findings: 5
