@@ -39,6 +39,7 @@ from .metadata import (
     TOOL_VERSION,
 )
 from .models import Verdict
+from .packet_consistency import PACKET_VERIFY_SCOPE_NOTICE, verify_packet_consistency
 from .packet_links import PACKET_SCOPE_NOTICE, check_packet_links
 from .profile_diff import ProfileDiff, build_profile_diff, load_profile_manifest
 from .profiles import ProfileManifest, get_profile_manifest
@@ -130,6 +131,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="Shortcut for --format json.",
     )
     packet_check.set_defaults(format="text")
+
+    packet_verify = packet_commands.add_parser(
+        "verify", help="Compare the explicit packet summary with contracts and validator reports."
+    )
+    packet_verify.add_argument("markdown", help="Path to the Markdown packet.")
+    packet_verify_output = packet_verify.add_mutually_exclusive_group()
+    packet_verify_output.add_argument(
+        "--format", choices=("text", "json"), help="Output format."
+    )
+    packet_verify_output.add_argument(
+        "--json", action="store_const", const="json", dest="format",
+        help="Shortcut for --format json.",
+    )
+    packet_verify.set_defaults(format="text")
 
     receipts = subparsers.add_parser(
         "receipts",
@@ -451,6 +466,38 @@ def _run_packet_check(markdown_path: str, output_format: str) -> int:
         for failure in failures:
             print(f"Line {failure.line}: {failure.target} ({failure.reason})")
     return 1 if failures else 0
+
+
+def _run_packet_verify(markdown_path: str, output_format: str) -> int:
+    payload = {
+        "schema_version": "1.0",
+        "type": "claim_contract.packet_consistency_check",
+        "tool": {"name": TOOL_NAME, "version": TOOL_VERSION},
+        "scope_notice": PACKET_VERIFY_SCOPE_NOTICE,
+        "scientific_validation": False,
+        "automatic_adjudication": False,
+    }
+    try:
+        inspection = verify_packet_consistency(Path(markdown_path))
+    except (OSError, ValueError) as exc:
+        message = f"Input error: {exc}"
+        if output_format == "json":
+            payload["error"] = {"message": message}
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            print(message, file=sys.stderr)
+            print(PACKET_VERIFY_SCOPE_NOTICE, file=sys.stderr)
+        return 2
+
+    payload.update(inspection.to_dict())
+    if output_format == "json":
+        print(json.dumps(payload, indent=2, sort_keys=True))
+    else:
+        print(PACKET_VERIFY_SCOPE_NOTICE)
+        print(f"Validation summary rows checked: {inspection.rows_checked}")
+        for failure in inspection.failures:
+            print(f"Line {failure.line}: {failure.code} {failure.target} ({failure.reason})")
+    return 1 if inspection.failures else 0
 
 
 def _run_receipts_inspect(
@@ -900,6 +947,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "packet" and args.packet_command == "check":
         return _run_packet_check(args.markdown, args.format)
+    if args.command == "packet" and args.packet_command == "verify":
+        return _run_packet_verify(args.markdown, args.format)
 
     if args.command == "receipts":
         if args.receipts_command == "inspect":
