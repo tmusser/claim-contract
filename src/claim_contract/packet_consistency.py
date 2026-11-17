@@ -171,6 +171,17 @@ def _resolve_target(root: Path, target: str, kind: str) -> Path:
     return path
 
 
+def _strict_equal(left: object, right: object) -> bool:
+    """Compare full JSON values without Python's True == 1 / False == 0 collapse."""
+    return json.dumps(left, sort_keys=True, separators=(",", ":"), allow_nan=False) == (
+        json.dumps(right, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    )
+
+
+def _reject_constant(value: str) -> None:
+    raise ValueError(f"Invalid JSON numeric constant: {value}")
+
+
 def _reported_findings(value: str) -> Counter[str]:
     if value == "-":
         return Counter()
@@ -226,18 +237,21 @@ def _validate_row(
 
     try:
         contract = load_contract(contract_path)
-        saved = json.loads(report_path.read_text(encoding="utf-8"))
+        saved = json.loads(
+            report_path.read_text(encoding="utf-8"),
+            parse_constant=_reject_constant,
+        )
         if not isinstance(saved, dict):
             raise ValueError("Report root must be an object")
         expected = validate_contract(contract).to_dict()
-    except (OSError, ValueError, TypeError, RecursionError) as exc:
+    except (OSError, ValueError, TypeError, KeyError, RecursionError) as exc:
         fail("ARTIFACT_INPUT", row.report_target, f"Could not inspect contract/report: {exc}")
         return contract_path, report_path
 
     # Recompute deterministic contract findings; tool.version is intentionally
     # excluded because its release value can differ without changing semantics.
     for field in _FIELDS:
-        if saved.get(field) != expected.get(field):
+        if not _strict_equal(saved.get(field), expected.get(field)):
             fail("SAVED_REPORT_DRIFT", row.report_target,
                  f"Saved report field {field!r} disagrees with current validator output")
 
