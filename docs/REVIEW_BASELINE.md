@@ -141,7 +141,11 @@ checked.
 ## Completion boundary
 
 The caller checks the selected inventory, returned-contract diffs, proposal records,
-report bindings, and packet links at the persistent destination. Use
+report bindings, and packet links at the persistent destination. Run
+`claim-contract packet verify packet.md` on the strict
+[validation summary table](PACKET_VERIFY.md) to identify contradictions between
+packet wording, captured JSON, and returned contracts; that check does not compare
+returned declarations with the caller-retained baseline. Use
 `claim-contract report verify` for saved report-to-contract binding checks.
 The changed-contract exit gate detects drift. The caller enforces proposal
 coverage and acceptance decisions.
