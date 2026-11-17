@@ -272,6 +272,7 @@ claim-contract receipts inspect path/to/contract.yaml path/to/receipts.yaml --js
 claim-contract contract diff baseline.yaml returned.yaml --fail-on-change --json
 claim-contract packet check path/to/packet.md
 claim-contract packet check path/to/packet.md --json
+claim-contract packet verify path/to/packet.md --json
 claim-contract handoff chart path/to/contract.yaml
 claim-contract handoff chart path/to/contract.yaml --warnings-as-errors
 claim-contract profile show minimum-v0.1
@@ -294,6 +295,8 @@ claim-contract dag render examples/claim_dag/dag.yaml
 `receipts inspect` reports retained repository refs for applicable declared evidence fields. Unreceipted fields are informational and do not change the validation verdict. Contract-binding drift or broken pinned refs make receipt integrity invalid and exit `1`; malformed receipt input exits `2`. A resolved receipt does not verify the declaration it points at. See [Evidence receipts](docs/EVIDENCE_RECEIPTS.md).
 
 `packet check` checks local inline links and images relative to the Markdown packet and parses linked JSON files. Run it after copying or moving a packet. It exits `0` when the targets resolve and linked JSON parses, `1` for a missing or absolute target or unparseable JSON, and `2` for a packet input error. Link integrity only. This does not validate any claim, contract, or evidence.
+
+`packet verify` checks a strictly formatted `## Validation summary` table against returned `contracts/` and `validate/` artifacts, comparing verbatim claim text, saved verdicts and every rule/severity/path finding. It reruns the installed deterministic validator to detect report drift and reports unlisted/duplicated artifacts. It exits `0` on matching summaries, `1` for consistency failures, and `2` when the packet cannot be read. This does not authenticate reports or validate the underlying science. See [packet verification](docs/PACKET_VERIFY.md).
 
 For Claude-to-Codex packet authoring, use the [persistent output delegation recipe](docs/PACKET_DELEGATION.md). The caller chooses a writable packet directory inside its project before launch, and the child writes the Markdown, declared contracts, and validator outputs directly there while using a read-only tool checkout.
 

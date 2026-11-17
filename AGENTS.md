@@ -217,6 +217,14 @@ Keep each review packet beside, or link it to, the contracts and validator outpu
 Run `claim-contract packet check path/to/packet.md` after every copy or move.
 A pass means only that the links resolve, with a syntax check for linked JSON files.
 
+For delegated reviews, include the strict `## Validation summary` table
+described in [docs/PACKET_VERIFY.md](docs/PACKET_VERIFY.md), then run
+`claim-contract packet verify path/to/packet.md`. Preserve exact claim text,
+the captured validator verdict, and every `rule_id/severity/path` finding.
+A consistency pass does not verify scientific evidence, prove validator
+authenticity, or replace the caller-retained baseline diff and report binding
+checks. Never hide a finding by leaving it out of the table.
+
 When delegating packet authoring, the calling agent must choose a persistent
 output directory in its project and make that directory writable in the child's
 environment before launch. The child writes the packet, declared contracts, and
