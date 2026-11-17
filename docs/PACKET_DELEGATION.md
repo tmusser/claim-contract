@@ -96,7 +96,13 @@ be a completed BLOCK verdict. Exit 2 is an input error and must be resolved or
 reported as incomplete. Never substitute a hand-written validator result.
 
 Use relative inline links from packet.md to contracts/ and validate/.
-Include only files actually written. Preserve missing evidence as missing.
+Include exactly one `## Validation summary` table as defined in
+TOOL_REPO/docs/PACKET_VERIFY.md, with a row for every selected returned
+contract and its corresponding captured report. Copy claim.text exactly;
+record the literal report verdict and every rule/severity/path finding, using
+a dash only for zero findings. Do not substitute a shortened narrative
+summary for this mechanical inventory. Include only files actually written.
+Preserve missing evidence as missing.
 Perform the requested focus checks and answer the caller's prioritized questions.
 Record each assigned check as completed or blocked with its source or reason.
 Record default checks excluded by the assignment as not_requested.
@@ -108,13 +114,16 @@ Keep candidate unstated propositions distinct from adopted contract claims.
 Include exactly this sentence in packet.md:
 Link integrity only. This does not validate any claim, contract, or evidence.
 
-Run the packet link check against PACKET_DIR/packet.md after all files are
-written. Return the absolute packet path, the files created, the executed
+Run the packet link check and packet summary consistency check against
+PACKET_DIR/packet.md after all files are written. A failed consistency check
+means the packet is incomplete, even if the link check passes.
+Return the absolute packet path, the files created, the executed
 checks and exit statuses, and any unresolved errors. Return complete, partial,
 or blocked work status separately from validator verdicts. A task is complete
 only when all assigned work finishes, its files exist at the final destination,
 the selected inventory matches, all returned contracts pass the baseline diff
-gate, and its link check exits 0. A link-check pass alone cannot complete the task.
+gate, and both its link check and packet verify exit 0. A link-check pass alone
+cannot complete the task.
 Pending proposals remain proposals for the caller to present for acceptance.
 
 Caller assignment follows.
@@ -164,6 +173,7 @@ fi
 printf '%s\n' "$validation_code" > validate/C01.exit-code
 
 python -m claim_contract packet check packet.md --json > link-check.json
+python -m claim_contract packet verify packet.md --json > packet-verify.json
 ```
 
 The `C01` name is a synthetic naming example. A validator output file establishes
@@ -192,7 +202,9 @@ proposal's diff, reason, source, and decision record. Verify saved report bindin
 with `report verify` and rerun
 `claim-contract packet check /absolute/path/to/packet.md --json` there.
 Compare the packet's `task.md` with the caller-retained assignment, then compare
-its effective task settings and work-status table with that assignment. Verify answers to the assigned questions and account for blocked or
+its effective task settings and work-status table with that assignment. Verify
+`claim-contract packet verify /absolute/path/to/packet.md --json` also exits 0,
+then verify answers to the assigned questions and account for blocked or
 not-requested inspections. Retain partial files for diagnosis when a run fails and use a fresh directory
 for a retry. Report incomplete output explicitly. The caller presents pending
 proposals for explicit acceptance and retains accepted changes as a new baseline
