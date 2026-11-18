@@ -41,6 +41,13 @@ from .metadata import (
 from .models import Verdict
 from .packet_consistency import PACKET_VERIFY_SCOPE_NOTICE, verify_packet_consistency
 from .packet_links import PACKET_SCOPE_NOTICE, check_packet_links
+from .packet_manifest import (
+    INPUT_EXCEPTIONS as MANIFEST_INPUT_EXCEPTIONS,
+    SCOPE_NOTICE as MANIFEST_SCOPE_NOTICE,
+    ManifestFailure,
+    create_manifest,
+    verify_manifest,
+)
 from .profile_diff import ProfileDiff, build_profile_diff, load_profile_manifest
 from .profiles import ProfileManifest, get_profile_manifest
 from .receipts import (
@@ -145,6 +152,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="Shortcut for --format json.",
     )
     packet_verify.set_defaults(format="text")
+
+    manifest = packet_commands.add_parser("manifest", help="Snapshot and verify portable packet directories.")
+    manifests = manifest.add_subparsers(dest="manifest_command", required=True)
+    create = manifests.add_parser("create", help="Create a manifest after packet checks pass.")
+    verify = manifests.add_parser("verify", help="Check a packet against its saved manifest.")
+    for command in (create, verify):
+        command.add_argument("directory", help="Dedicated directory containing packet.md.")
+        command.add_argument("--json", action="store_true", help="Emit JSON diagnostics.")
+    verify.add_argument("--expected-sha256", help="Caller-retained SHA-256 of the manifest file.")
 
     receipts = subparsers.add_parser(
         "receipts",
@@ -498,6 +514,43 @@ def _run_packet_verify(markdown_path: str, output_format: str) -> int:
         for failure in inspection.failures:
             print(f"Line {failure.line}: {failure.code} {failure.target} ({failure.reason})")
     return 1 if inspection.failures else 0
+
+
+def _run_packet_manifest(args) -> int:
+    payload = {
+        "schema_version": "1.0",
+        "type": "claim_contract.packet_manifest_check",
+        "tool": {"name": TOOL_NAME, "version": TOOL_VERSION},
+        "scope_notice": MANIFEST_SCOPE_NOTICE,
+        "scientific_validation": False,
+        "operation": args.manifest_command,
+    }
+    try:
+        directory = Path(args.directory)
+        if args.manifest_command == "create":
+            result = create_manifest(directory)
+        else:
+            result = verify_manifest(directory, args.expected_sha256)
+        payload.update(result)
+        code = 1 if result["failures"] else 0
+    except ManifestFailure as exc:
+        payload["failures"] = [{"code": "INVALID_PACKET", "reason": str(exc)}]
+        code = 1
+    except MANIFEST_INPUT_EXCEPTIONS as exc:
+        payload["error"] = {"message": str(exc)}
+        code = 2
+    if args.json:
+        print(json.dumps(payload, indent=2, sort_keys=True))
+    else:
+        print(MANIFEST_SCOPE_NOTICE)
+        if "manifest_sha256" in payload:
+            print(f"Manifest SHA-256: {payload['manifest_sha256']}")
+            print(f"Artifacts checked: {payload['artifacts_checked']}")
+        for failure in payload.get("failures", []):
+            print(f"{failure['code']}: {failure.get('path', failure.get('reason', ''))}")
+        if "error" in payload:
+            print(payload["error"]["message"], file=sys.stderr)
+    return code
 
 
 def _run_receipts_inspect(
@@ -949,6 +1002,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_packet_check(args.markdown, args.format)
     if args.command == "packet" and args.packet_command == "verify":
         return _run_packet_verify(args.markdown, args.format)
+    if args.command == "packet" and args.packet_command == "manifest":
+        return _run_packet_manifest(args)
 
     if args.command == "receipts":
         if args.receipts_command == "inspect":

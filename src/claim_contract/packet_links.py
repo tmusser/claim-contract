@@ -52,16 +52,22 @@ def _target_failure(folder: Path, target: str) -> str | None:
     return None
 
 
-def check_packet_links(packet: Path) -> list[LinkFailure]:
+def iter_packet_links(packet: Path):
+    """Yield line, literal target and unescaped destination for supported links."""
     markdown = packet.read_text(encoding="utf-8")
-    failures = []
     for match in _INLINE_LINK.finditer(markdown):
         target = match.group("angle")
         if target is None:
             target = match.group("bare")
         destination = re.sub(r"\\([\\()<>])", r"\1", target)
+        line = markdown.count("\n", 0, match.start()) + 1
+        yield line, target, destination
+
+
+def check_packet_links(packet: Path) -> list[LinkFailure]:
+    failures = []
+    for line, target, destination in iter_packet_links(packet):
         reason = _target_failure(packet.parent, destination)
         if reason is not None:
-            line = markdown.count("\n", 0, match.start()) + 1
             failures.append(LinkFailure(line, target, reason))
     return failures
