@@ -12,6 +12,7 @@
 
 ### Added
 
+- `claim-contract packet manifest create|verify` for portable, byte-bound review packet inventories and declared contract/report identities, with optional caller-pinned manifest digest and no validator rerun during destination verification.
 - `claim-contract packet verify` checks a strict operator-facing validation summary against unchanged returned contracts and captured validator reports, including exact claim wording, verdict, complete findings, matching report paths, duplicate/omitted artifacts, and deterministic report drift; output retains non-scientific-validation boundaries.
 - Caller task template and controls for targeted/full/delta reviews, source scope, priorities, inspection focus, proposal mode, effort targets, and output detail. Delegation retains the exact assignment and distinguishes completed, blocked, and not-requested work.
 

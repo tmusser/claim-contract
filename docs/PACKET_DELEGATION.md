@@ -181,6 +181,14 @@ what the executed command emitted. A link-check pass establishes only link
 resolution and linked JSON syntax. Preserve the validator's scope notice and
 each actual verdict when writing the packet.
 
+## Optional portable handoff
+
+After all review files and check outputs are finalized, the caller may run
+`claim-contract packet manifest create "$PACKET_DIR" --json` and retain its
+manifest SHA-256 outside the packet. Copy the entire directory and check it with
+`claim-contract packet manifest verify <received-directory> --expected-sha256 <digest>`.
+Keep any post-manifest check outputs outside the packet. See [portable packet manifests](PACKET_MANIFEST.md) for the inventory, supported links and limits.
+
 ## Isolated child environments
 
 If the child runs in a container or remote workspace, the caller must map

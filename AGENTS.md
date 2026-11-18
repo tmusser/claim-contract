@@ -225,6 +225,8 @@ A consistency pass does not verify scientific evidence, prove validator
 authenticity, or replace the caller-retained baseline diff and report binding
 checks. Never hide a finding by leaving it out of the table.
 
+For a portable handoff, finalize the packet before creating its manifest. The caller retains the manifest digest separately, then verifies the copied directory. See [portable packet manifests](docs/PACKET_MANIFEST.md). Do not rewrite a manifest to conceal changed or missing artifacts; do not claim hashes establish scientific validity or review completeness.
+
 When delegating packet authoring, the calling agent must choose a persistent
 output directory in its project and make that directory writable in the child's
 environment before launch. The child writes the packet, declared contracts, and
