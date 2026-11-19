@@ -307,7 +307,11 @@ def audit_review(packet: Path, task: Path, baseline: Path) -> dict:
                 status = supplied
                 if supplied == "blocked":
                     fail("REQUEST_BLOCKED", target, detail)
-        rows.append({**item, "status": status})
+        rows.append({
+            **item, "status": status,
+            "artifact": record.get("artifact") if record and isinstance(record.get("artifact"), str) else None,
+            "detail": record.get("detail") if record and isinstance(record.get("detail"), str) else None,
+        })
         counts[status] += 1
 
     requested = len(contracts) * len(focus) + len(questions)

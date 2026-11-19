@@ -28,6 +28,12 @@ resolve affected contracts, parse effort targets, or enforce proposal mode.
 
 ## Work record format (v1)
 
+The [JSON Schema](../schemas/review-work-v1.schema.json) documents record shape;
+the CLI additionally checks exact caller scope, paths, and status consistency.
+The record's `work_status` describes assigned-work record coverage, not the
+receiver's separate overall workflow status (which also depends on the existing
+baseline, validator, packet and human-review gates).
+
 ```json
 {
   "schema_version": "1.0",

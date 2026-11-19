@@ -247,3 +247,36 @@ def test_receiver_copy_cannot_be_independent_assignment(review, capsys):
         "--baseline", str(baseline), "--json",
     ]) == 2
     assert "outside the packet" in json.loads(capsys.readouterr().out)["error"]["message"]
+
+def test_work_record_schema_matches_example(review):
+    from jsonschema import Draft202012Validator
+
+    schema = json.loads(Path("schemas/review-work-v1.schema.json").read_text(encoding="utf-8"))
+    Draft202012Validator.check_schema(schema)
+    Draft202012Validator(schema).validate(review[-1])
+
+
+def test_all_requested_records_blocked_is_not_success(review, capsys):
+    packet, _, _, _, ledger = review
+    for record in ledger["records"]:
+        if record["status"] == "completed":
+            record.update(status="blocked", artifact=None, detail="Required source unavailable.")
+    ledger["work_status"] = "blocked"
+    _save(packet, ledger)
+    code, result = _run(review, capsys)
+    assert code == 1
+    assert result["derived_status"] == "blocked"
+    assert result["counts"]["blocked"] == 3
+    assert _codes(result) == {"REQUEST_BLOCKED"}
+
+
+def test_delta_requires_context_and_preserves_explicit_selection(review, capsys):
+    packet, task_path, _, task, _ = review
+    task["scope"].update(mode="delta", previous_review="previous.md", change_context=["Changed C01"])
+    _task(packet, task_path, task)
+    assert _run(review, capsys)[0] == 0
+    task["scope"]["change_context"] = []
+    _task(packet, task_path, task)
+    code, result = _run(review, capsys)
+    assert code == 2
+    assert "change_context" in result["error"]["message"]
