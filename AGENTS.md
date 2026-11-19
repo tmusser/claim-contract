@@ -225,6 +225,8 @@ A consistency pass does not verify scientific evidence, prove validator
 authenticity, or replace the caller-retained baseline diff and report binding
 checks. Never hide a finding by leaving it out of the table.
 
+For a structured task, record each selected contract's three focus slots and each question in `review-work.json` as specified by [review work audit](docs/REVIEW_AUDIT.md). The caller runs `packet audit` against its independent task and baseline. A clean audit does not prove an inspection occurred; blocked and missing work must remain visible.
+
 For a portable handoff, finalize the packet before creating its manifest. The caller retains the manifest digest separately, then verifies the copied directory. See [portable packet manifests](docs/PACKET_MANIFEST.md). Do not rewrite a manifest to conceal changed or missing artifacts; do not claim hashes establish scientific validity or review completeness.
 
 When delegating packet authoring, the calling agent must choose a persistent
