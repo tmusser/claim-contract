@@ -7,6 +7,8 @@ from collections.abc import Mapping
 from dataclasses import asdict
 from pathlib import Path
 
+import yaml
+
 from .binding import (
     build_contract_binding,
     build_profile_manifest_binding,
@@ -55,6 +57,7 @@ from .receipts import (
     inspect_evidence_receipts,
     load_evidence_receipts,
 )
+from .review_audit import SCOPE_NOTICE as REVIEW_AUDIT_NOTICE, audit_review
 from .trace import build_rule_trace, format_rule_trace_text
 from .validator import validate_contract
 
@@ -161,6 +164,17 @@ def build_parser() -> argparse.ArgumentParser:
         command.add_argument("directory", help="Dedicated directory containing packet.md.")
         command.add_argument("--json", action="store_true", help="Emit JSON diagnostics.")
     verify.add_argument("--expected-sha256", help="Caller-retained SHA-256 of the manifest file.")
+
+    audit = packet_commands.add_parser(
+        "audit", help="Reconcile assigned review checks with returned work records."
+    )
+    audit.add_argument("directory", help="Returned packet directory.")
+    audit.add_argument("--task", required=True, help="Caller-retained structured YAML assignment.")
+    audit.add_argument("--baseline", required=True, help="Caller-retained baseline contract directory.")
+    audit_output = audit.add_mutually_exclusive_group()
+    audit_output.add_argument("--format", choices=("text", "json"))
+    audit_output.add_argument("--json", action="store_const", const="json", dest="format")
+    audit.set_defaults(format="text")
 
     receipts = subparsers.add_parser(
         "receipts",
@@ -550,6 +564,37 @@ def _run_packet_manifest(args) -> int:
             print(f"{failure['code']}: {failure.get('path', failure.get('reason', ''))}")
         if "error" in payload:
             print(payload["error"]["message"], file=sys.stderr)
+    return code
+
+
+def _run_review_audit(args) -> int:
+    try:
+        payload = audit_review(Path(args.directory), Path(args.task), Path(args.baseline))
+        code = 1 if payload["failures"] else 0
+    except (OSError, ValueError, TypeError, RecursionError, yaml.YAMLError) as exc:
+        payload = {
+            "schema_version": "1.0",
+            "type": "claim_contract.review_work_audit",
+            "tool": {"name": TOOL_NAME, "version": TOOL_VERSION},
+            "scope_notice": REVIEW_AUDIT_NOTICE,
+            "scientific_validation": False,
+            "analytical_completion_verified": False,
+            "error": {"message": str(exc)},
+        }
+        code = 2
+    if args.format == "json":
+        print(json.dumps(payload, indent=2, sort_keys=True))
+    else:
+        print(REVIEW_AUDIT_NOTICE)
+        if "error" in payload:
+            print(payload["error"]["message"], file=sys.stderr)
+        else:
+            print(f"Recorded work status: {payload['recorded_status']}")
+            print(f"Derived record status: {payload['derived_status']}")
+            for status, count in payload["counts"].items():
+                print(f"{status}: {count}")
+            for failure in payload["failures"]:
+                print(f"{failure['code']}: {failure['target']} ({failure['reason']})")
     return code
 
 
@@ -1004,6 +1049,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_packet_verify(args.markdown, args.format)
     if args.command == "packet" and args.packet_command == "manifest":
         return _run_packet_manifest(args)
+    if args.command == "packet" and args.packet_command == "audit":
+        return _run_review_audit(args)
 
     if args.command == "receipts":
         if args.receipts_command == "inspect":
