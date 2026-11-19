@@ -275,6 +275,7 @@ claim-contract packet check path/to/packet.md --json
 claim-contract packet verify path/to/packet.md --json
 claim-contract packet manifest create path/to/packet-dir --json
 claim-contract packet manifest verify path/to/packet-dir --json
+claim-contract packet audit path/to/packet-dir --task retained/task.yaml --baseline retained/contracts --json
 claim-contract handoff chart path/to/contract.yaml
 claim-contract handoff chart path/to/contract.yaml --warnings-as-errors
 claim-contract profile show minimum-v0.1
@@ -305,6 +306,8 @@ claim-contract dag render examples/claim_dag/dag.yaml
 For Claude-to-Codex packet authoring, use the [persistent output delegation recipe](docs/PACKET_DELEGATION.md). The caller chooses a writable packet directory inside its project before launch, and the child writes the Markdown, declared contracts, and validator outputs directly there while using a read-only tool checkout.
 
 `contract diff --fail-on-change` exits `1` for any detected parsed field change, even when both verdicts are BLOCK, and emits the full diff. Unchanged declarations exit `0`; input errors exit `2`. The [review baseline workflow](docs/REVIEW_BASELINE.md) retains supplied declarations, requires reasons and sources for proposals, and assigns acceptance to the caller. It also covers deterministic preflight, focused reviews, and separate reporting of declaration gaps and observed analytical issues.
+
+`packet audit` reconciles a caller-retained structured task and baseline inventory with per-check and per-question `review-work.json` records in the returned packet, flagging omitted, blocked, or unsupported work. It checks record coverage and artifact presence, not execution or analytical quality. See [review work audit](docs/REVIEW_AUDIT.md).
 
 The [caller task controls](docs/REVIEW_TASK.md) and [ready-to-edit task template](templates/review-task.yaml) let a calling agent select contracts, source scope, inspection focus, prioritized questions, proposal mode, effort targets, and report detail. The receiver records its effective assignment and returns answers with completed or blocked work. Effort targets are prompt guidance; hard limits belong in the caller's runtime.
 

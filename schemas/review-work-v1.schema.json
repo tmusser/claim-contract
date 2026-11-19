@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tmusser/claim-contract/blob/main/schemas/review-work-v1.schema.json",
+  "title": "Declared review work records v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "type",
+    "work_status",
+    "records"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "type": {
+      "const": "claim_contract.review_work"
+    },
+    "work_status": {
+      "enum": [
+        "complete",
+        "partial",
+        "blocked"
+      ]
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/focus"
+          },
+          {
+            "$ref": "#/$defs/question"
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "nonblank": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "focus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "contract",
+        "check",
+        "status",
+        "artifact",
+        "detail"
+      ],
+      "properties": {
+        "kind": {
+          "const": "focus"
+        },
+        "contract": {
+          "$ref": "#/$defs/nonblank"
+        },
+        "check": {
+          "enum": [
+            "wording",
+            "denominator",
+            "coverage"
+          ]
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "blocked",
+            "not_requested"
+          ]
+        },
+        "artifact": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "detail": {
+          "$ref": "#/$defs/nonblank"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "completed"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "artifact": {
+                "$ref": "#/$defs/nonblank"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "not_requested"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "artifact": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "index",
+        "question",
+        "status",
+        "artifact",
+        "detail"
+      ],
+      "properties": {
+        "kind": {
+          "const": "question"
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "question": {
+          "$ref": "#/$defs/nonblank"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "blocked"
+          ]
+        },
+        "artifact": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "detail": {
+          "$ref": "#/$defs/nonblank"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "completed"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "artifact": {
+                "$ref": "#/$defs/nonblank"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

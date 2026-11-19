@@ -61,6 +61,7 @@ Review baseline boundary, Claim-implicit boundary, and Packet link boundary.
 These instructions apply even though the tool checkout is outside your current directory.
 Read TOOL_REPO/docs/REVIEW_BASELINE.md for the proposal and acceptance workflow.
 Read TOOL_REPO/docs/REVIEW_TASK.md for caller controls and their defaults.
+For structured YAML tasks, also read TOOL_REPO/docs/REVIEW_AUDIT.md.
 
 Use the absolute path values above when setting shell variables in your commands.
 Read the caller assignment below and record its effective settings in review-log.md.
@@ -106,6 +107,9 @@ Preserve missing evidence as missing.
 Perform the requested focus checks and answer the caller's prioritized questions.
 Record each assigned check as completed or blocked with its source or reason.
 Record default checks excluded by the assignment as not_requested.
+For structured YAML assignments, also write PACKET_DIR/review-work.json using
+REVIEW_AUDIT.md, including every focus slot and question with a result or reason
+and the supporting local artifact when completed. Keep the task snapshot intact.
 Honor the missing-input policy and save partial work at effort target boundaries.
 Start packet.md with answers to the caller's questions and the remaining unknowns.
 Keep all findings in linked artifacts even when the summary is concise.
@@ -209,6 +213,11 @@ checks the returned contract inventory against its selected baseline inventory, 
 proposal's diff, reason, source, and decision record. Verify saved report bindings
 with `report verify` and rerun
 `claim-contract packet check /absolute/path/to/packet.md --json` there.
+For structured YAML assignments run
+`claim-contract packet audit "$PACKET_DIR" --task "$TASK_FILE" --baseline "$BASELINE_DIR" --json`
+using the caller's retained inputs, not copies returned by the receiver. A nonzero
+result blocks a claim of completed assigned work. Review the actual artifact
+contents independently; a clean record audit cannot prove execution.
 Compare the packet's `task.md` with the caller-retained assignment, then compare
 its effective task settings and work-status table with that assignment. Verify
 `claim-contract packet verify /absolute/path/to/packet.md --json` also exits 0,

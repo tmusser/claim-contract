@@ -116,3 +116,9 @@ scope notices, explicit proposal acceptance, and the actual source/tool revision
 
 A passed link check alone does not establish that the assigned work completed.
 Report checks outside the requested focus as not requested.
+
+For structured YAML assignments, also return the machine-readable
+`review-work.json` record described in [review work audit](REVIEW_AUDIT.md).
+The caller audits the records against its retained task and baseline; a clean
+audit establishes mechanical record coverage, not verified analytical execution.
+Plain-text assignments continue to use the manual work-table comparison.
